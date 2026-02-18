@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚙️ Admin - O Rei da Coxinha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #c75b24; --success: #25d366; --dark: #1a1a2e; --blue: #3498db; --danger: #e74c3c; --warning: #f1c40f; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f0f5; min-height: 100vh; }
+
+        /* HEADER */
+        .header { background: linear-gradient(135deg, #1a1a2e 0%, #2d1f0e 100%); padding: 18px 20px 14px; color: white; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
+        .header-fiado-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; display: block; }
+        .header-fiado-valor { font-size: 22px; font-weight: 900; color: #ff6b6b; letter-spacing: 0.5px; }
+        .header-fiado-valor.zero { color: #2ecc71; }
+
+        /* HOME */
+        #homeScreen { display: none; padding: 20px 15px; max-width: 600px; margin: 0 auto; }
+        .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .home-card { background: white; border-radius: 24px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none; width: 100%; }
+        .home-card:active { transform: scale(0.96); }
+        .home-card-icon { font-size: 42px; margin-bottom: 10px; display: block; }
+        .home-card-label { font-size: 15px; font-weight: 700; color: #333; }
+        .home-card-sub { font-size: 12px; color: #999; margin-top: 3px; }
+        .home-card.card-orange { border-top: 4px solid var(--primary); }
+        .home-card.card-blue { border-top: 4px solid var(--blue); }
+        .home-card.card-red { border-top: 4px solid var(--danger); }
+        .home-card.card-green { border-top: 4px solid var(--success); }
+        .home-store-btn { margin-top: 20px; display: block; text-align: center; text-decoration: none; background: linear-gradient(135deg, #1a1a2e, #c75b24); color: white; padding: 14px; border-radius: 18px; font-weight: 700; font-size: 15px; }
+
+        /* INNER */
+        #innerApp { display: none; }
+        .section { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .section.active { display: block; }
+        .back-area { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 65px; z-index: 89; }
+        .back-btn { background: #f0f0f0; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #333; }
+        .back-section-title { font-weight: 700; color: var(--primary); font-size: 16px; }
+
+        /* CARDS */
+        .card-box { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .card-box h4 { color: var(--primary); margin-bottom: 12px; }
+        .input-text { width: 100%; padding: 12px; border: 1.5px solid #e8e8e8; border-radius: 12px; margin-bottom: 10px; font-size: 15px; background: #fafafa; }
+        .input-text:focus { outline: none; border-color: var(--primary); }
+        .input-prefix-container { position: relative; display: flex; align-items: center; margin-bottom: 10px; }
+        .input-prefix-container span { position: absolute; left: 15px; font-weight: bold; color: #555; }
+        .input-prefix-container input { padding-left: 50px !important; margin-bottom: 0; }
+        .btn { padding: 11px 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn:active { opacity: 0.85; transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-block { width: 100%; }
+        .btn-sm { padding: 7px 12px; font-size: 12px; }
+
+        /* PRODUCT ITEM */
+        .prod-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid #eee; }
+        .prod-item img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; margin-right: 10px; }
+
+        /* CLIENT */
+        .client-card { background: white; border: 1px solid #eee; padding: 14px; border-radius: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .saldo-positivo { color: var(--blue); font-weight: bold; }
+        .saldo-devedor { color: var(--danger); font-weight: bold; }
+
+        /* FIADO BANNER */
+        .fiado-banner { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 16px 18px; border-radius: 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(231,76,60,0.35); }
+        .fiado-banner.zerado { background: linear-gradient(135deg, #27ae60, #1e8449); box-shadow: 0 4px 15px rgba(39,174,96,0.35); }
+        .fb-label { font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 1px; }
+        .fb-value { font-size: 26px; font-weight: 900; }
+
+        /* ORDER */
+        .order-card { background: #f9f9f9; border: 1px solid #eee; padding: 12px; border-radius: 14px; margin-bottom: 10px; }
+
+        /* SWITCH */
+        .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* TOAST NOTIFICATION */
+        #toastContainer { position: fixed; top: 12px; left: 0; right: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; pointer-events: none; padding: 0 12px; }
+        .toast { width: 100%; max-width: 420px; background: rgba(30,30,40,0.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 22px; box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2); padding: 14px 16px 10px; pointer-events: all; transform: translateY(-130%) scale(0.9); opacity: 0; transition: transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.3s ease; overflow: hidden; color: white; }
+        .toast.show { transform: translateY(0) scale(1); opacity: 1; }
+        .toast-bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+        .toast-progress { height: 100%; background: currentColor; border-radius: 10px; animation: toastProgress 8s linear forwards; }
+        @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+        .toast-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .toast-app-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+        .toast-app-icon { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; background: rgba(255,255,255,0.15); }
+        .toast-app-name { font-size: 11px; opacity: 0.55; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .toast-time { font-size: 11px; opacity: 0.45; margin-left: auto; }
+        .toast-title { font-weight: 800; font-size: 14px; color: white; line-height: 1.3; }
+        .toast-body { font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 4px; white-space: pre-line; line-height: 1.5; }
+        .toast-close { background: rgba(255,255,255,0.12); border: none; font-size: 13px; cursor: pointer; color: rgba(255,255,255,0.6); line-height: 1; padding: 4px 7px; border-radius: 20px; flex-shrink: 0; }
+        .toast-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .toast-btn { flex: 1; padding: 10px; border: none; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.2s; }
+        .toast-btn:active { opacity: 0.8; }
+        .toast.success .toast-progress { color: #25d366; }
+        .toast.confirm .toast-progress { color: #c75b24; }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<div id="adminApp" style="display:none;">
+
+    <div class="header">
+        <div>
+            <span class="header-fiado-label">💸 Total em Fiado</span>
+            <span class="header-fiado-valor zero" id="headerFiadoValor">R$ 0,00</span>
+        </div>
+        <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; text-decoration:none;">← Loja</a>
+    </div>
+
+    <!-- HOME: cards de navegação -->
+    <div id="homeScreen">
+        <div style="padding: 18px 0 12px; text-align:center; color:#666; font-size:14px; font-weight:600;">Selecione uma opção</div>
+        <div class="home-grid">
+            <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
+                <span class="home-card-icon">🤖</span>
+                <div class="home-card-label">Refazer Pedidos</div>
+                <div class="home-card-sub">Repetir no fiado</div>
+            </button>
+            <button class="home-card card-blue" onclick="openSection('clientes')">
+                <span class="home-card-icon">👥</span>
+                <div class="home-card-label">Clientes</div>
+                <div class="home-card-sub">Fiados & cadastros</div>
+            </button>
+            <button class="home-card card-red" onclick="openSection('pedidos')">
+                <span class="home-card-icon">📋</span>
+                <div class="home-card-label">Pedidos</div>
+                <div class="home-card-sub">Histórico & vendas</div>
+            </button>
+            <button class="home-card card-green" onclick="openSection('mensagens')">
+                <span class="home-card-icon">⚙️</span>
+                <div class="home-card-label">Configurações</div>
+                <div class="home-card-sub">Templates WhatsApp</div>
+            </button>
+            <button class="home-card card-orange" onclick="openSection('salgados')">
+                <span class="home-card-icon">🍕</span>
+                <div class="home-card-label">Salgados</div>
+                <div class="home-card-sub">Gerenciar produtos</div>
+            </button>
+            <button class="home-card" style="border-top:4px solid #e67e22;" onclick="openSection('compra')">
+                <span class="home-card-icon">🛒</span>
+                <div class="home-card-label">Compra no Nome</div>
+                <div class="home-card-sub">Pedido pelo admin</div>
+            </button>
+            <button class="home-card" style="border-top:4px solid #16a085; grid-column: span 2;" onclick="openSection('historico')">
+                <span class="home-card-icon">🕓</span>
+                <div class="home-card-label">Histórico Fiado</div>
+                <div class="home-card-sub">Últimas 10 compras no fiado</div>
+            </button>
+        </div>
+        <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
+        <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
+    </div>
+
+    <!-- SEÇÕES INTERNAS -->
+    <div id="innerApp">
+        <div class="back-area" style="justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button class="back-btn" onclick="goHome()">← Voltar</button>
+                <span class="back-section-title" id="sectionTitle"></span>
+            </div>
+            <button id="btnInativos" onclick="verClientesInativos()" style="display:none; padding:7px 12px; background:#fff3e0; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                ⏰ Inativos
+            </button>
+        </div>
+
+        <!-- Modal Clientes Inativos -->
+        <div id="modalInativos" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:center; justify-content:center; padding:15px;">
+            <div style="background:white; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="color:#e67e22; font-size:17px;">⏰ Clientes Inativos (+20 dias)</h3>
+                    <button onclick="document.getElementById('modalInativos').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                </div>
+                <div id="inativosList"><div style="text-align:center;color:#888;padding:20px;">Carregando...</div></div>
+            </div>
+        </div>
+
+        <div id="tab-prods" class="section">
+            <div class="card-box">
+                <h4 id="prodFormTitle">➕ Cadastrar Salgado</h4>
+                <input type="hidden" id="editProductId">
+                <input type="text" id="newPName" class="input-text" placeholder="Ex: Coxinha de Frango">
+                <input type="number" id="newPPrice" class="input-text" placeholder="Preço (ex: 7.00)" step="0.50">
+                <input type="file" id="newPImg" class="input-text" accept="image/*">
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#f8f8f8; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+                    <div>
+                        <div style="font-weight:700; font-size:14px; color:#333;">Disponível no catálogo</div>
+                        <div style="font-size:12px; color:#999; margin-top:2px;">Se desligado, some do cardápio</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="newPAvailable" checked><span class="slider"></span></label>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button id="btnCancelEdit" onclick="resetProdForm()" style="display:none; background:#ccc;" class="btn">Cancelar</button>
+                    <button id="btnSaveProd" onclick="saveProduct()" class="btn btn-primary btn-block">Salvar Produto</button>
+                </div>
+            </div>
+            <div id="adminProductList"></div>
+        </div>
+
+        <div id="tab-clients" class="section">
+            <div id="fiadoBanner" class="fiado-banner zerado">
+                <div>
+                    <div class="fb-label">💸 Total em Fiado</div>
+                    <div class="fb-value" id="fiadoBannerValor">R$ 0,00</div>
+                </div>
+                <span style="font-size:36px; opacity:0.25;">📊</span>
+            </div>
+
+            <!-- BARRA DE PESQUISA -->
+            <div style="position:relative; margin-bottom:14px;">
+                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; pointer-events:none;">🔍</span>
+                <input type="text" id="clientSearchInput" class="input-text" placeholder="Pesquisar cliente por nome..."
+                    style="padding-left:44px; margin-bottom:0; border-radius:16px; border:2px solid #e0e0e0; font-size:15px;"
+                    oninput="filterClients(this.value)">
+            </div>
+            <div id="clientSearchEmpty" style="display:none; text-align:center; padding:24px; color:#aaa; font-size:14px; background:white; border-radius:16px; margin-bottom:12px;">
+                😕 Nenhum cliente encontrado
+            </div>
+
+            <div class="card-box">
+                <h4>➕ Novo Cliente</h4>
+                <input type="text" id="newCName" class="input-text" placeholder="Nome Completo">
+                <div class="input-prefix-container">
+                    <span>819</span>
+                    <input type="tel" id="newCPhone" class="input-text" placeholder="Restante do número" maxlength="8">
+                </div>
+                <button onclick="adminAddClient()" class="btn btn-blue btn-block">Cadastrar</button>
+            </div>
+            <div id="clientList"></div>
+        </div>
+
+        <div id="tab-orders" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#333;">Últimos Pedidos</h3>
+                <button onclick="clearAllOrders()" class="btn btn-danger btn-sm">Zerar Tudo</button>
+            </div>
+            <div id="orderList"></div>
+        </div>
+
+        <div id="tab-msg" class="section">
+            <div class="card-box">
+                <h4>📨 Mensagem de Pedido (WhatsApp)</h4>
+                <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {pedido}, {total}, {pagamento}</p>
+                <textarea id="editTemplate" class="input-text" style="height:120px; text-align:left; font-family:monospace;"></textarea>
+            </div>
+            <div class="card-box">
+                <h4>💸 Mensagem de Cobrança</h4>
+                <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome} e {valor}</p>
+                <textarea id="editCobrancaTemplate" class="input-text" style="height:120px; text-align:left; font-family:monospace;"></textarea>
+            </div>
+            <button onclick="saveMsgTemplates()" class="btn btn-success btn-block">Salvar Templates</button>
+        </div>
+        <!-- ABA COMPRA NO NOME -->
+        <div id="tab-compra" class="section">
+            <div class="card-box">
+                <h4>👤 Selecionar Cliente</h4>
+                <select id="compraCliente" class="input-text" onchange="onCompraClienteChange()">
+                    <option value="">-- Escolha o cliente --</option>
+                </select>
+                <div id="compraClienteInfo" style="display:none; background:#f8f8f8; border-radius:12px; padding:10px; margin-bottom:10px; font-size:13px; color:#555;"></div>
+            </div>
+            <div class="card-box">
+                <h4>📦 Produtos</h4>
+                <div id="compraProdList"></div>
+            </div>
+            <div style="background:#fff3cd; border-radius:14px; padding:14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:14px; color:#555; font-weight:600;">Total</span>
+                <span id="compraTotalLabel" style="font-size:24px; font-weight:900; color:var(--primary);">R$ 0,00</span>
+            </div>
+            <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px; font-size:16px; margin-bottom:20px;">✅ Confirmar Compra</button>
+        </div>
+
+        <!-- ABA REFAZER PEDIDOS -->
+        <div id="tab-refazer" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <p style="color:#888; font-size:13px;">Selecione os clientes para repetir o último pedido no fiado:</p>
+                <button onclick="restaurarOcultos()" style="background:#eee;border:none;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;">↩️ Restaurar</button>
+            </div>
+            <div id="refazerList"></div>
+            <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:white; padding:14px; border-top:2px solid #eee; margin-top:10px;">
+                <div id="refazerSelecionados" style="font-size:13px; color:#555; margin-bottom:10px;"></div>
+                <button onclick="confirmarTodosRefazer()" class="btn btn-block" style="background:#8e44ad; color:white; padding:14px; font-size:15px;">✅ Confirmar Pedidos Selecionados</button>
+            </div>
+        </div>
+        <!-- ABA HISTÓRICO FIADO -->
+        <div id="tab-historico" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#333;">🕓 Últimas compras no Fiado</h3>
+                <span id="historicoContador" style="background:#16a085; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
+            </div>
+            <div id="historicoList"></div>
+        </div>
+    </div>
+
+<script>
+const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
+const ADMIN_NUM = "81996603348";
+const ADMIN_PASS = "8564";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
+let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
+
+window.onload = async () => {
+    initAdmin();
+};
+
+async function initAdmin() {
+    document.getElementById('adminApp').style.display = 'block';
+    document.getElementById('homeScreen').style.display = 'block';
+    await loadTemplates();
+    await updateFiadoHeader();
+}
+
+async function updateFiadoHeader() {
+    const { data } = await sb.from("clients").select("debt");
+    const total = (data || []).filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
+    const el = document.getElementById('headerFiadoValor');
+    el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    el.className = 'header-fiado-valor' + (total > 0 ? '' : ' zero');
+}
+
+function openSection(section) {
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('innerApp').style.display = 'block';
+    document.querySelectorAll('#innerApp .section').forEach(s => s.classList.remove('active'));
+    const map = {
+        salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
+        clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
+        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: loadOrders },
+        mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {
+            document.getElementById('editTemplate').value = msgTemplate;
+            document.getElementById('editCobrancaTemplate').value = msgCobranca;
+        }},
+        refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: loadRefazerPedidos },
+        compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
+        historico: { id: 'tab-historico', title: '🕓 Histórico Fiado', fn: loadHistoricoFiado }
+    };
+    const s = map[section];
+    document.getElementById(s.id).classList.add('active');
+    document.getElementById('sectionTitle').textContent = s.title;
+    // Mostra botão de inativos apenas na aba clientes
+    document.getElementById('btnInativos').style.display = section === 'clientes' ? 'block' : 'none';
+    s.fn();
+}
+
+function goHome() {
+    document.getElementById('innerApp').style.display = 'none';
+    document.getElementById('homeScreen').style.display = 'block';
+    document.getElementById('btnInativos').style.display = 'none';
+    updateFiadoHeader();
+}
+
+async function verClientesInativos() {
+    const modal = document.getElementById('modalInativos');
+    const list = document.getElementById('inativosList');
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+
+    // Busca todos os clientes
+    const { data: clients } = await sb.from("clients").select("*").order("name");
+    if (!clients || clients.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">Nenhum cliente cadastrado.</div>';
+        return;
+    }
+
+    const limite = new Date();
+    limite.setDate(limite.getDate() - 20);
+
+    // Para cada cliente, busca o último pedido
+    const resultados = await Promise.all(clients.map(async c => {
+        const { data: orders } = await sb.from("orders")
+            .select("created_at")
+            .eq("customer_phone", c.phone)
+            .order("created_at", { ascending: false })
+            .limit(1);
+        const ultimo = orders && orders.length > 0 ? new Date(orders[0].created_at) : null;
+        return { client: c, ultimaCompra: ultimo };
+    }));
+
+    // Filtra inativos (sem compra nos últimos 20 dias ou nunca compraram)
+    const inativos = resultados.filter(({ ultimaCompra }) => !ultimaCompra || ultimaCompra < limite);
+
+    if (inativos.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;font-size:15px;">✅ Nenhum cliente inativo! Todos compraram nos últimos 20 dias.</div>';
+        return;
+    }
+
+    list.innerHTML = inativos.map(({ client: c, ultimaCompra }) => {
+        const diasStr = ultimaCompra
+            ? (() => { const d = Math.floor((new Date() - ultimaCompra) / 86400000); return `Última compra há <strong>${d} dias</strong>`; })()
+            : '<strong>Nunca comprou</strong>';
+        const debtColor = c.debt > 0 ? '#e74c3c' : '#27ae60';
+        const debtText = c.debt > 0 ? `Débito: R$ ${c.debt.toFixed(2)}` : c.debt < 0 ? `Crédito: R$ ${Math.abs(c.debt).toFixed(2)}` : 'Sem dívida';
+        return `
+        <div style="background:#fafafa; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:10px; border-left:4px solid #e67e22;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-weight:800; font-size:15px;">${c.name}</div>
+                    <div style="font-size:12px; color:#999; margin-top:2px;">${c.phone}</div>
+                </div>
+                <button onclick="cobrarClienteInativo('${c.phone}','${c.name.replace(/'/g,"\'")}',${c.debt})"
+                    style="padding:6px 12px; background:#25d366; border:none; border-radius:10px; color:white; font-size:12px; font-weight:700; cursor:pointer;">
+                    📱 Cobrar
+                </button>
+            </div>
+            <div style="margin-top:8px; font-size:13px; color:#666;">${diasStr}</div>
+            <div style="margin-top:4px; font-size:13px; color:${debtColor}; font-weight:bold;">${debtText}</div>
+        </div>`;
+    }).join('');
+}
+
+function cobrarClienteInativo(phone, name, debt) {
+    if (debt <= 0) {
+        window.open('https://api.whatsapp.com/send?phone=55' + phone + '&text=' + encodeURIComponent('Oi ' + name + '! Sentimos sua falta por aqui 😊 Que tal pedir hoje?'), '_blank');
+    } else {
+        cobrarCliente(phone, name, debt);
+    }
+}
+
+// PRODUTOS
+async function loadAdminProducts() {
+    const { data } = await sb.from("products").select("*").order("created_at", { ascending: true });
+    const list = document.getElementById('adminProductList');
+    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum produto</div>'; return; }
+    list.innerHTML = data.map(p => `
+        <div class="prod-item" style="opacity:${p.available === false ? '0.55' : '1'}; border:1px solid ${p.available === false ? '#ffcccc' : '#eee'};">
+            <div style="display:flex;align-items:center;flex:1;">
+                ${p.image_url ? `<img src="${p.image_url}">` : '<div style="width:44px;height:44px;border-radius:10px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;margin-right:10px;font-size:22px;">🥟</div>'}
+                <div>
+                    <strong>${p.name}</strong>
+                    <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:5px;${p.available === false ? 'background:#ffcccc;color:#c0392b;' : 'background:#d5f5e3;color:#1e8449;'}">${p.available === false ? 'Indisponível' : 'Disponível'}</span>
+                    <br><span style="color:var(--primary);">R$ ${Number(p.price).toFixed(2)}</span>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label class="switch" title="Ativar/desativar no catálogo">
+                    <input type="checkbox" ${p.available === false ? '' : 'checked'} onchange="toggleAvailable('${p.id}', this.checked)">
+                    <span class="slider"></span>
+                </label>
+                <button onclick="editProduct('${p.id}')" class="btn btn-sm" style="background:#f0f0f0;">✏️</button>
+                <button onclick="removeProduct('${p.id}')" class="btn btn-danger btn-sm">🗑️</button>
+            </div>
+        </div>`).join('');
+}
+
+async function editProduct(id) {
+    const { data: p } = await sb.from("products").select("*").eq("id", id).single();
+    document.getElementById('editProductId').value = p.id;
+    document.getElementById('newPName').value = p.name;
+    document.getElementById('newPPrice').value = p.price;
+    document.getElementById('newPAvailable').checked = p.available !== false;
+    document.getElementById('prodFormTitle').textContent = "✏️ Editar Salgado";
+    document.getElementById('btnCancelEdit').style.display = "block";
+    document.getElementById('btnSaveProd').textContent = "Atualizar";
+    window.scrollTo(0, 0);
+}
+
+function resetProdForm() {
+    document.getElementById('editProductId').value = "";
+    document.getElementById('newPName').value = "";
+    document.getElementById('newPPrice').value = "";
+    document.getElementById('newPImg').value = "";
+    document.getElementById('newPAvailable').checked = true;
+    document.getElementById('prodFormTitle').textContent = "➕ Cadastrar Salgado";
+    document.getElementById('btnCancelEdit').style.display = "none";
+    document.getElementById('btnSaveProd').textContent = "Salvar Produto";
+}
+
+async function saveProduct() {
+    const id = document.getElementById('editProductId').value;
+    const name = document.getElementById('newPName').value.trim();
+    const price = parseFloat(document.getElementById('newPPrice').value);
+    const available = document.getElementById('newPAvailable').checked;
+    const file = document.getElementById('newPImg').files[0];
+    if (!name || !price) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha nome e preço do produto!' }); return; }
+    const btn = document.getElementById('btnSaveProd');
+    btn.disabled = true; btn.textContent = "Salvando...";
+    let imageUrl = null;
+    if (file) {
+        const fileName = Date.now() + "_" + file.name.replace(/\s/g, '_');
+        const { error: uploadErr } = await sb.storage.from("products").upload(fileName, file);
+        if (uploadErr) { showToast({ type:'confirm', title:'❌ Erro ao enviar imagem', body: uploadErr.message }); btn.disabled = false; btn.textContent = "Salvar Produto"; return; }
+        imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+    }
+    if (id) {
+        const updates = { name, price, available };
+        if (imageUrl) updates.image_url = imageUrl;
+        await sb.from("products").update(updates).eq("id", id);
+    } else {
+        await sb.from("products").insert({ name, price, available, image_url: imageUrl });
+    }
+    resetProdForm(); loadAdminProducts();
+    btn.disabled = false; btn.textContent = "Salvar Produto";
+}
+
+async function removeProduct(id) {
+    showToast({
+        type: 'confirm',
+        title: '🗑️ Excluir produto?',
+        body: 'Esta ação não pode ser desfeita.',
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Excluir', bg: 'var(--danger)', color: 'white', fn: `executarRemoveProduct('${id}')` }
+        ],
+        duration: 8000
+    });
+}
+async function executarRemoveProduct(id) {
+    closeToast();
+    await sb.from("products").delete().eq("id", id);
+    loadAdminProducts();
+    showToast({ type: 'success', title: '✅ Produto removido!', body: 'O produto foi excluído do catálogo.', duration: 4000 });
+}
+
+async function toggleAvailable(id, value) {
+    await sb.from("products").update({ available: value }).eq("id", id);
+    loadAdminProducts();
+}
+
+// CLIENTES
+async function loadAdminClients() {
+    const { data: rawData } = await sb.from("clients").select("*").order("name");
+    const data = (rawData || []).sort((a, b) => {
+        if (b.debt > 0 && a.debt <= 0) return 1;
+        if (a.debt > 0 && b.debt <= 0) return -1;
+        return b.debt - a.debt;
+    });
+    const list = document.getElementById('clientList');
+    const total = (data || []).filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
+    document.getElementById('fiadoBannerValor').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    document.getElementById('fiadoBanner').className = 'fiado-banner' + (total > 0 ? '' : ' zerado');
+    const el = document.getElementById('headerFiadoValor');
+    el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    el.className = 'header-fiado-valor' + (total > 0 ? '' : ' zero');
+    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum cliente</div>'; return; }
+    list.innerHTML = data.map(c => `
+        <div class="client-card" data-name="${c.name.toLowerCase()}">
+            <div style="display:flex;justify-content:space-between;align-items:start;">
+                <div><strong>${c.name}</strong><br><small style="color:#888;">${c.phone}</small></div>
+                <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <small>FIADO</small>
+                        <label class="switch"><input type="checkbox" ${c.fiado ? 'checked' : ''} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
+                    </div>
+                    <button onclick="deleteClient('${c.phone}')" class="btn btn-danger btn-sm">🗑️</button>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                <div class="${c.debt > 0 ? 'saldo-devedor' : 'saldo-positivo'}" style="font-size:17px;">
+                    ${c.debt > 0 ? 'Débito: R$ ' + c.debt.toFixed(2) : c.debt < 0 ? 'Crédito: R$ ' + Math.abs(c.debt).toFixed(2) : 'Saldo: R$ 0,00'}
+                </div>
+                ${c.debt > 0 ? `<button class="btn btn-success btn-sm" onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})">📱 Cobrar</button>` : ''}
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;" placeholder="Valor a lançar">
+                <button onclick="payDebt('${c.phone}')" class="btn btn-success">OK</button>
+            </div>
+        </div>`).join('');
+
+    // Limpa pesquisa ao recarregar
+    const searchInput = document.getElementById('clientSearchInput');
+    if (searchInput) { searchInput.value = ''; filterClients(''); }
+}
+
+function filterClients(query) {
+    const q = query.toLowerCase().trim();
+    const cards = document.querySelectorAll('#clientList .client-card');
+    let visibleCount = 0;
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        const match = name.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+    });
+    const emptyMsg = document.getElementById('clientSearchEmpty');
+    if (emptyMsg) emptyMsg.style.display = (visibleCount === 0 && q.length > 0) ? 'block' : 'none';
+}
+
+async function adminAddClient() {
+    const name = document.getElementById('newCName').value.trim();
+    const partial = document.getElementById('newCPhone').value.replace(/\D/g,'');
+    if (!name || partial.length < 8) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha o nome e o número completo (819 + 8 dígitos).' }); return; }
+    const phone = "819" + partial;
+    await sb.from("clients").upsert({ name, phone, fiado: false, debt: 0 });
+    document.getElementById('newCName').value = '';
+    document.getElementById('newCPhone').value = '';
+    loadAdminClients();
+}
+
+async function toggleFiado(phone, value) {
+    await sb.from("clients").update({ fiado: value }).eq("phone", phone);
+}
+
+async function payDebt(phone) {
+    const input = document.getElementById('pay_' + phone);
+    const val = parseFloat(input.value);
+    if (!val) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Digite um valor para abater.' }); return; }
+    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
+    await sb.from("clients").update({ debt: c.debt - val }).eq("phone", phone);
+    input.value = '';
+    loadAdminClients();
+    showToast({ type: 'success', title: `💰 Abatimento lançado!`, body: `R$ ${val.toFixed(2).replace('.', ',')} abatido${c && c.name ? ' de ' + c.name : ''}.`, duration: 8000 });
+}
+
+async function deleteClient(phone) {
+    if (phone === ADMIN_NUM) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Não é possível remover o administrador!' }); return; }
+    showToast({
+        type: 'confirm',
+        title: '🗑️ Remover cliente?',
+        body: 'O cliente e seus dados serão removidos permanentemente.',
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Remover', bg: 'var(--danger)', color: 'white', fn: `executarDeleteClient('${phone}')` }
+        ],
+        duration: 8000
+    });
+}
+async function executarDeleteClient(phone) {
+    closeToast();
+    await sb.from("clients").delete().eq("phone", phone);
+    loadAdminClients();
+    showToast({ type: 'success', title: '✅ Cliente removido!', body: 'O cliente foi removido com sucesso.', duration: 4000 });
+}
+
+function cobrarCliente(phone, name, debt) {
+    const texto = msgCobranca.replace('{nome}', name).replace('{valor}', debt.toFixed(2).replace('.', ','));
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
+}
+
+// PEDIDOS
+const ordersMap = {};
+
+async function loadOrders() {
+    const list = document.getElementById('orderList');
+    list.innerHTML = '<div style="text-align:center;color:#888;">Carregando...</div>';
+    const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
+    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>'; return; }
+    data.forEach(o => { ordersMap[o.id] = o; });
+    list.innerHTML = data.map(o => {
+        const isFiado = o.payment_method === 'FIADO';
+        const borderColor = isFiado ? 'var(--danger)' : 'var(--success)';
+        const valorColor = isFiado ? 'var(--danger)' : 'var(--success)';
+        const btnFiado = !isFiado ? `
+            <button onclick="mudarParaFiado('${o.id}')"
+                style="margin-top:10px; width:100%; padding:9px; background:#fff3cd; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">
+                📝 Mudar para Fiado
+            </button>` : '';
+        return `
+        <div id="order_${o.id}" class="order-card" style="border-left:5px solid ${borderColor}">
+            <div style="font-size:11px;color:#888;">${new Date(o.created_at).toLocaleString('pt-BR')}</div>
+            <strong>${o.customer_name}</strong> <small style="color:#888;">${o.customer_phone}</small><br>
+            <div style="font-size:13px;margin:6px 0;color:#444;">${(o.items||'').replace(/\n/g,'<br>')}</div>
+            <strong style="color:${valorColor};">R$ ${Number(o.total).toFixed(2)} - ${o.payment_method}</strong>
+            ${btnFiado}
+        </div>`;
+    }).join('');
+}
+
+function mudarParaFiado(orderId) {
+    const o = ordersMap[orderId];
+    if (!o) return;
+    showToast({
+        type: 'confirm',
+        title: `📝 Mudar para Fiado?`,
+        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\nPagamento atual: ${o.payment_method}\n\nO valor será lançado no fiado do cliente.`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '📝 Confirmar', bg: '#e67e22', color: 'white', fn: `executarMudarParaFiado('${orderId}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarMudarParaFiado(orderId) {
+    closeToast();
+    const o = ordersMap[orderId];
+    if (!o) return;
+
+    // Atualiza o pedido para FIADO
+    await sb.from("orders").update({ payment_method: 'FIADO' }).eq("id", orderId);
+
+    // Lança o valor no fiado do cliente
+    const { data: c } = await sb.from("clients").select("debt").eq("phone", o.customer_phone).single();
+    if (c) {
+        const novaDiv = (c.debt || 0) + Number(o.total);
+        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+    }
+
+    // Atualiza o mapa local
+    ordersMap[orderId] = { ...o, payment_method: 'FIADO' };
+
+    // Atualiza o card visualmente sem recarregar tudo
+    const card = document.getElementById('order_' + orderId);
+    if (card) {
+        card.style.borderLeftColor = 'var(--danger)';
+        card.querySelector('strong:last-of-type').style.color = 'var(--danger)';
+        card.querySelector('strong:last-of-type').textContent = `R$ ${Number(o.total).toFixed(2)} - FIADO`;
+        const btn = card.querySelector('button');
+        if (btn) btn.remove();
+    }
+
+    updateFiadoHeader();
+    showToast({ type: 'success', title: '✅ Alterado para Fiado!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} lançado no fiado de ${o.customer_name}.`, duration: 5000 });
+}
+
+async function clearAllOrders() {
+    showToast({
+        type: 'confirm',
+        title: '⚠️ Apagar TODOS os pedidos?',
+        body: 'Esta ação não pode ser desfeita! Todos os registros de pedidos serão removidos.',
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Apagar Tudo', bg: 'var(--danger)', color: 'white', fn: 'executarClearOrders()' }
+        ],
+        duration: 8000
+    });
+}
+async function executarClearOrders() {
+    closeToast();
+    await sb.from("orders").delete().gte("id", "00000000-0000-0000-0000-000000000000");
+    loadOrders();
+    showToast({ type: 'success', title: '✅ Pedidos apagados!', body: 'Todos os pedidos foram removidos.', duration: 4000 });
+}
+
+// MENSAGENS
+async function loadTemplates() {
+    const { data } = await sb.from("config").select("*");
+    if (data) {
+        const msgCfg = data.find(x => x.key === "msg_template");
+        const cobrCfg = data.find(x => x.key === "msg_cobranca");
+        if (msgCfg) msgTemplate = msgCfg.value;
+        if (cobrCfg) msgCobranca = cobrCfg.value;
+    }
+}
+
+async function saveMsgTemplates() {
+    msgTemplate = document.getElementById('editTemplate').value;
+    msgCobranca = document.getElementById('editCobrancaTemplate').value;
+    await sb.from("config").upsert({ key: "msg_template", value: msgTemplate });
+    await sb.from("config").upsert({ key: "msg_cobranca", value: msgCobranca });
+    showToast({ type: 'success', title: '✅ Templates salvos!', body: 'Os templates foram atualizados com sucesso.', duration: 5000 });
+}
+// REPETIR ÚLTIMO PEDIDO
+async function repetirUltimoPedido(phone, name, fiado) {
+    // Busca último pedido do cliente
+    const { data: orders } = await sb.from("orders")
+        .select("*")
+        .eq("customer_phone", phone)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+    if (!orders || orders.length === 0) {
+        showToast({ type:'confirm', title:'⚠️ Sem pedidos', body:`${name} não tem nenhum pedido anterior!` });
+        return;
+    }
+
+    const ultimo = orders[0];
+    const valor = Number(ultimo.total).toFixed(2).replace('.', ',');
+    const itens = (ultimo.items || '').replace(/✅ /g,'').trim();
+    const data = new Date(ultimo.created_at).toLocaleString('pt-BR');
+
+    // Guarda temporariamente para o callback
+    window._repetirTemp = { phone, name, ultimo };
+
+    showToast({
+        type: 'confirm',
+        title: `🔁 Repetir pedido de ${name}?`,
+        body: `📦 ${itens}\n💰 R$ ${valor} no FIADO\n📅 ${data}`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: 'executarRepetirPedido()' }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarRepetirPedido() {
+    closeToast();
+    const { phone, name, ultimo } = window._repetirTemp || {};
+    if (!phone) return;
+
+    const valor = Number(ultimo.total).toFixed(2).replace('.', ',');
+
+    // Lança o valor no fiado do cliente
+    const { data: c } = await sb.from("clients").select("debt").eq("phone", phone).single();
+    const novaDiv = (c.debt || 0) + Number(ultimo.total);
+    await sb.from("clients").update({ debt: novaDiv }).eq("phone", phone);
+
+    // Salva como novo pedido
+    await sb.from("orders").insert({
+        customer_name: name,
+        customer_phone: phone,
+        total: Number(ultimo.total),
+        payment_method: 'FIADO',
+        items: ultimo.items
+    });
+
+    window._repetirTemp = null;
+    loadAdminClients();
+    showToast({ type: 'success', title: `✅ Pedido repetido!`, body: `R$ ${valor} lançado no fiado de ${name}.`, duration: 6000 });
+}
+
+// ===== REFAZER PEDIDOS =====
+let refazerSelecionados = {};
+let refazerOcultos = JSON.parse(localStorage.getItem('refazer_ocultos') || '[]');
+
+function ocultarRefazer(phone) {
+    if (!refazerOcultos.includes(phone)) {
+        refazerOcultos.push(phone);
+        localStorage.setItem('refazer_ocultos', JSON.stringify(refazerOcultos));
+    }
+    loadRefazerPedidos();
+}
+
+async function loadRefazerPedidos() {
+    const list = document.getElementById('refazerList');
+    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+    refazerSelecionados = {};
+    atualizarResumoRefazer();
+
+    // Busca todos os clientes
+    const { data: clients } = await sb.from("clients").select("*").order("name");
+    if (!clients || clients.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum cliente</div>';
+        return;
+    }
+
+    // Busca último pedido de cada cliente
+    const cards = await Promise.all(clients.map(async c => {
+        const { data: orders } = await sb.from("orders")
+            .select("*").eq("customer_phone", c.phone)
+            .order("created_at", { ascending: false }).limit(1);
+        return { client: c, lastOrder: orders && orders.length > 0 ? orders[0] : null };
+    }));
+
+    // Filtra ocultos
+    const cardsFiltrados = cards.filter(({ client: c }) => !refazerOcultos.includes(c.phone));
+
+    if (cardsFiltrados.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#888;padding:30px;">Nenhum cliente para exibir.<br><button onclick="restaurarOcultos()" style="margin-top:10px;background:#eee;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;">↩️ Restaurar todos</button></div>';
+        return;
+    }
+
+    list.innerHTML = cardsFiltrados.map(({ client: c, lastOrder: o }) => {
+        if (!o) return `
+            <div style="background:white;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;opacity:0.5;display:flex;justify-content:space-between;align-items:center;">
+                <div><strong>${c.name}</strong><br><small style="color:#aaa;">Sem pedidos anteriores</small></div>
+                <button onclick="event.stopPropagation();ocultarRefazer('${c.phone}')" style="background:#eee;border:none;border-radius:10px;padding:6px 10px;cursor:pointer;font-size:13px;">🚫 Ocultar</button>
+            </div>`;
+
+        const valor = Number(o.total).toFixed(2).replace('.', ',');
+        const data = new Date(o.created_at).toLocaleDateString('pt-BR');
+        const itens = (o.items || '').replace(/✅ /g,'').replace(/\n/g,' | ').trim();
+
+        return `
+            <div id="card_refazer_${c.phone}" onclick="toggleRefazer('${c.phone}','${c.name.replace(/'/g,"\'")}',${o.total},'${o.items.replace(/'/g,"\'").replace(/\n/g,"\\n")}')"
+                style="background:white;border:2px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong style="font-size:15px;">${c.name}</strong>
+                        <div style="font-size:12px;color:#888;margin-top:2px;">${itens}</div>
+                        <div style="font-size:12px;color:#aaa;margin-top:2px;">📅 ${data}</div>
+                    </div>
+                    <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                        <button onclick="event.stopPropagation();ocultarRefazer('${c.phone}')" style="background:#fee;border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:#e74c3c;">🚫</button>
+                        <div style="font-size:18px;font-weight:900;color:#8e44ad;">R$ ${valor}</div>
+                        <div id="check_${c.phone}" style="width:26px;height:26px;border:2px solid #ddd;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;"></div>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function restaurarOcultos() {
+    refazerOcultos = [];
+    localStorage.removeItem('refazer_ocultos');
+    loadRefazerPedidos();
+}
+
+function toggleRefazer(phone, name, total, items) {
+    const card = document.getElementById('card_refazer_' + phone);
+    const check = document.getElementById('check_' + phone);
+    if (refazerSelecionados[phone]) {
+        delete refazerSelecionados[phone];
+        card.style.border = '2px solid #eee';
+        card.style.background = 'white';
+        check.textContent = '';
+        check.style.borderColor = '#ddd';
+        check.style.background = '';
+    } else {
+        refazerSelecionados[phone] = { phone, name, total, items };
+        card.style.border = '2px solid #8e44ad';
+        card.style.background = '#fdf6ff';
+        check.textContent = '✓';
+        check.style.borderColor = '#8e44ad';
+        check.style.background = '#8e44ad';
+        check.style.color = 'white';
+    }
+    atualizarResumoRefazer();
+}
+
+function atualizarResumoRefazer() {
+    const resumo = document.getElementById('refazerResumo');
+    const sel = Object.values(refazerSelecionados);
+    if (sel.length === 0) { resumo.style.display = 'none'; return; }
+    const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0);
+    document.getElementById('refazerSelecionados').innerHTML =
+        `<strong>${sel.length} cliente(s) selecionado(s)</strong> · Total: <strong style="color:#8e44ad;">R$ ${totalGeral.toFixed(2).replace('.', ',')}</strong><br>` +
+        sel.map(x => `• ${x.name}: R$ ${Number(x.total).toFixed(2).replace('.', ',')}`).join('<br>');
+    resumo.style.display = 'block';
+}
+
+async function confirmarTodosRefazer() {
+    const sel = Object.values(refazerSelecionados);
+    if (sel.length === 0) return;
+
+    const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
+    const nomes = sel.map(x => `• ${x.name}: R$ ${Number(x.total).toFixed(2).replace('.',',')}`).join('\n');
+
+    showToast({
+        type: 'confirm',
+        title: `🔁 Lançar FIADO para ${sel.length} cliente(s)?`,
+        body: `${nomes}\n\nTotal geral: R$ ${totalGeral}`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: 'executarTodosRefazer()' }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarTodosRefazer() {
+    closeToast();
+    const sel = Object.values(refazerSelecionados);
+    const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
+
+    for (const s of sel) {
+        const { data: c } = await sb.from("clients").select("debt").eq("phone", s.phone).single();
+        await sb.from("clients").update({ debt: (c.debt || 0) + Number(s.total) }).eq("phone", s.phone);
+        await sb.from("orders").insert({
+            customer_name: s.name,
+            customer_phone: s.phone,
+            total: Number(s.total),
+            payment_method: 'FIADO',
+            items: s.items.replace(/\\n/g, '\n')
+        });
+    }
+
+    refazerSelecionados = {};
+    loadRefazerPedidos();
+    updateFiadoHeader();
+    showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no fiado.\nTotal: R$ ${totalGeral}`, duration: 8000 });
+}
+
+// ===== COMPRA NO NOME =====
+let compraCart = {};
+let compraPagamento = 'FIADO';
+let compraClienteAtual = null;
+let compraProdutos = [];
+
+async function loadCompraTab() {
+    compraCart = {};
+    compraPagamento = 'FIADO';
+    compraClienteAtual = null;
+    document.getElementById('compraClienteInfo').style.display = 'none';
+    document.getElementById('compraTotalLabel').textContent = 'R$ 0,00';
+
+    // Load clients into select
+    const { data: clients } = await sb.from("clients").select("*").order("name");
+    const sel = document.getElementById('compraCliente');
+    sel.innerHTML = '<option value="">-- Escolha o cliente --</option>' +
+        (clients || []).map(c => `<option value="${c.phone}" data-name="${c.name}" data-debt="${c.debt}" data-fiado="${c.fiado}">${c.name}</option>`).join('');
+
+    // Load products
+    const { data: prods } = await sb.from("products").select("*").eq("available", true).order("created_at", { ascending: true });
+    compraProdutos = prods || [];
+    renderCompraProdList();
+}
+
+function onCompraClienteChange() {
+    const sel = document.getElementById('compraCliente');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt.value) { compraClienteAtual = null; document.getElementById('compraClienteInfo').style.display = 'none'; return; }
+    compraClienteAtual = { phone: opt.value, name: opt.dataset.name, debt: parseFloat(opt.dataset.debt), fiado: opt.dataset.fiado === 'true' };
+    const infoEl = document.getElementById('compraClienteInfo');
+    const debt = compraClienteAtual.debt;
+    infoEl.innerHTML = `📞 ${opt.value} &nbsp;|&nbsp; ${debt > 0 ? '<span style="color:#e74c3c;">Débito: R$ ' + debt.toFixed(2) + '</span>' : debt < 0 ? '<span style="color:#3498db;">Crédito: R$ ' + Math.abs(debt).toFixed(2) + '</span>' : '<span style="color:#27ae60;">Em dia ✅</span>'} &nbsp;|&nbsp; Fiado: ${compraClienteAtual.fiado ? '✅' : '❌'}`;
+    infoEl.style.display = 'block';
+}
+
+function renderCompraProdList() {
+    const list = document.getElementById('compraProdList');
+    list.innerHTML = compraProdutos.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">` : '<div style="width:40px;height:40px;border-radius:10px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:20px;">🥟</div>'}
+                <div><div style="font-weight:700;font-size:14px;">${p.name}</div><div style="color:var(--primary);font-size:13px;">R$ ${Number(p.price).toFixed(2)}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:20px;padding:4px 10px;">
+                <button onclick="qtyCompra('${p.id}',-1)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--danger);color:white;font-size:16px;font-weight:bold;cursor:pointer;">−</button>
+                <span id="cqty_${p.id}" style="min-width:22px;text-align:center;font-weight:bold;font-size:15px;">${compraCart[p.id] || 0}</span>
+                <button onclick="qtyCompra('${p.id}',1)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--success);color:white;font-size:16px;font-weight:bold;cursor:pointer;">+</button>
+            </div>
+        </div>`).join('');
+    atualizarTotalCompra();
+}
+
+function qtyCompra(id, d) {
+    compraCart[id] = (compraCart[id] || 0) + d;
+    if (compraCart[id] <= 0) delete compraCart[id];
+    const el = document.getElementById('cqty_' + id);
+    if (el) el.textContent = compraCart[id] || 0;
+    atualizarTotalCompra();
+}
+
+function atualizarTotalCompra() {
+    let total = 0;
+    for (let id in compraCart) {
+        const p = compraProdutos.find(x => x.id == id);
+        if (p) total += p.price * compraCart[id];
+    }
+    document.getElementById('compraTotalLabel').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+
+function selecionarPagamentoCompra(metodo) {
+    compraPagamento = metodo;
+    ['PIX','DINHEIRO','FIADO'].forEach(m => {
+        const el = document.getElementById('cpopt-' + m);
+        if (el) el.style.borderColor = m === metodo ? 'var(--success)' : '#eee';
+        if (el) el.style.background = m === metodo ? '#e8f5e9' : 'white';
+        if (el) el.style.color = m === metodo ? 'var(--success)' : '#333';
+    });
+}
+
+// NOTIFICATION SOUND
+function playNotifSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ctx.currentTime;
+        // Two-tone notification ping (like phone)
+        [0, 0.12].forEach((delay, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(i === 0 ? 880 : 1100, t + delay);
+            gain.gain.setValueAtTime(0, t + delay);
+            gain.gain.linearRampToValueAtTime(0.35, t + delay + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.18);
+            osc.start(t + delay);
+            osc.stop(t + delay + 0.2);
+        });
+    } catch(e) {}
+}
+
+// TOAST SYSTEM
+let toastTimer = null;
+let toastProgressEl = null;
+
+function showToast({ type = 'success', title, body, actions = [], duration = 8000 }) {
+    const container = document.getElementById('toastContainer');
+    // Remove existing toast
+    const existing = container.querySelector('.toast');
+    if (existing) existing.remove();
+    if (toastTimer) clearTimeout(toastTimer);
+
+    const actionsHTML = actions.map(a =>
+        `<button class="toast-btn" style="background:${a.bg};color:${a.color};" onclick="${a.fn}">${a.label}</button>`
+    ).join('');
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-app-row">
+            <div class="toast-app-icon">🍗</div>
+            <span class="toast-app-name">Rei da Coxinha</span>
+            <span class="toast-time">agora</span>
+        </div>
+        <div class="toast-header">
+            <span class="toast-title">${title}</span>
+            <button class="toast-close" onclick="closeToast()">✕</button>
+        </div>
+        <div class="toast-body">${body}</div>
+        ${actionsHTML ? `<div class="toast-actions">${actionsHTML}</div>` : ''}
+        <div class="toast-bar"><div class="toast-progress" style="animation-duration:${duration}ms;"></div></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => { toast.classList.add('show'); });
+    if (type === 'success') playNotifSound();
+
+    toastTimer = setTimeout(closeToast, duration);
+}
+
+function closeToast() {
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    const toast = document.querySelector('.toast');
+    if (toast) {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }
+}
+
+async function confirmarCompra() {
+    if (!compraClienteAtual) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Selecione um cliente!' }); return; }
+    if (Object.keys(compraCart).length === 0) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Adicione pelo menos um produto!' }); return; }
+
+    let total = 0; let pedidoTexto = ""; let pedidoHTML = "";
+    for (let id in compraCart) {
+        const p = compraProdutos.find(x => x.id == id);
+        if (p) {
+            pedidoTexto += `✅ ${compraCart[id]}x ${p.name}\n`;
+            pedidoHTML += `${compraCart[id]}x ${p.name}\n`;
+            total += p.price * compraCart[id];
+        }
+    }
+
+    // Mostrar toast de confirmação
+    showToast({
+        type: 'confirm',
+        title: `🛒 Confirmar compra para ${compraClienteAtual.name}?`,
+        body: `${pedidoHTML.trim()}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n💳 Pagamento: ${compraPagamento}`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: `executarCompra(${total}, \`${pedidoTexto.replace(/`/g,"'")}\`)` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarCompra(total, pedidoTexto) {
+    closeToast();
+
+    await sb.from("orders").insert({
+        customer_name: compraClienteAtual.name,
+        customer_phone: compraClienteAtual.phone,
+        total: total,
+        payment_method: compraPagamento,
+        items: pedidoTexto
+    });
+
+    if (compraPagamento === 'FIADO') {
+        const { data: c } = await sb.from("clients").select("debt").eq("phone", compraClienteAtual.phone).single();
+        await sb.from("clients").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
+    }
+
+    showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 8000 });
+
+    compraCart = {};
+    renderCompraProdList();
+    document.getElementById('compraCliente').value = '';
+    document.getElementById('compraClienteInfo').style.display = 'none';
+    compraClienteAtual = null;
+    updateFiadoHeader();
+}
+// Mapa seguro para dados dos pedidos do histórico
+const historicoMap = {};
+
+async function loadHistoricoFiado() {
+    const list = document.getElementById('historicoList');
+    const contador = document.getElementById('historicoContador');
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
+
+    const { data, error } = await sb
+        .from("orders")
+        .select("*")
+        .eq("payment_method", "FIADO")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+    if (error || !data || data.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra no fiado encontrada.</div>';
+        contador.textContent = '0 registros';
+        return;
+    }
+
+    contador.textContent = `${data.length} registro${data.length > 1 ? 's' : ''}`;
+
+    // Guarda dados no mapa para evitar problemas com caracteres especiais no onclick
+    data.forEach(o => { historicoMap[o.id] = o; });
+
+    list.innerHTML = data.map((o) => {
+        const date = new Date(o.created_at);
+        const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+        const items = (o.items || '').trim().replace(/✅ /g, '').split('\n').filter(Boolean);
+        const itemsHTML = items.map(it => `<span style="display:inline-block;background:#f0f0f0;border-radius:8px;padding:2px 8px;font-size:12px;margin:2px;">${it}</span>`).join('');
+
+        // Detecta origem: pedidos do cardápio vêm do número do admin como destino WhatsApp
+        // A diferença prática: pedidos do admin têm items com formato "✅ Nx Nome"
+        // Vamos marcar com base na presença do padrão de items
+        const isCardapio = !(o.items || '').includes('✅');
+        const origemBadge = isCardapio
+            ? `<span style="background:#e8f4ff;color:#3498db;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">🛍️ Cardápio</span>`
+            : `<span style="background:#f0e8ff;color:#8e44ad;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">🖥️ Admin</span>`;
+
+        return `
+        <div id="hist_${o.id}" style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid #16a085;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div>
+                    <div style="font-weight:800;font-size:15px;color:#222;">👤 ${o.customer_name}</div>
+                    <div style="font-size:12px;color:#999;margin-top:2px;">📞 ${o.customer_phone || '—'}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:20px;font-weight:900;color:#e74c3c;">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</div>
+                    <div style="font-size:11px;color:#aaa;">${dateStr} às ${timeStr}</div>
+                </div>
+            </div>
+            <div style="margin-top:8px;line-height:1.8;">${itemsHTML}</div>
+            <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <span style="background:#d5f5e3;color:#16a085;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">📝 FIADO</span>
+                </div>
+                <button onclick="cancelarPedidoFiado('${o.id}')"
+                    style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                    🗑️ Cancelar
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function cancelarPedidoFiado(orderId) {
+    const o = historicoMap[orderId];
+    if (!o) return;
+    showToast({
+        type: 'confirm',
+        title: `❌ Cancelar pedido de ${o.customer_name}?`,
+        body: `Itens: ${(o.items||'').replace(/✅ /g,'').replace(/\n/g,', ').trim()}\n\nO valor de R$ ${Number(o.total).toFixed(2).replace('.', ',')} será estornado do fiado.`,
+        actions: [
+            { label: 'Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Confirmar', bg: 'var(--danger)', color: 'white', fn: `executarCancelamento('${orderId}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarCancelamento(orderId) {
+    closeToast();
+    const o = historicoMap[orderId];
+    if (!o) return;
+
+    // Remove o pedido
+    await sb.from("orders").delete().eq("id", orderId);
+
+    // Estorna o valor do fiado do cliente
+    const { data: c } = await sb.from("clients").select("debt").eq("phone", o.customer_phone).single();
+    if (c) {
+        const novaDiv = (c.debt || 0) - Number(o.total);
+        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+    }
+
+    // Remove do mapa
+    delete historicoMap[orderId];
+
+    // Anima e remove o card
+    const card = document.getElementById('hist_' + orderId);
+    if (card) {
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(30px)';
+        setTimeout(() => card.remove(), 300);
+    }
+
+    updateFiadoHeader();
+    showToast({ type: 'success', title: '✅ Pedido cancelado!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} estornado do fiado de ${o.customer_name}.`, duration: 5000 });
+}
+
+</script>
+</div><!-- /adminApp -->
+</body>
+</html>
