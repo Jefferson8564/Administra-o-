@@ -77,14 +77,6 @@
         /* ORDER */
         /* SWIPE ORDER CARDS */
         .order-wrap { position: relative; margin-bottom: 8px; border-radius: 18px; overflow: hidden; }
-        .order-delete-bg {
-            position: absolute; inset: 0; display: flex; align-items: center; gap: 8px;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-radius: 18px; padding: 0 22px;
-        }
-        .order-delete-bg.dir-right { justify-content: flex-start; }
-        .order-delete-bg.dir-left  { justify-content: flex-end; }
-        .order-delete-label { color: white; font-size: 13px; font-weight: 800; letter-spacing: 0.3px; }
         .order-card {
             background: #fff;
             border-radius: 18px;
@@ -96,7 +88,7 @@
             box-shadow: 0 2px 12px rgba(0,0,0,0.07);
             user-select: none; -webkit-user-select: none;
         }
-        .order-card.swiping { transition: none; }
+        
         .order-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .order-card-name { font-size: 15px; font-weight: 800; color: #1a1a2e; }
         .order-card-time { font-size: 11px; color: #bbb; font-weight: 500; }
@@ -157,6 +149,11 @@
     <div id="homeScreen">
         <div style="padding: 18px 0 12px; text-align:center; color:#666; font-size:14px; font-weight:600;">Selecione uma opção</div>
         <div class="home-grid">
+            <button class="home-card" style="border-top:4px solid #16a085; grid-column: span 2;" onclick="openSection('historico')">
+                <span class="home-card-icon">🛍️</span>
+                <div class="home-card-label">Histórico de Compras</div>
+                <div class="home-card-sub">Todas as compras registradas</div>
+            </button>
             <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
                 <span class="home-card-icon">🤖</span>
                 <div class="home-card-label">Refazer Pedidos</div>
@@ -186,11 +183,6 @@
                 <span class="home-card-icon">🛒</span>
                 <div class="home-card-label">Compra no Nome</div>
                 <div class="home-card-sub">Pedido pelo admin</div>
-            </button>
-            <button class="home-card" style="border-top:4px solid #16a085; grid-column: span 2;" onclick="openSection('historico')">
-                <span class="home-card-icon">🛍️</span>
-                <div class="home-card-label">Histórico de Compras</div>
-                <div class="home-card-sub">Todas as compras registradas</div>
             </button>
             <button class="home-card" style="border-top:4px solid #2980b9; grid-column: span 2;" onclick="openSection('pagamentos')">
                 <span class="home-card-icon">💳</span>
@@ -247,8 +239,20 @@
             <div id="adminProductList"></div>
         </div>
 
+        <!-- MODAL DEVOLUÇÃO -->
+        <div id="modalDevolucao" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
+            <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; padding:20px 18px 30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <h3 style="color:#3498db; font-size:17px;">💰 Devolução de Dinheiro</h3>
+                    <button onclick="document.getElementById('modalDevolucao').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                </div>
+                <p style="font-size:12px; color:#999; margin-bottom:14px;">Insira o valor a devolver para cada cliente. O valor será descontado do débito deles.</p>
+                <div id="devolucaoList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+        </div>
+
         <div id="tab-clients" class="section">
-            <div id="fiadoBanner" class="fiado-banner zerado">
+            <div id="fiadoBanner" class="fiado-banner zerado" style="cursor:pointer; user-select:none; -webkit-user-select:none;">
                 <div>
                     <div class="fb-label">💸 Total Pagar Depois</div>
                     <div class="fb-value" id="fiadoBannerValor">R$ 0,00</div>
@@ -700,7 +704,7 @@ async function loadAdminClients() {
                 <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <small>PAGAR DEPOIS</small>
-                        <label class="switch"><input type="checkbox" ${c.fiado ? 'checked' : ''} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
+                        <label class="switch"><input type="checkbox" ${c.fiado === false ? '' : 'checked'} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
                     </div>
                     <button onclick="deleteClient('${c.phone}')" class="btn btn-danger btn-sm">🗑️</button>
                 </div>
@@ -741,7 +745,7 @@ async function adminAddClient() {
     const partial = document.getElementById('newCPhone').value.replace(/\D/g,'');
     if (!name || partial.length < 8) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha o nome e o número completo (819 + 8 dígitos).' }); return; }
     const phone = "819" + partial;
-    await sb.from("clients").upsert({ name, phone, fiado: false, debt: 0 });
+    await sb.from("clients").upsert({ name, phone, fiado: true, debt: 0 });
     document.getElementById('newCName').value = '';
     document.getElementById('newCPhone').value = '';
     loadAdminClients();
@@ -846,6 +850,75 @@ async function executarDeleteClient(phone) {
 function cobrarCliente(phone, name, debt) {
     const texto = msgCobranca.replace('{nome}', name).replace('{valor}', debt.toFixed(2).replace('.', ','));
     window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
+}
+
+// TOQUE NO BANNER - DEVOLUÇÃO
+(function() {
+    function attachTapEvent() {
+        const banner = document.getElementById('fiadoBanner');
+        if (!banner) return;
+        banner.addEventListener('click', abrirModalDevolucao);
+    }
+    document.addEventListener('DOMContentLoaded', attachTapEvent);
+    setTimeout(attachTapEvent, 1000);
+})();
+
+async function abrirModalDevolucao() {
+    const { data } = await sb.from("clients").select("*").order("name");
+    const clientes = (data || []).filter(c => c.debt > 0);
+    const list = document.getElementById('devolucaoList');
+    if (!clientes.length) {
+        list.innerHTML = '<div style="text-align:center;color:#888;padding:24px;">Nenhum cliente com débito no momento.</div>';
+    } else {
+        list.innerHTML = clientes.map(c => `
+            <div style="background:#f9f9f9; border-radius:16px; padding:14px; border:1px solid #eee;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div>
+                        <div style="font-weight:800; font-size:15px; color:#1a1a2e;">${c.name}</div>
+                        <div style="font-size:12px; color:#888;">${c.phone}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:13px; color:#e74c3c; font-weight:700;">Débito: R$ ${c.debt.toFixed(2).replace('.', ',')}</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="position:relative; flex:1; display:flex; align-items:center;">
+                        <span style="position:absolute; left:12px; font-weight:bold; color:#555; font-size:13px;">R$</span>
+                        <input type="number" id="dev_${c.phone}" class="input-text" placeholder="0,00" min="0" step="0.01" style="padding-left:40px; margin:0; font-size:15px;">
+                    </div>
+                    <button onclick="executarDevolucao('${c.phone}', '${c.name.replace(/'/g,"\\'")}', ${c.debt})" class="btn btn-blue" style="white-space:nowrap; padding:12px 16px;">💸 Devolver</button>
+                </div>
+            </div>`).join('');
+    }
+    document.getElementById('modalDevolucao').style.display = 'flex';
+}
+
+async function executarDevolucao(phone, name, debtAtual) {
+    const input = document.getElementById('dev_' + phone);
+    const val = parseFloat(input.value);
+    if (!val || val <= 0) {
+        showToast({ type: 'confirm', title: '⚠️ Atenção', body: 'Digite um valor de devolução válido.' });
+        return;
+    }
+    const novoSaldo = debtAtual - val;
+    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
+    await sb.from("payments").insert({
+        client_name: name,
+        client_phone: phone,
+        amount: val,
+        saldo_anterior: debtAtual,
+        saldo_posterior: novoSaldo,
+        tipo: "devolucao"
+    });
+    input.value = '';
+    document.getElementById('modalDevolucao').style.display = 'none';
+    loadAdminClients();
+    showToast({
+        type: 'success',
+        title: `💰 Devolução de R$ ${val.toFixed(2).replace('.', ',')} registrada!`,
+        body: `${name} agora tem ${novoSaldo > 0 ? 'débito de R$ ' + novoSaldo.toFixed(2).replace('.', ',') : novoSaldo < 0 ? 'crédito de R$ ' + Math.abs(novoSaldo).toFixed(2).replace('.', ',') : 'saldo zerado ✅'}.`,
+        duration: 5000
+    });
 }
 
 // PEDIDOS
@@ -1103,8 +1176,6 @@ async function loadOrders() {
     if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>'; return; }
     data.forEach(o => { ordersMap[o.id] = o; });
     list.innerHTML = data.map(o => buildOrderCard(o)).join('');
-    // Attach swipe listeners
-    data.forEach(o => attachSwipe(o.id));
 }
 
 function buildOrderCard(o) {
@@ -1129,8 +1200,6 @@ function buildOrderCard(o) {
 
     return `
     <div class="order-wrap" id="wrap_${o.id}">
-        <div class="order-delete-bg dir-right"><span style="font-size:20px;">🗑️</span><span class="order-delete-label">Remover</span></div>
-        <div class="order-delete-bg dir-left"><span class="order-delete-label">Remover</span><span style="font-size:20px;">🗑️</span></div>
         <div id="order_${o.id}" class="order-card">
             <div class="order-card-header">
                 <div>
@@ -1145,86 +1214,10 @@ function buildOrderCard(o) {
             <div class="order-card-items">${itemsHTML}</div>
             <div class="order-card-footer">
                 <span class="order-card-valor" style="color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</span>
-                <span style="font-size:12px; color:#ccc;">← deslize para remover →</span>
             </div>
             ${btnFiado}
         </div>
     </div>`;
-}
-
-function attachSwipe(orderId) {
-    const card = document.getElementById('order_' + orderId);
-    const wrap = document.getElementById('wrap_' + orderId);
-    if (!card || !wrap) return;
-
-    let startX = 0, currentX = 0, isDragging = false;
-    const THRESHOLD = 80;
-
-    function onStart(e) {
-        startX = e.touches ? e.touches[0].clientX : e.clientX;
-        currentX = 0;
-        isDragging = true;
-        card.classList.add('swiping');
-    }
-
-    function onMove(e) {
-        if (!isDragging) return;
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        currentX = x - startX;
-        card.style.transform = `translateX(${currentX}px)`;
-
-        // Fade background based on direction and distance
-        const pct = Math.min(Math.abs(currentX) / THRESHOLD, 1);
-        const bgs = wrap.querySelectorAll('.order-delete-bg');
-        bgs.forEach(bg => bg.style.opacity = '0');
-        if (currentX > 0 && bgs[0]) bgs[0].style.opacity = pct;
-        else if (currentX < 0 && bgs[1]) bgs[1].style.opacity = pct;
-    }
-
-    function onEnd() {
-        if (!isDragging) return;
-        isDragging = false;
-        card.classList.remove('swiping');
-
-        if (Math.abs(currentX) >= THRESHOLD) {
-            // Dismiss animation then delete
-            const dir = currentX > 0 ? 1 : -1;
-            card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
-            card.style.transform = `translateX(${dir * 120}%)`;
-            card.style.opacity = '0';
-            wrap.style.transition = 'max-height 0.3s ease, margin 0.3s ease, opacity 0.3s ease';
-            setTimeout(() => {
-                wrap.style.maxHeight = wrap.offsetHeight + 'px';
-                wrap.style.overflow = 'hidden';
-                requestAnimationFrame(() => {
-                    wrap.style.maxHeight = '0';
-                    wrap.style.marginBottom = '0';
-                    wrap.style.opacity = '0';
-                });
-                setTimeout(() => {
-                    wrap.remove();
-                    deletarPedido(orderId);
-                    // Check if list empty
-                    const list = document.getElementById('orderList');
-                    if (list && !list.querySelector('.order-wrap')) {
-                        list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>';
-                    }
-                }, 320);
-            }, 50);
-        } else {
-            // Snap back
-            card.style.transform = 'translateX(0)';
-            wrap.querySelectorAll('.order-delete-bg').forEach(bg => bg.style.opacity = '0');
-        }
-        currentX = 0;
-    }
-
-    card.addEventListener('touchstart', onStart, { passive: true });
-    card.addEventListener('touchmove', onMove, { passive: true });
-    card.addEventListener('touchend', onEnd);
-    card.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
 }
 
 async function deletarPedido(orderId) {
@@ -2125,7 +2118,7 @@ function renderHistorico(append = false) {
 
         const cancelBtn = ehFiado
             ? `<button onclick="cancelarPedidoFiado('${o.id}')" style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑️ Cancelar</button>`
-            : `<button onclick="cancelarPedidoFiado('${o.id}')" style="background:#f0f0f0;border:1.5px solid #aaa;color:#777;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑️ Remover</button>`;
+            : `<button onclick="marcarNaoPagou('${o.id}')" style="background:#fff8ee;border:1.5px solid #e67e22;color:#e67e22;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">❌ Não Pagou</button>`;
 
         return `
         <div id="hist_${o.id}" style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid ${borderColor};">
@@ -2148,6 +2141,45 @@ function renderHistorico(append = false) {
     }).join('');
 
     list.innerHTML = html;
+}
+
+function marcarNaoPagou(orderId) {
+    const o = historicoMap[orderId];
+    if (!o) return;
+    showToast({
+        type: 'confirm',
+        title: `❌ Não pagou? Pedido de ${o.customer_name}`,
+        body: `Itens: ${(o.items||'').replace(/✅ /g,'').replace(/\n/g,', ').trim()}\n\nO pedido de R$ ${Number(o.total).toFixed(2).replace('.', ',')} será convertido para Pagar Depois.`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '❌ Confirmar', bg: '#e67e22', color: 'white', fn: `executarNaoPagou('${orderId}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarNaoPagou(orderId) {
+    closeToast();
+    const o = historicoMap[orderId];
+    if (!o) return;
+
+    // Atualiza o pedido para FIADO
+    await sb.from("orders").update({ payment_method: 'FIADO' }).eq("id", orderId);
+
+    // Adiciona a dívida ao cliente
+    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+    if (c) {
+        const novaDiv = (c.debt || 0) + Number(o.total);
+        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+    }
+
+    // Atualiza localmente
+    o.payment_method = 'FIADO';
+    _historicoAllData = _historicoAllData.map(x => x.id === orderId ? {...x, payment_method: 'FIADO'} : x);
+
+    updateFiadoHeader();
+    renderHistoricoList(_historicoAllData);
+    showToast({ type: 'warning', title: '⚠️ Marcado como Pagar Depois!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} adicionado ao fiado de ${o.customer_name}.`, duration: 5000 });
 }
 
 function cancelarPedidoFiado(orderId) {
