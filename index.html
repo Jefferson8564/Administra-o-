@@ -156,6 +156,11 @@
                 <div class="home-card-label">Histórico Fiado</div>
                 <div class="home-card-sub">Últimas 10 compras no fiado</div>
             </button>
+            <button class="home-card" style="border-top:4px solid #2980b9; grid-column: span 2;" onclick="openSection('pagamentos')">
+                <span class="home-card-icon">💳</span>
+                <div class="home-card-label">Histórico de Pagamentos</div>
+                <div class="home-card-sub">Abatimentos registrados</div>
+            </button>
         </div>
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
         <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
@@ -257,6 +262,16 @@
                 <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome} e {valor}</p>
                 <textarea id="editCobrancaTemplate" class="input-text" style="height:120px; text-align:left; font-family:monospace;"></textarea>
             </div>
+            <div class="card-box">
+                <h4>🧾 Comprovante de Pagamento</h4>
+                <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {data}, {valor}, {saldo}</p>
+                <textarea id="editComprovanteTemplate" class="input-text" style="height:150px; text-align:left; font-family:monospace;"></textarea>
+            </div>
+            <div class="card-box">
+                <h4>📊 Extrato do Fiado</h4>
+                <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {data}, {saldo}</p>
+                <textarea id="editExtratoTemplate" class="input-text" style="height:140px; text-align:left; font-family:monospace;"></textarea>
+            </div>
             <button onclick="saveMsgTemplates()" class="btn btn-success btn-block">Salvar Templates</button>
         </div>
         <!-- ABA COMPRA NO NOME -->
@@ -279,16 +294,43 @@
             <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px; font-size:16px; margin-bottom:20px;">✅ Confirmar Compra</button>
         </div>
 
+        <!-- Modal Histórico Execuções -->
+        <div id="modalHistoricoExec" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:center; justify-content:center; padding:15px;">
+            <div style="background:white; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="color:#8e44ad; font-size:17px;">📋 Histórico de Execuções</h3>
+                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                </div>
+                <div id="historicoExecList"></div>
+            </div>
+        </div>
+
         <!-- ABA REFAZER PEDIDOS -->
         <div id="tab-refazer" class="section">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <!-- Banner de agendamento automático -->
+            <div id="agendamentoBanner" style="background:linear-gradient(135deg,#1a1a2e,#4a235a);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático às 6h</div>
+                        <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
+                    </div>
+                    <label class="switch" style="transform:scale(1.2);">
+                        <input type="checkbox" id="autoRefazerToggle" onchange="toggleAutoRefazer(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;display:none;">
+                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente às <strong>06:00</strong> de amanhã.
+                </div>
+                <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
+            </div>
+
+            <div style="margin-bottom:12px;">
                 <p style="color:#888; font-size:13px;">Selecione os clientes para repetir o último pedido no fiado:</p>
-                <button onclick="restaurarOcultos()" style="background:#eee;border:none;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;">↩️ Restaurar</button>
             </div>
             <div id="refazerList"></div>
             <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:white; padding:14px; border-top:2px solid #eee; margin-top:10px;">
-                <div id="refazerSelecionados" style="font-size:13px; color:#555; margin-bottom:10px;"></div>
-                <button onclick="confirmarTodosRefazer()" class="btn btn-block" style="background:#8e44ad; color:white; padding:14px; font-size:15px;">✅ Confirmar Pedidos Selecionados</button>
+                <div id="refazerSelecionados" style="font-size:13px; color:#555;"></div>
             </div>
         </div>
         <!-- ABA HISTÓRICO FIADO -->
@@ -298,6 +340,22 @@
                 <span id="historicoContador" style="background:#16a085; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
             </div>
             <div id="historicoList"></div>
+        </div>
+
+        <!-- ABA HISTÓRICO DE PAGAMENTOS -->
+        <div id="tab-pagamentos" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#333;">💳 Histórico de Pagamentos</h3>
+                <span id="pagamentosContador" style="background:#2980b9; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
+            </div>
+            <div id="pagamentosTotalBanner" style="background:linear-gradient(135deg,#2980b9,#1a5276);color:white;border-radius:18px;padding:16px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(41,128,185,0.3);">
+                <div>
+                    <div style="font-size:12px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">💰 Total Recebido</div>
+                    <div id="pagamentosTotalValor" style="font-size:26px;font-weight:900;">R$ 0,00</div>
+                </div>
+                <span style="font-size:36px;opacity:0.25;">💳</span>
+            </div>
+            <div id="pagamentosList"></div>
         </div>
     </div>
 
@@ -309,6 +367,8 @@ const ADMIN_PASS = "8564";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
+let msgComprovante = "🧾 *COMPROVANTE DE PAGAMENTO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}\n──────────────────\n✅ Obrigado pelo pagamento!";
+let msgExtrato = "📊 *EXTRATO DE FIADO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Consultado em: {data}\n💸 Saldo devedor: R$ {saldo}\n──────────────────\nQualquer dúvida, entre em contato! 😊";
 
 window.onload = async () => {
     initAdmin();
@@ -340,10 +400,13 @@ function openSection(section) {
         mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {
             document.getElementById('editTemplate').value = msgTemplate;
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
+            document.getElementById('editComprovanteTemplate').value = msgComprovante;
+            document.getElementById('editExtratoTemplate').value = msgExtrato;
         }},
         refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: loadRefazerPedidos },
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
-        historico: { id: 'tab-historico', title: '🕓 Histórico Fiado', fn: loadHistoricoFiado }
+        historico: { id: 'tab-historico', title: '🕓 Histórico Fiado', fn: loadHistoricoFiado },
+        pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos }
     };
     const s = map[section];
     document.getElementById(s.id).classList.add('active');
@@ -565,6 +628,11 @@ async function loadAdminClients() {
                 <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;" placeholder="Valor a lançar">
                 <button onclick="payDebt('${c.phone}')" class="btn btn-success">OK</button>
             </div>
+            ${c.debt <= 0 ? '' : `
+            <button onclick="enviarComprovanteManual('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})"
+                style="margin-top:8px;width:100%;padding:9px;background:#e8f5e9;border:1.5px solid #25d366;color:#1e8449;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">
+                📋 Enviar Extrato do Fiado via WhatsApp
+            </button>`}
         </div>`).join('');
 
     // Limpa pesquisa ao recarregar
@@ -601,15 +669,79 @@ async function toggleFiado(phone, value) {
     await sb.from("clients").update({ fiado: value }).eq("phone", phone);
 }
 
+// Variável global temporária para guardar o comprovante pendente de envio
+let _comprovanteTemp = { phone: null, texto: null };
+
 async function payDebt(phone) {
     const input = document.getElementById('pay_' + phone);
     const val = parseFloat(input.value);
     if (!val) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Digite um valor para abater.' }); return; }
     const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
-    await sb.from("clients").update({ debt: c.debt - val }).eq("phone", phone);
+    const novoSaldo = c.debt - val;
+    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
+
+    // Registra o pagamento no histórico (localStorage)
+    var pagamentos = JSON.parse(localStorage.getItem('historico_pagamentos') || '[]');
+    pagamentos.unshift({
+        client_name: c.name,
+        client_phone: phone,
+        amount: val,
+        saldo_anterior: c.debt,
+        saldo_posterior: novoSaldo,
+        created_at: new Date().toISOString()
+    });
+    if (pagamentos.length > 100) pagamentos.pop(); // limite de 100 registros
+    localStorage.setItem('historico_pagamentos', JSON.stringify(pagamentos));
+
     input.value = '';
     loadAdminClients();
-    showToast({ type: 'success', title: `💰 Abatimento lançado!`, body: `R$ ${val.toFixed(2).replace('.', ',')} abatido${c && c.name ? ' de ' + c.name : ''}.`, duration: 8000 });
+
+    // Monta o comprovante usando o template configurável
+    const now = new Date();
+    const dataHora = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const saldoTexto = novoSaldo > 0
+        ? `Saldo devedor restante: R$ ${novoSaldo.toFixed(2).replace('.', ',')}`
+        : novoSaldo < 0
+            ? `Crédito a favor: R$ ${Math.abs(novoSaldo).toFixed(2).replace('.', ',')}`
+            : `✅ Fiado quitado completamente!`;
+
+    const comprovante = msgComprovante
+        .replace('{nome}', c.name)
+        .replace('{data}', dataHora)
+        .replace('{valor}', val.toFixed(2).replace('.', ','))
+        .replace('{saldo}', saldoTexto);
+
+    // Guarda na variável global para o botão do toast acessar com segurança
+    _comprovanteTemp = { phone, texto: comprovante };
+
+    showToast({
+        type: 'success',
+        title: `💰 Pagamento de R$ ${val.toFixed(2).replace('.', ',')} registrado!`,
+        body: `Deseja enviar o comprovante para ${c.name} no WhatsApp?`,
+        actions: [
+            { label: '❌ Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '📲 Enviar Comprovante', bg: '#25d366', color: 'white', fn: 'enviarComprovanteWpp()' }
+        ],
+        duration: 10000
+    });
+}
+
+function enviarComprovanteWpp() {
+    const { phone, texto } = _comprovanteTemp;
+    closeToast();
+    if (!phone || !texto) return;
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
+    _comprovanteTemp = { phone: null, texto: null };
+}
+
+function enviarComprovanteManual(phone, name, debt) {
+    const now = new Date();
+    const dataHora = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const extrato = msgExtrato
+        .replace('{nome}', name)
+        .replace('{data}', dataHora)
+        .replace('{saldo}', Number(debt).toFixed(2).replace('.', ','));
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(extrato)}`, '_blank');
 }
 
 async function deleteClient(phone) {
@@ -738,16 +870,24 @@ async function loadTemplates() {
     if (data) {
         const msgCfg = data.find(x => x.key === "msg_template");
         const cobrCfg = data.find(x => x.key === "msg_cobranca");
+        const compCfg = data.find(x => x.key === "msg_comprovante");
+        const extCfg  = data.find(x => x.key === "msg_extrato");
         if (msgCfg) msgTemplate = msgCfg.value;
         if (cobrCfg) msgCobranca = cobrCfg.value;
+        if (compCfg) msgComprovante = compCfg.value;
+        if (extCfg)  msgExtrato = extCfg.value;
     }
 }
 
 async function saveMsgTemplates() {
     msgTemplate = document.getElementById('editTemplate').value;
     msgCobranca = document.getElementById('editCobrancaTemplate').value;
+    msgComprovante = document.getElementById('editComprovanteTemplate').value;
+    msgExtrato = document.getElementById('editExtratoTemplate').value;
     await sb.from("config").upsert({ key: "msg_template", value: msgTemplate });
     await sb.from("config").upsert({ key: "msg_cobranca", value: msgCobranca });
+    await sb.from("config").upsert({ key: "msg_comprovante", value: msgComprovante });
+    await sb.from("config").upsert({ key: "msg_extrato", value: msgExtrato });
     showToast({ type: 'success', title: '✅ Templates salvos!', body: 'Os templates foram atualizados com sucesso.', duration: 5000 });
 }
 // REPETIR ÚLTIMO PEDIDO
@@ -812,20 +952,187 @@ async function executarRepetirPedido() {
 
 // ===== REFAZER PEDIDOS =====
 let refazerSelecionados = {};
-let refazerOcultos = JSON.parse(localStorage.getItem('refazer_ocultos') || '[]');
+let refazerBloqueados = JSON.parse(localStorage.getItem('refazer_bloqueados') || '[]');
 
-function ocultarRefazer(phone) {
-    if (!refazerOcultos.includes(phone)) {
-        refazerOcultos.push(phone);
-        localStorage.setItem('refazer_ocultos', JSON.stringify(refazerOcultos));
+function toggleBloqueioRefazer(phone, event) {
+    event.stopPropagation();
+    if (refazerBloqueados.includes(phone)) {
+        refazerBloqueados = refazerBloqueados.filter(p => p !== phone);
+    } else {
+        refazerBloqueados.push(phone);
     }
+    localStorage.setItem('refazer_bloqueados', JSON.stringify(refazerBloqueados));
     loadRefazerPedidos();
 }
+let autoRefazerTimer = null;
+
+// ---- Persistência das seleções ----
+function salvarSelecoes() {
+    localStorage.setItem('refazer_selecionados', JSON.stringify(refazerSelecionados));
+}
+function carregarSelecoes() {
+    try { return JSON.parse(localStorage.getItem('refazer_selecionados') || '{}'); } catch(e) { return {}; }
+}
+
+// ---- Toggle automático ----
+function toggleAutoRefazer(ativo) {
+    localStorage.setItem('autoRefazer_ativo', ativo ? '1' : '0');
+    atualizarBannerAgendamento();
+    if (ativo) {
+        agendarAutoRefazer();
+    } else {
+        if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
+    }
+}
+
+function atualizarBannerAgendamento() {
+    const ativo = localStorage.getItem('autoRefazer_ativo') === '1';
+    const toggle = document.getElementById('autoRefazerToggle');
+    const status = document.getElementById('agendamentoStatus');
+    const info = document.getElementById('agendamentoInfo');
+    const ultimo = document.getElementById('agendamentoUltimo');
+    if (toggle) toggle.checked = ativo;
+    const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
+    const temHistorico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]').length > 0;
+    if (ultimaExec) {
+        ultimo.innerHTML = `⏱️ Última execução: ${ultimaExec} &nbsp;<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
+        ultimo.style.display = 'block';
+    } else if (temHistorico) {
+        ultimo.innerHTML = `<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
+        ultimo.style.display = 'block';
+    }
+    if (ativo) {
+        const agora = new Date();
+        const proximo6h = new Date(agora);
+        proximo6h.setHours(6, 0, 0, 0);
+        if (agora >= proximo6h) proximo6h.setDate(proximo6h.getDate() + 1);
+        const diff = proximo6h - agora;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min`;
+        info.style.display = 'block';
+    } else {
+        status.textContent = '⏸️ Desativado · Ative para lançar pedidos automaticamente às 6h';
+        info.style.display = 'none';
+    }
+}
+
+function agendarAutoRefazer() {
+    if (autoRefazerTimer) clearTimeout(autoRefazerTimer);
+    const agora = new Date();
+    const proximo4h = new Date(agora);
+    proximo4h.setHours(6, 0, 0, 0);
+    if (agora >= proximo4h) proximo4h.setDate(proximo4h.getDate() + 1);
+    const msAte4h = proximo4h - agora;
+    autoRefazerTimer = setTimeout(async () => {
+        await executarAutoRefazer();
+        // Reagenda para o próximo dia
+        if (localStorage.getItem('autoRefazer_ativo') === '1') {
+            agendarAutoRefazer();
+        }
+    }, msAte4h);
+}
+
+async function executarAutoRefazer() {
+    const sel = carregarSelecoes();
+    const lista = Object.values(sel);
+    if (lista.length === 0) return;
+
+    // Quebra da regra: pedido feito após as 12h do dia anterior
+    const ontem12h = new Date();
+    ontem12h.setDate(ontem12h.getDate() - 1);
+    ontem12h.setHours(12, 0, 0, 0);
+
+    const lancados = [];
+    const pulados = [];
+
+    const bloqueados = JSON.parse(localStorage.getItem('refazer_bloqueados') || '[]');
+
+    for (const s of lista) {
+        // Pula clientes bloqueados do automático
+        if (bloqueados.includes(s.phone)) {
+            pulados.push(s.name + ' (bloqueado)');
+            continue;
+        }
+
+        const { data: pedidoRecente } = await sb.from("orders")
+            .select("id")
+            .eq("customer_phone", s.phone)
+            .gte("created_at", ontem12h.toISOString())
+            .limit(1);
+
+        if (pedidoRecente && pedidoRecente.length > 0) {
+            pulados.push(s.name);
+            continue;
+        }
+
+        const { data: orders } = await sb.from("orders")
+            .select("*").eq("customer_phone", s.phone)
+            .order("created_at", { ascending: false }).limit(1);
+        if (!orders || orders.length === 0) continue;
+        const ultimo = orders[0];
+        const { data: c } = await sb.from("clients").select("debt").eq("phone", s.phone).single();
+        if (!c) continue;
+        await sb.from("clients").update({ debt: (c.debt || 0) + Number(ultimo.total) }).eq("phone", s.phone);
+        const { data: novoPedido } = await sb.from("orders").insert({
+            customer_name: s.name,
+            customer_phone: s.phone,
+            total: Number(ultimo.total),
+            payment_method: 'FIADO',
+            items: ultimo.items
+        }).select().single();
+        lancados.push({ name: s.name, phone: s.phone, total: Number(ultimo.total), orderId: novoPedido ? novoPedido.id : null });
+    }
+
+    const agora = new Date();
+    const agoraStr = agora.toLocaleString('pt-BR');
+    localStorage.setItem('autoRefazer_ultimaExec', agoraStr);
+
+    // Salva histórico de execuções (máx 30)
+    const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
+    historico.unshift({ data: agoraStr, lancados, pulados });
+    if (historico.length > 30) historico.pop();
+    localStorage.setItem('autoRefazer_historico', JSON.stringify(historico));
+
+    // Salva badges dos pulados para exibir nos cards
+    const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
+    pulados.forEach(nome => {
+        const found = Object.values(sel).find(x => x.name === nome);
+        const phone = found ? found.phone : null;
+        if (phone) badgesPulados[phone] = agoraStr;
+    });
+    localStorage.setItem('autoRefazer_pulados', JSON.stringify(badgesPulados));
+
+    updateFiadoHeader();
+
+    let body = '';
+    if (lancados.length > 0) body += `✅ Lançados (${lancados.length}):\n${lancados.map(x => '• ' + x.name).join('\n')}`;
+    if (pulados.length > 0) body += `\n\n⏭️ Pulados (${pulados.length}):\n${pulados.map(n => '• ' + n).join('\n')}`;
+    if (lancados.length === 0) body = `Nenhum pedido lançado.\nTodos já pediram após as 12h de ontem.`;
+
+    showToast({
+        type: 'success',
+        title: `🤖 Automático executado às 06:00`,
+        body: body.trim(),
+        duration: 12000
+    });
+    atualizarBannerAgendamento();
+}
+
+// Inicializa o scheduler ao carregar a página
+(function initAutoRefazer() {
+    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+        agendarAutoRefazer();
+    }
+})();
+
+
 
 async function loadRefazerPedidos() {
+    atualizarBannerAgendamento();
     const list = document.getElementById('refazerList');
     list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
-    refazerSelecionados = {};
+    refazerSelecionados = carregarSelecoes(); // restaura seleções salvas
     atualizarResumoRefazer();
 
     // Busca todos os clientes
@@ -843,11 +1150,20 @@ async function loadRefazerPedidos() {
         return { client: c, lastOrder: orders && orders.length > 0 ? orders[0] : null };
     }));
 
-    // Filtra ocultos
-    const cardsFiltrados = cards.filter(({ client: c }) => !refazerOcultos.includes(c.phone));
+    // Filtra anônimos (show_name === false)
+    const cardsFiltrados = cards.filter(({ client: c }) => c.show_name !== false);
+
+    // Pré-seleciona automaticamente clientes visíveis (show_name === true) que ainda não estão na seleção
+    cardsFiltrados.forEach(({ client: c, lastOrder: o }) => {
+        if (o && c.show_name === true && !refazerSelecionados[c.phone]) {
+            refazerSelecionados[c.phone] = { phone: c.phone, name: c.name, total: o.total, items: o.items, show_name: true };
+        }
+    });
+    salvarSelecoes();
+    atualizarResumoRefazer();
 
     if (cardsFiltrados.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#888;padding:30px;">Nenhum cliente para exibir.<br><button onclick="restaurarOcultos()" style="margin-top:10px;background:#eee;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;">↩️ Restaurar todos</button></div>';
+        list.innerHTML = '<div style="text-align:center;color:#888;padding:30px;">Nenhum cliente para exibir.</div>';
         return;
     }
 
@@ -855,39 +1171,131 @@ async function loadRefazerPedidos() {
         if (!o) return `
             <div style="background:white;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;opacity:0.5;display:flex;justify-content:space-between;align-items:center;">
                 <div><strong>${c.name}</strong><br><small style="color:#aaa;">Sem pedidos anteriores</small></div>
-                <button onclick="event.stopPropagation();ocultarRefazer('${c.phone}')" style="background:#eee;border:none;border-radius:10px;padding:6px 10px;cursor:pointer;font-size:13px;">🚫 Ocultar</button>
             </div>`;
 
         const valor = Number(o.total).toFixed(2).replace('.', ',');
         const data = new Date(o.created_at).toLocaleDateString('pt-BR');
         const itens = (o.items || '').replace(/✅ /g,'').replace(/\n/g,' | ').trim();
+        const isSel = !!refazerSelecionados[c.phone];
+        const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
+        const foiPulado = badgesPulados[c.phone];
+        const badgePulado = foiPulado
+            ? `<div style="margin-top:6px;background:#fff3cd;border:1px solid #f39c12;border-radius:8px;padding:4px 8px;font-size:11px;color:#b7770d;font-weight:700;">⏭️ Pulado em ${foiPulado} · já pediu após 12h de ontem</div>`
+            : '';
+
+        const isBloqueado = refazerBloqueados.includes(c.phone);
+        const badgeBloqueado = isBloqueado
+            ? `<div style="margin-top:6px;background:#fdecea;border:1px solid #e74c3c;border-radius:8px;padding:4px 8px;font-size:11px;color:#c0392b;font-weight:700;">🚫 Bloqueado do automático</div>`
+            : '';
 
         return `
-            <div id="card_refazer_${c.phone}" onclick="toggleRefazer('${c.phone}','${c.name.replace(/'/g,"\'")}',${o.total},'${o.items.replace(/'/g,"\'").replace(/\n/g,"\\n")}')"
-                style="background:white;border:2px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;">
+            <div id="card_refazer_${c.phone}" onclick="toggleRefazer('${c.phone}','${c.name.replace(/'/g,"\'")}',${o.total},'${o.items.replace(/'/g,"\'").replace(/\n/g,"\\n")}',${c.show_name === true})"
+                style="background:${isSel?'#fdf6ff':'white'};border:2px solid ${isSel?'#8e44ad':'#eee'};border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;${isBloqueado?'opacity:0.6;':''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <strong style="font-size:15px;">${c.name}</strong>
+        <strong style="font-size:15px;">${c.name}</strong>
                         <div style="font-size:12px;color:#888;margin-top:2px;">${itens}</div>
                         <div style="font-size:12px;color:#aaa;margin-top:2px;">📅 ${data}</div>
                     </div>
                     <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                        <button onclick="event.stopPropagation();ocultarRefazer('${c.phone}')" style="background:#fee;border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:#e74c3c;">🚫</button>
+                        <button onclick="toggleBloqueioRefazer('${c.phone}', event)" style="background:${isBloqueado?'#e74c3c':'#eee'};border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:${isBloqueado?'white':'#888'};" title="${isBloqueado?'Desbloquear automático':'Bloquear automático'}">🚫</button>
                         <div style="font-size:18px;font-weight:900;color:#8e44ad;">R$ ${valor}</div>
-                        <div id="check_${c.phone}" style="width:26px;height:26px;border:2px solid #ddd;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;"></div>
+                        <div id="check_${c.phone}" style="width:26px;height:26px;border:2px solid ${isSel?'#8e44ad':'#ddd'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${isSel?'#8e44ad':''};color:${isSel?'white':''}">${isSel?'✓':''}</div>
                     </div>
                 </div>
+                ${badgePulado}
+                ${badgeBloqueado}
             </div>`;
     }).join('');
 }
 
-function restaurarOcultos() {
-    refazerOcultos = [];
-    localStorage.removeItem('refazer_ocultos');
-    loadRefazerPedidos();
+
+
+function verHistoricoExecucoes() {
+    const modal = document.getElementById('modalHistoricoExec');
+    const list = document.getElementById('historicoExecList');
+    modal.style.display = 'flex';
+    renderHistoricoExecucoes();
 }
 
-function toggleRefazer(phone, name, total, items) {
+function renderHistoricoExecucoes() {
+    const list = document.getElementById('historicoExecList');
+    const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
+    if (historico.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">Nenhuma execução registrada ainda.</div>';
+        return;
+    }
+    list.innerHTML = historico.map((h, i) => {
+        const lancHTML = h.lancados.length > 0
+            ? `<div style="margin-top:8px;"><span style="color:#27ae60;font-weight:700;">✅ Lançados (${h.lancados.length}):</span>${h.lancados.map(x => {
+                const name = typeof x === 'object' ? x.name : x;
+                const total = typeof x === 'object' ? Number(x.total).toFixed(2).replace('.', ',') : '?';
+                const orderId = typeof x === 'object' ? x.orderId : null;
+                const phone = typeof x === 'object' ? x.phone : null;
+                const cancelado = typeof x === 'object' && x.cancelado;
+                return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;background:#f9f9f9;border-radius:10px;padding:6px 10px;">
+                    <span style="font-size:13px;${cancelado?'text-decoration:line-through;color:#aaa;':''}">• ${name} · R$ ${total}</span>
+                    ${cancelado
+                        ? `<span style="font-size:11px;color:#e74c3c;font-weight:700;">Cancelado</span>`
+                        : orderId
+                            ? `<button onclick="cancelarPedidoAutoRefazer(${i},'${orderId}','${phone}',${x.total},'${name}')" style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Cancelar</button>`
+                            : `<span style="font-size:11px;color:#aaa;">sem id</span>`
+                    }
+                </div>`;
+            }).join('')}</div>`
+            : '';
+        const pulHTML = h.pulados.length > 0
+            ? `<div style="margin-top:6px;"><span style="color:#f39c12;font-weight:700;">⏭️ Pulados (${h.pulados.length}):</span><br>${h.pulados.map(n => `<span style="font-size:12px;">• ${n}</span>`).join('<br>')}</div>`
+            : '';
+        const nenhum = h.lancados.length === 0 && h.pulados.length === 0
+            ? '<div style="font-size:12px;color:#aaa;margin-top:4px;">Nenhum cliente selecionado.</div>' : '';
+        return `
+        <div style="background:#fafafa;border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid #8e44ad;">
+            <div style="font-weight:800;font-size:13px;color:#555;">🤖 Execução #${historico.length - i} · ${h.data}</div>
+            ${lancHTML}${pulHTML}${nenhum}
+        </div>`;
+    }).join('');
+}
+
+function cancelarPedidoAutoRefazer(execIndex, orderId, phone, total, name) {
+    showToast({
+        type: 'confirm',
+        title: `🗑️ Cancelar pedido de ${name}?`,
+        body: `R$ ${Number(total).toFixed(2).replace('.', ',')} será estornado do fiado.`,
+        actions: [
+            { label: 'Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Confirmar', bg: 'var(--danger)', color: 'white', fn: `executarCancelamentoAutoRefazer(${execIndex},'${orderId}','${phone}',${total},'${name}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total, name) {
+    closeToast();
+
+    // Remove o pedido
+    await sb.from("orders").delete().eq("id", orderId);
+
+    // Estorna do fiado
+    const { data: c } = await sb.from("clients").select("debt").eq("phone", phone).single();
+    if (c) {
+        await sb.from("clients").update({ debt: (c.debt || 0) - Number(total) }).eq("phone", phone);
+    }
+
+    // Remove do histórico local
+    const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
+    if (historico[execIndex]) {
+        historico[execIndex].lancados = historico[execIndex].lancados.filter(x => !(typeof x === 'object' && x.orderId === orderId));
+        localStorage.setItem('autoRefazer_historico', JSON.stringify(historico));
+    }
+
+    updateFiadoHeader();
+    renderHistoricoExecucoes();
+    showToast({ type: 'success', title: '✅ Cancelado!', body: `R$ ${Number(total).toFixed(2).replace('.', ',')} estornado do fiado de ${name}.`, duration: 5000 });
+}
+
+
+function toggleRefazer(phone, name, total, items, showName = false) {
     const card = document.getElementById('card_refazer_' + phone);
     const check = document.getElementById('check_' + phone);
     if (refazerSelecionados[phone]) {
@@ -897,8 +1305,9 @@ function toggleRefazer(phone, name, total, items) {
         check.textContent = '';
         check.style.borderColor = '#ddd';
         check.style.background = '';
+        check.style.color = '';
     } else {
-        refazerSelecionados[phone] = { phone, name, total, items };
+        refazerSelecionados[phone] = { phone, name, total, items, show_name: showName };
         card.style.border = '2px solid #8e44ad';
         card.style.background = '#fdf6ff';
         check.textContent = '✓';
@@ -906,6 +1315,7 @@ function toggleRefazer(phone, name, total, items) {
         check.style.background = '#8e44ad';
         check.style.color = 'white';
     }
+    salvarSelecoes();
     atualizarResumoRefazer();
 }
 
@@ -916,7 +1326,7 @@ function atualizarResumoRefazer() {
     const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0);
     document.getElementById('refazerSelecionados').innerHTML =
         `<strong>${sel.length} cliente(s) selecionado(s)</strong> · Total: <strong style="color:#8e44ad;">R$ ${totalGeral.toFixed(2).replace('.', ',')}</strong><br>` +
-        sel.map(x => `• ${x.name}: R$ ${Number(x.total).toFixed(2).replace('.', ',')}`).join('<br>');
+        sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.', ',')}`).join('<br>');
     resumo.style.display = 'block';
 }
 
@@ -925,7 +1335,7 @@ async function confirmarTodosRefazer() {
     if (sel.length === 0) return;
 
     const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
-    const nomes = sel.map(x => `• ${x.name}: R$ ${Number(x.total).toFixed(2).replace('.',',')}`).join('\n');
+    const nomes = sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.',',')}`).join('\n');
 
     showToast({
         type: 'confirm',
@@ -957,6 +1367,7 @@ async function executarTodosRefazer() {
     }
 
     refazerSelecionados = {};
+    salvarSelecoes();
     loadRefazerPedidos();
     updateFiadoHeader();
     showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no fiado.\nTotal: R$ ${totalGeral}`, duration: 8000 });
@@ -1165,6 +1576,53 @@ async function executarCompra(total, pedidoTexto) {
 // Mapa seguro para dados dos pedidos do histórico
 const historicoMap = {};
 
+function loadHistoricoPagamentos() {
+    const list = document.getElementById('pagamentosList');
+    const contador = document.getElementById('pagamentosContador');
+    const totalEl = document.getElementById('pagamentosTotalValor');
+
+    const data = JSON.parse(localStorage.getItem('historico_pagamentos') || '[]');
+
+    if (!data || data.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhum pagamento registrado ainda.</div>';
+        contador.textContent = '0 registros';
+        totalEl.textContent = 'R$ 0,00';
+        return;
+    }
+
+    contador.textContent = data.length + ' registro' + (data.length > 1 ? 's' : '');
+    const total = data.reduce(function(s, p) { return s + Number(p.amount); }, 0);
+    totalEl.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+    list.innerHTML = data.map(function(p) {
+        const date = new Date(p.created_at);
+        const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+        const saldoAntes = Number(p.saldo_anterior || 0).toFixed(2).replace('.', ',');
+        const saldoDepois = Number(p.saldo_posterior || 0).toFixed(2).replace('.', ',');
+        const saldoColor = Number(p.saldo_posterior) <= 0 ? '#27ae60' : '#e74c3c';
+        const saldoLabel = Number(p.saldo_posterior) <= 0 ? '✅ Quitado' : 'Restante: R$ ' + saldoDepois;
+        const bgSaldo = Number(p.saldo_posterior) <= 0 ? '#d5f5e3' : '#fde8e8';
+
+        return '<div style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid #2980b9;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">' +
+                '<div>' +
+                    '<div style="font-weight:800;font-size:15px;color:#222;">👤 ' + p.client_name + '</div>' +
+                    '<div style="font-size:12px;color:#999;margin-top:2px;">📞 ' + (p.client_phone || '—') + '</div>' +
+                    '<div style="font-size:11px;color:#aaa;margin-top:2px;">📅 ' + dateStr + ' às ' + timeStr + '</div>' +
+                '</div>' +
+                '<div style="text-align:right;">' +
+                    '<div style="font-size:22px;font-weight:900;color:#27ae60;">+ R$ ' + Number(p.amount).toFixed(2).replace('.', ',') + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                '<span style="background:#f0f0f0;color:#555;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">Antes: R$ ' + saldoAntes + '</span>' +
+                '<span style="background:' + bgSaldo + ';color:' + saldoColor + ';font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">' + saldoLabel + '</span>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
 async function loadHistoricoFiado() {
     const list = document.getElementById('historicoList');
     const contador = document.getElementById('historicoContador');
@@ -1218,7 +1676,7 @@ async function loadHistoricoFiado() {
             <div style="margin-top:8px;line-height:1.8;">${itemsHTML}</div>
             <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <span style="background:#d5f5e3;color:#16a085;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">📝 FIADO</span>
+                    <span style="background:#d5f5e3;color:#16a085;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">📝 FIADO${isCardapio ? ' 🤖' : ''}</span>
                 </div>
                 <button onclick="cancelarPedidoFiado('${o.id}')"
                     style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
