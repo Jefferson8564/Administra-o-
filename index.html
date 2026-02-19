@@ -75,7 +75,39 @@
         .fb-value { font-size: 26px; font-weight: 900; }
 
         /* ORDER */
-        .order-card { background: #f9f9f9; border: 1px solid #eee; padding: 12px; border-radius: 14px; margin-bottom: 10px; }
+        /* SWIPE ORDER CARDS */
+        .order-wrap { position: relative; margin-bottom: 8px; border-radius: 18px; overflow: hidden; }
+        .order-delete-bg {
+            position: absolute; inset: 0; display: flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 18px; padding: 0 22px;
+        }
+        .order-delete-bg.dir-right { justify-content: flex-start; }
+        .order-delete-bg.dir-left  { justify-content: flex-end; }
+        .order-delete-label { color: white; font-size: 13px; font-weight: 800; letter-spacing: 0.3px; }
+        .order-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 14px 15px 12px;
+            position: relative;
+            touch-action: pan-y;
+            will-change: transform;
+            transition: transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            user-select: none; -webkit-user-select: none;
+        }
+        .order-card.swiping { transition: none; }
+        .order-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .order-card-name { font-size: 15px; font-weight: 800; color: #1a1a2e; }
+        .order-card-time { font-size: 11px; color: #bbb; font-weight: 500; }
+        .order-card-phone { font-size: 12px; color: #aaa; margin-top: 1px; }
+        .order-card-items { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .order-card-footer { display: flex; justify-content: space-between; align-items: center; }
+        .order-card-valor { font-size: 16px; font-weight: 900; }
+        .order-card-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+        .badge-fiado { background: #fff0f0; color: #e74c3c; }
+        .badge-pago  { background: #e8faf0; color: #27ae60; }
+        .order-fiado-btn { margin-top: 10px; width: 100%; padding: 9px; background: #fff8ee; border: 1.5px solid #e67e22; color: #e67e22; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
         /* SWITCH */
         .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
@@ -115,7 +147,7 @@
 
     <div class="header">
         <div>
-            <span class="header-fiado-label">💸 Total em Fiado</span>
+            <span class="header-fiado-label">💸 Total Pagar Depois</span>
             <span class="header-fiado-valor zero" id="headerFiadoValor">R$ 0,00</span>
         </div>
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; text-decoration:none;">← Loja</a>
@@ -128,12 +160,12 @@
             <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
                 <span class="home-card-icon">🤖</span>
                 <div class="home-card-label">Refazer Pedidos</div>
-                <div class="home-card-sub">Repetir no fiado</div>
+                <div class="home-card-sub">Repetir no pagar depois</div>
             </button>
             <button class="home-card card-blue" onclick="openSection('clientes')">
                 <span class="home-card-icon">👥</span>
                 <div class="home-card-label">Clientes</div>
-                <div class="home-card-sub">Fiados & cadastros</div>
+                <div class="home-card-sub">Pagar depois & cadastros</div>
             </button>
             <button class="home-card card-red" onclick="openSection('pedidos')">
                 <span class="home-card-icon">📋</span>
@@ -156,9 +188,9 @@
                 <div class="home-card-sub">Pedido pelo admin</div>
             </button>
             <button class="home-card" style="border-top:4px solid #16a085; grid-column: span 2;" onclick="openSection('historico')">
-                <span class="home-card-icon">🕓</span>
-                <div class="home-card-label">Histórico Fiado</div>
-                <div class="home-card-sub">Últimas 10 compras no fiado</div>
+                <span class="home-card-icon">🛍️</span>
+                <div class="home-card-label">Histórico de Compras</div>
+                <div class="home-card-sub">Todas as compras registradas</div>
             </button>
             <button class="home-card" style="border-top:4px solid #2980b9; grid-column: span 2;" onclick="openSection('pagamentos')">
                 <span class="home-card-icon">💳</span>
@@ -218,7 +250,7 @@
         <div id="tab-clients" class="section">
             <div id="fiadoBanner" class="fiado-banner zerado">
                 <div>
-                    <div class="fb-label">💸 Total em Fiado</div>
+                    <div class="fb-label">💸 Total Pagar Depois</div>
                     <div class="fb-value" id="fiadoBannerValor">R$ 0,00</div>
                 </div>
                 <span style="font-size:36px; opacity:0.25;">📊</span>
@@ -248,6 +280,28 @@
         </div>
 
         <div id="tab-orders" class="section">
+            <!-- RESUMO DO DIA -->
+            <div id="orderSummaryBox"
+                style="background:linear-gradient(135deg,#1a1a2e 0%,#2d1f0e 100%); border-radius:14px; padding:10px 8px; margin-bottom:14px; margin-left:-15px; margin-right:-15px; color:white; box-shadow:0 3px 12px rgba(0,0,0,0.18); position:relative; overflow:hidden; cursor:pointer; user-select:none; -webkit-user-select:none;">
+                <div id="orderSummaryGrid" style="display:flex; flex-wrap:nowrap; gap:4px;">
+                    <span style="color:rgba(255,255,255,0.4); font-size:13px;">Carregando...</span>
+                </div>
+                <div id="summaryHoldBar" style="position:absolute; bottom:0; left:0; height:3px; width:0%; background:#f1c40f;"></div>
+            </div>
+
+            <!-- MODAL: clientes do período -->
+            <div id="modalExcluirClientes" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
+                <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <h3 style="color:#1a1a2e; font-size:17px;">👤 Remover da contagem</h3>
+                        <button onclick="fecharModalExcluir()" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                    </div>
+                    <p style="font-size:12px; color:#999; margin-bottom:14px;">Marque os clientes para remover os pedidos deles do cabeçalho</p>
+                    <div id="excluirClientesList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    <button onclick="aplicarExclusoes()" style="margin-top:16px; width:100%; padding:13px; background:linear-gradient(135deg,#1a1a2e,#c75b24); color:white; border:none; border-radius:14px; font-weight:800; font-size:15px; cursor:pointer;">✅ Aplicar</button>
+                </div>
+            </div>
+
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="color:#333;">Últimos Pedidos</h3>
                 <button onclick="clearAllOrders()" class="btn btn-danger btn-sm">Zerar Tudo</button>
@@ -272,7 +326,7 @@
                 <textarea id="editComprovanteTemplate" class="input-text" style="height:150px; text-align:left; font-family:monospace;"></textarea>
             </div>
             <div class="card-box">
-                <h4>📊 Extrato do Fiado</h4>
+                <h4>📊 Extrato do Pagar Depois</h4>
                 <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {data}, {saldo}</p>
                 <textarea id="editExtratoTemplate" class="input-text" style="height:140px; text-align:left; font-family:monospace;"></textarea>
             </div>
@@ -294,6 +348,20 @@
             <div style="background:#fff3cd; border-radius:14px; padding:14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-size:14px; color:#555; font-weight:600;">Total</span>
                 <span id="compraTotalLabel" style="font-size:24px; font-weight:900; color:var(--primary);">R$ 0,00</span>
+            </div>
+            <!-- Forma de pagamento -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:13px; font-weight:700; color:#555; margin-bottom:8px;">💳 Forma de pagamento</div>
+                <div style="display:flex; gap:8px;">
+                    <div id="cpopt-FIADO" onclick="selecionarPagamentoCompra('FIADO')"
+                        style="flex:1; padding:11px; text-align:center; border-radius:12px; border:2px solid var(--success); background:#e8f5e9; color:var(--success); font-weight:700; font-size:14px; cursor:pointer;">
+                        ⏳ Pagar Depois
+                    </div>
+                    <div id="cpopt-PAGA-NA-ENTREGA" onclick="selecionarPagamentoCompra('PAGA NA ENTREGA')"
+                        style="flex:1; padding:11px; text-align:center; border-radius:12px; border:2px solid #eee; background:white; color:#333; font-weight:700; font-size:14px; cursor:pointer;">
+                        🤝 Pagar na Entrega
+                    </div>
+                </div>
             </div>
             <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px; font-size:16px; margin-bottom:20px;">✅ Confirmar Compra</button>
         </div>
@@ -330,20 +398,36 @@
             </div>
 
             <div style="margin-bottom:12px;">
-                <p style="color:#888; font-size:13px;">Selecione os clientes para repetir o último pedido no fiado:</p>
+                <p style="color:#888; font-size:13px;">Selecione os clientes para repetir o último pedido no pagar depois:</p>
             </div>
             <div id="refazerList"></div>
             <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:white; padding:14px; border-top:2px solid #eee; margin-top:10px;">
                 <div id="refazerSelecionados" style="font-size:13px; color:#555;"></div>
             </div>
         </div>
-        <!-- ABA HISTÓRICO FIADO -->
+        <!-- ABA HISTÓRICO DE COMPRAS -->
         <div id="tab-historico" class="section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#333;">🕓 Últimas compras no Fiado</h3>
+                <h3 style="color:#333;">🛍️ Todas as Compras</h3>
                 <span id="historicoContador" style="background:#16a085; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
             </div>
+            <!-- Busca -->
+            <div style="position:relative; margin-bottom:12px;">
+                <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; pointer-events:none;">🔍</span>
+                <input type="text" id="historicoBusca" class="input-text" placeholder="Buscar por nome do cliente..."
+                    style="padding-left:42px; margin-bottom:0; border-radius:16px; border:2px solid #e0e0e0;"
+                    oninput="buscarHistorico(this.value)">
+            </div>
+            <!-- Filtros -->
+            <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+                <button id="filtro-todos" onclick="filtrarHistorico('todos')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #16a085; background:#16a085; color:white; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">Todos</button>
+                <button id="filtro-fiado" onclick="filtrarHistorico('FIADO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #e74c3c; background:white; color:#e74c3c; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">⏳ Pagar Depois</button>
+                <button id="filtro-pago" onclick="filtrarHistorico('PAGO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #27ae60; background:white; color:#27ae60; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">✅ Pago</button>
+            </div>
             <div id="historicoList"></div>
+            <div id="historicoLoadMore" style="display:none; text-align:center; padding:10px;">
+                <button onclick="carregarMaisHistorico()" style="padding:11px 28px; background:#16a085; color:white; border:none; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer;">⬇️ Carregar mais</button>
+            </div>
         </div>
 
         <!-- ABA HISTÓRICO DE PAGAMENTOS -->
@@ -367,12 +451,11 @@
 const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
-const ADMIN_PASS = "8564";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
 let msgComprovante = "🧾 *COMPROVANTE DE PAGAMENTO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}\n──────────────────\n✅ Obrigado pelo pagamento!";
-let msgExtrato = "📊 *EXTRATO DE FIADO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Consultado em: {data}\n💸 Saldo devedor: R$ {saldo}\n──────────────────\nQualquer dúvida, entre em contato! 😊";
+let msgExtrato = "📊 *EXTRATO DE PAGAR DEPOIS*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Consultado em: {data}\n💸 Saldo devedor: R$ {saldo}\n──────────────────\nQualquer dúvida, entre em contato! 😊";
 
 window.onload = async () => {
     initAdmin();
@@ -400,7 +483,7 @@ function openSection(section) {
     const map = {
         salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
         clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
-        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: loadOrders },
+        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); setTimeout(initSummaryHold, 100); } },
         mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {
             document.getElementById('editTemplate').value = msgTemplate;
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
@@ -409,7 +492,7 @@ function openSection(section) {
         }},
         refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: loadRefazerPedidos },
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
-        historico: { id: 'tab-historico', title: '🕓 Histórico Fiado', fn: loadHistoricoFiado },
+        historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos }
     };
     const s = map[section];
@@ -616,7 +699,7 @@ async function loadAdminClients() {
                 <div><strong>${c.name}</strong><br><small style="color:#888;">${c.phone}</small></div>
                 <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                     <div style="display:flex;align-items:center;gap:6px;">
-                        <small>FIADO</small>
+                        <small>PAGAR DEPOIS</small>
                         <label class="switch"><input type="checkbox" ${c.fiado ? 'checked' : ''} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
                     </div>
                     <button onclick="deleteClient('${c.phone}')" class="btn btn-danger btn-sm">🗑️</button>
@@ -632,11 +715,6 @@ async function loadAdminClients() {
                 <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;" placeholder="Valor a lançar">
                 <button onclick="payDebt('${c.phone}')" class="btn btn-success">OK</button>
             </div>
-            ${c.debt <= 0 ? '' : `
-            <button onclick="enviarComprovanteManual('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})"
-                style="margin-top:8px;width:100%;padding:9px;background:#e8f5e9;border:1.5px solid #25d366;color:#1e8449;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">
-                📋 Enviar Extrato do Fiado via WhatsApp
-            </button>`}
         </div>`).join('');
 
     // Limpa pesquisa ao recarregar
@@ -684,18 +762,15 @@ async function payDebt(phone) {
     const novoSaldo = c.debt - val;
     await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
 
-    // Registra o pagamento no histórico (localStorage)
-    var pagamentos = JSON.parse(localStorage.getItem('historico_pagamentos') || '[]');
-    pagamentos.unshift({
+    // Registra o pagamento na tabela payments do Supabase
+    await sb.from("payments").insert({
         client_name: c.name,
         client_phone: phone,
         amount: val,
         saldo_anterior: c.debt,
         saldo_posterior: novoSaldo,
-        created_at: new Date().toISOString()
+        tipo: "pagamento"
     });
-    if (pagamentos.length > 100) pagamentos.pop(); // limite de 100 registros
-    localStorage.setItem('historico_pagamentos', JSON.stringify(pagamentos));
 
     input.value = '';
     loadAdminClients();
@@ -707,7 +782,7 @@ async function payDebt(phone) {
         ? `Saldo devedor restante: R$ ${novoSaldo.toFixed(2).replace('.', ',')}`
         : novoSaldo < 0
             ? `Crédito a favor: R$ ${Math.abs(novoSaldo).toFixed(2).replace('.', ',')}`
-            : `✅ Fiado quitado completamente!`;
+            : `✅ Pagar depois quitado completamente!`;
 
     const comprovante = msgComprovante
         .replace('{nome}', c.name)
@@ -776,30 +851,385 @@ function cobrarCliente(phone, name, debt) {
 // PEDIDOS
 const ordersMap = {};
 
+// Classificação por tipo de salgado — detecta qualquer variação de nome
+function abreviarNome(nome) {
+    const n = nome.toLowerCase().trim()
+        .replace(/\.+/g, '')   // remove pontos: "cox. frango" -> "cox frango"
+        .replace(/\s+/g, ' '); // normaliza espaços
+
+    // Cox Frango: contém "frango" ou ("cox" sem catupiry/charque/cat/cha)
+    if (n.includes('frango') || n.includes('frang')) return 'cox';
+
+    // Cox Catupiry: contém "catupiry" ou "cat" (abreviação)
+    if (n.includes('catupiry') || n.includes('catu')) return 'cat';
+
+    // Cox Charque: contém "charque" ou "cha" (abreviação)
+    if (n.includes('charque') || n.includes('charg')) return 'cha';
+
+    // Enroladinho: contém "enrolad" ou "sal" (abreviação usada no sistema)
+    if (n.includes('enrolad') || n.startsWith('sal')) return 'sal';
+
+    // Queijo / R. Queijo: contém "queijo" ou "quei"
+    if (n.includes('queijo') || n.includes('quei') || n.startsWith('r.') || n.startsWith('r ')) return 'que';
+
+    // Cox genérica (sem tipo especificado) — conta como cox
+    if (n.includes('cox') || n.includes('coxinha')) return 'cox';
+
+    // Não identificado — retorna as 3 primeiras letras para debug
+    return n.substring(0, 3);
+}
+
+async function loadOrderSummary() {
+    const grid = document.getElementById('orderSummaryGrid');
+    if (!grid) return;
+
+    // Janela: das 12h de hoje até 5h do dia seguinte
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(12, 0, 0, 0);
+    // Se agora for antes das 12h, volta para 12h do dia anterior
+    if (now.getHours() < 12) {
+        start.setDate(start.getDate() - 1);
+    }
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    end.setHours(5, 0, 0, 0);
+
+    const { data } = await sb.from("orders")
+        .select("items")
+        .gte("created_at", start.toISOString())
+        .lte("created_at", end.toISOString());
+
+    const contagem = {};
+    let totalGeral = 0;
+
+    (data || []).forEach(o => {
+        const linhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+        linhas.forEach(linha => {
+            // Formato esperado: "2x Coxinha de Frango" ou "Coxinha de Frango"
+            const match = linha.match(/^(\d+)[xX]\s*(.+)$/);
+            if (match) {
+                const qtd = parseInt(match[1]);
+                const nome = abreviarNome(match[2]);
+                contagem[nome] = (contagem[nome] || 0) + qtd;
+                totalGeral += qtd;
+            } else {
+                // Sem quantidade, conta como 1
+                const nome = abreviarNome(linha);
+                contagem[nome] = (contagem[nome] || 0) + 1;
+                totalGeral += 1;
+            }
+        });
+    });
+
+    renderSummaryGrid(contagem);
+}
+
+function renderSummaryGrid(contagem) {
+    const grid = document.getElementById('orderSummaryGrid');
+    if (!grid) return;
+    // Ordem fixa: cox, cat, cha, sal, que — sempre exibe todos mesmo com zero
+    const ordem = ['cox', 'cat', 'cha', 'sal', 'que'];
+    const cores = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
+    grid.innerHTML = ordem.map(nome => {
+        const qtd = contagem[nome] || 0;
+        const cor = cores[nome];
+        const opacidade = qtd === 0 ? '0.35' : '1';
+        return `<div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 0; display:flex; flex-direction:column; align-items:center; gap:2px; border-bottom:3px solid ${cor}; opacity:${opacidade}; flex:1;">
+            <span style="font-size:20px; font-weight:900; color:${cor}; line-height:1;">${qtd}</span>
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.75;">${nome}</span>
+        </div>`;
+    }).join('');
+}
+
+// --- Dados do período para o modal ---
+let _summaryOrders = []; // pedidos do período completo
+
+// Hold 3s no cabeçalho
+let _holdTimer = null;
+let _holdAnimFrame = null;
+let _holdStart = null;
+const HOLD_MS = 3000;
+
+function initSummaryHold() {
+    const box = document.getElementById('orderSummaryBox');
+    const bar = document.getElementById('summaryHoldBar');
+    if (!box) return;
+
+    function startHold(e) {
+        _holdStart = Date.now();
+        bar.style.transition = 'none';
+        bar.style.width = '0%';
+        bar.style.background = '#f1c40f';
+
+        function animate() {
+            const elapsed = Date.now() - _holdStart;
+            const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+            bar.style.width = pct + '%';
+            if (pct < 100) {
+                _holdAnimFrame = requestAnimationFrame(animate);
+            } else {
+                bar.style.width = '0%';
+                abrirModalExcluir();
+            }
+        }
+        _holdAnimFrame = requestAnimationFrame(animate);
+    }
+
+    function cancelHold() {
+        cancelAnimationFrame(_holdAnimFrame);
+        const bar = document.getElementById('summaryHoldBar');
+        if (bar) { bar.style.transition = 'width 0.3s'; bar.style.width = '0%'; }
+        _holdStart = null;
+    }
+
+    box.addEventListener('mousedown', startHold);
+    box.addEventListener('touchstart', startHold, { passive: true });
+    box.addEventListener('mouseup', cancelHold);
+    box.addEventListener('mouseleave', cancelHold);
+    box.addEventListener('touchend', cancelHold);
+    box.addEventListener('touchcancel', cancelHold);
+}
+
+// Conjunto de phones excluídos (persistente na sessão)
+let _excluidos = new Set();
+
+async function abrirModalExcluir() {
+    const modal = document.getElementById('modalExcluirClientes');
+    const list = document.getElementById('excluirClientesList');
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+
+    // Busca pedidos do período
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(12, 0, 0, 0);
+    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    end.setHours(5, 0, 0, 0);
+
+    const { data } = await sb.from("orders")
+        .select("customer_name, customer_phone, items")
+        .gte("created_at", start.toISOString())
+        .lte("created_at", end.toISOString());
+
+    _summaryOrders = data || [];
+
+    // Agrupa por cliente
+    const clientes = {};
+    _summaryOrders.forEach(o => {
+        const key = o.customer_phone || o.customer_name;
+        if (!clientes[key]) clientes[key] = { name: o.customer_name, phone: key, pedidos: [] };
+        clientes[key].pedidos.push(o.items || '');
+    });
+
+    if (Object.keys(clientes).length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;">Nenhum cliente no período</div>';
+        return;
+    }
+
+    list.innerHTML = Object.values(clientes).map(c => {
+        const checked = _excluidos.has(c.phone) ? 'checked' : '';
+        const resumo = c.pedidos.map(p => p.replace(/✅ /g,'').replace(/\n/g,', ').trim()).join(' | ');
+        return `<label style="display:flex; align-items:center; gap:12px; background:#f9f9f9; border-radius:14px; padding:12px 14px; cursor:pointer; border:2px solid ${_excluidos.has(c.phone) ? '#e74c3c' : '#eee'};" id="label_${c.phone.replace(/\D/g,'')}">
+            <input type="checkbox" ${checked} onchange="toggleExclusao('${c.phone}')" style="width:20px; height:20px; accent-color:#e74c3c; cursor:pointer; flex-shrink:0;">
+            <div style="flex:1; min-width:0;">
+                <div style="font-weight:800; font-size:14px; color:#222;">${c.name}</div>
+                <div style="font-size:11px; color:#999; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${resumo}</div>
+            </div>
+        </label>`;
+    }).join('');
+}
+
+function toggleExclusao(phone) {
+    const labelId = 'label_' + phone.replace(/\D/g,'');
+    const label = document.getElementById(labelId);
+    if (_excluidos.has(phone)) {
+        _excluidos.delete(phone);
+        if (label) label.style.border = '2px solid #eee';
+    } else {
+        _excluidos.add(phone);
+        if (label) label.style.border = '2px solid #e74c3c';
+    }
+}
+
+function fecharModalExcluir() {
+    document.getElementById('modalExcluirClientes').style.display = 'none';
+}
+
+async function aplicarExclusoes() {
+    fecharModalExcluir();
+    // Recalcula contagem excluindo clientes marcados
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(12, 0, 0, 0);
+    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    end.setHours(5, 0, 0, 0);
+
+    const { data } = await sb.from("orders")
+        .select("customer_phone, items")
+        .gte("created_at", start.toISOString())
+        .lte("created_at", end.toISOString());
+
+    const contagem = {};
+    (data || []).forEach(o => {
+        const key = o.customer_phone;
+        if (_excluidos.has(key)) return; // pula excluídos
+        const linhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+        linhas.forEach(linha => {
+            const match = linha.match(/^(\d+)[xX]\s*(.+)$/);
+            if (match) {
+                const qtd = parseInt(match[1]);
+                const nome = abreviarNome(match[2]);
+                contagem[nome] = (contagem[nome] || 0) + qtd;
+            } else {
+                const nome = abreviarNome(linha);
+                contagem[nome] = (contagem[nome] || 0) + 1;
+            }
+        });
+    });
+
+    renderSummaryGrid(contagem);
+}
+
 async function loadOrders() {
+    loadOrderSummary();
     const list = document.getElementById('orderList');
     list.innerHTML = '<div style="text-align:center;color:#888;">Carregando...</div>';
     const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
     if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>'; return; }
     data.forEach(o => { ordersMap[o.id] = o; });
-    list.innerHTML = data.map(o => {
-        const isFiado = o.payment_method === 'FIADO';
-        const borderColor = isFiado ? 'var(--danger)' : 'var(--success)';
-        const valorColor = isFiado ? 'var(--danger)' : 'var(--success)';
-        const btnFiado = !isFiado ? `
-            <button onclick="mudarParaFiado('${o.id}')"
-                style="margin-top:10px; width:100%; padding:9px; background:#fff3cd; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">
-                📝 Mudar para Fiado
-            </button>` : '';
-        return `
-        <div id="order_${o.id}" class="order-card" style="border-left:5px solid ${borderColor}">
-            <div style="font-size:11px;color:#888;">${new Date(o.created_at).toLocaleString('pt-BR')}</div>
-            <strong>${o.customer_name}</strong> <small style="color:#888;">${o.customer_phone}</small><br>
-            <div style="font-size:13px;margin:6px 0;color:#444;">${(o.items||'').replace(/\n/g,'<br>')}</div>
-            <strong style="color:${valorColor};">R$ ${Number(o.total).toFixed(2)} - ${o.payment_method}</strong>
+    list.innerHTML = data.map(o => buildOrderCard(o)).join('');
+    // Attach swipe listeners
+    data.forEach(o => attachSwipe(o.id));
+}
+
+function buildOrderCard(o) {
+    const isFiado = o.payment_method === 'FIADO';
+    const valorColor = isFiado ? '#e74c3c' : '#27ae60';
+    const badgeClass = isFiado ? 'badge-fiado' : 'badge-pago';
+    const badgeLabel = isFiado ? '⏳ PAGAR DEPOIS' : '🤝 PAGAR NA ENTREGA';
+
+    // Format time: "hoje às 19:04" or date
+    const dt = new Date(o.created_at);
+    const now = new Date();
+    const isToday = dt.toDateString() === now.toDateString();
+    const timeStr = isToday
+        ? 'hoje às ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        : dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }) + ' às ' + dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+    // Items: clean and list
+    const itemLines = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+    const itemsHTML = itemLines.map(it => `<div>• ${it}</div>`).join('');
+
+    const btnFiado = !isFiado ? `<button class="order-fiado-btn" onclick="mudarParaFiado('${o.id}')">📝 Mudar para Pagar Depois</button>` : '';
+
+    return `
+    <div class="order-wrap" id="wrap_${o.id}">
+        <div class="order-delete-bg dir-right"><span style="font-size:20px;">🗑️</span><span class="order-delete-label">Remover</span></div>
+        <div class="order-delete-bg dir-left"><span class="order-delete-label">Remover</span><span style="font-size:20px;">🗑️</span></div>
+        <div id="order_${o.id}" class="order-card">
+            <div class="order-card-header">
+                <div>
+                    <div class="order-card-name">${o.customer_name}</div>
+                    <div class="order-card-phone">${o.customer_phone || ''}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="order-card-time">${timeStr}</div>
+                    <span class="order-card-badge ${badgeClass}">${badgeLabel}</span>
+                </div>
+            </div>
+            <div class="order-card-items">${itemsHTML}</div>
+            <div class="order-card-footer">
+                <span class="order-card-valor" style="color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</span>
+                <span style="font-size:12px; color:#ccc;">← deslize para remover →</span>
+            </div>
             ${btnFiado}
-        </div>`;
-    }).join('');
+        </div>
+    </div>`;
+}
+
+function attachSwipe(orderId) {
+    const card = document.getElementById('order_' + orderId);
+    const wrap = document.getElementById('wrap_' + orderId);
+    if (!card || !wrap) return;
+
+    let startX = 0, currentX = 0, isDragging = false;
+    const THRESHOLD = 80;
+
+    function onStart(e) {
+        startX = e.touches ? e.touches[0].clientX : e.clientX;
+        currentX = 0;
+        isDragging = true;
+        card.classList.add('swiping');
+    }
+
+    function onMove(e) {
+        if (!isDragging) return;
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        currentX = x - startX;
+        card.style.transform = `translateX(${currentX}px)`;
+
+        // Fade background based on direction and distance
+        const pct = Math.min(Math.abs(currentX) / THRESHOLD, 1);
+        const bgs = wrap.querySelectorAll('.order-delete-bg');
+        bgs.forEach(bg => bg.style.opacity = '0');
+        if (currentX > 0 && bgs[0]) bgs[0].style.opacity = pct;
+        else if (currentX < 0 && bgs[1]) bgs[1].style.opacity = pct;
+    }
+
+    function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        card.classList.remove('swiping');
+
+        if (Math.abs(currentX) >= THRESHOLD) {
+            // Dismiss animation then delete
+            const dir = currentX > 0 ? 1 : -1;
+            card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+            card.style.transform = `translateX(${dir * 120}%)`;
+            card.style.opacity = '0';
+            wrap.style.transition = 'max-height 0.3s ease, margin 0.3s ease, opacity 0.3s ease';
+            setTimeout(() => {
+                wrap.style.maxHeight = wrap.offsetHeight + 'px';
+                wrap.style.overflow = 'hidden';
+                requestAnimationFrame(() => {
+                    wrap.style.maxHeight = '0';
+                    wrap.style.marginBottom = '0';
+                    wrap.style.opacity = '0';
+                });
+                setTimeout(() => {
+                    wrap.remove();
+                    deletarPedido(orderId);
+                    // Check if list empty
+                    const list = document.getElementById('orderList');
+                    if (list && !list.querySelector('.order-wrap')) {
+                        list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>';
+                    }
+                }, 320);
+            }, 50);
+        } else {
+            // Snap back
+            card.style.transform = 'translateX(0)';
+            wrap.querySelectorAll('.order-delete-bg').forEach(bg => bg.style.opacity = '0');
+        }
+        currentX = 0;
+    }
+
+    card.addEventListener('touchstart', onStart, { passive: true });
+    card.addEventListener('touchmove', onMove, { passive: true });
+    card.addEventListener('touchend', onEnd);
+    card.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+}
+
+async function deletarPedido(orderId) {
+    await sb.from("orders").delete().eq("id", orderId);
+    delete ordersMap[orderId];
 }
 
 function mudarParaFiado(orderId) {
@@ -807,8 +1237,8 @@ function mudarParaFiado(orderId) {
     if (!o) return;
     showToast({
         type: 'confirm',
-        title: `📝 Mudar para Fiado?`,
-        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\nPagamento atual: ${o.payment_method}\n\nO valor será lançado no fiado do cliente.`,
+        title: `📝 Mudar para Pagar Depois?`,
+        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\nPagamento atual: ${o.payment_method}\n\nO valor será lançado no pagar depois do cliente.`,
         actions: [
             { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
             { label: '📝 Confirmar', bg: '#e67e22', color: 'white', fn: `executarMudarParaFiado('${orderId}')` }
@@ -839,14 +1269,15 @@ async function executarMudarParaFiado(orderId) {
     const card = document.getElementById('order_' + orderId);
     if (card) {
         card.style.borderLeftColor = 'var(--danger)';
-        card.querySelector('strong:last-of-type').style.color = 'var(--danger)';
-        card.querySelector('strong:last-of-type').textContent = `R$ ${Number(o.total).toFixed(2)} - FIADO`;
+        const strongs = card.querySelectorAll('strong');
+        const lastStrong = strongs[strongs.length - 1];
+        if (lastStrong) { lastStrong.style.color = 'var(--danger)'; lastStrong.textContent = 'R$ ' + Number(o.total).toFixed(2) + ' - PAGAR DEPOIS'; }
         const btn = card.querySelector('button');
         if (btn) btn.remove();
     }
 
     updateFiadoHeader();
-    showToast({ type: 'success', title: '✅ Alterado para Fiado!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} lançado no fiado de ${o.customer_name}.`, duration: 5000 });
+    showToast({ type: 'success', title: '✅ Alterado para Pagar Depois!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} lançado no pagar depois de ${o.customer_name}.`, duration: 5000 });
 }
 
 async function clearAllOrders() {
@@ -894,66 +1325,6 @@ async function saveMsgTemplates() {
     await sb.from("config").upsert({ key: "msg_extrato", value: msgExtrato });
     showToast({ type: 'success', title: '✅ Templates salvos!', body: 'Os templates foram atualizados com sucesso.', duration: 5000 });
 }
-// REPETIR ÚLTIMO PEDIDO
-async function repetirUltimoPedido(phone, name, fiado) {
-    // Busca último pedido do cliente
-    const { data: orders } = await sb.from("orders")
-        .select("*")
-        .eq("customer_phone", phone)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-    if (!orders || orders.length === 0) {
-        showToast({ type:'confirm', title:'⚠️ Sem pedidos', body:`${name} não tem nenhum pedido anterior!` });
-        return;
-    }
-
-    const ultimo = orders[0];
-    const valor = Number(ultimo.total).toFixed(2).replace('.', ',');
-    const itens = (ultimo.items || '').replace(/✅ /g,'').trim();
-    const data = new Date(ultimo.created_at).toLocaleString('pt-BR');
-
-    // Guarda temporariamente para o callback
-    window._repetirTemp = { phone, name, ultimo };
-
-    showToast({
-        type: 'confirm',
-        title: `🔁 Repetir pedido de ${name}?`,
-        body: `📦 ${itens}\n💰 R$ ${valor} no FIADO\n📅 ${data}`,
-        actions: [
-            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
-            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: 'executarRepetirPedido()' }
-        ],
-        duration: 8000
-    });
-}
-
-async function executarRepetirPedido() {
-    closeToast();
-    const { phone, name, ultimo } = window._repetirTemp || {};
-    if (!phone) return;
-
-    const valor = Number(ultimo.total).toFixed(2).replace('.', ',');
-
-    // Lança o valor no fiado do cliente
-    const { data: c } = await sb.from("clients").select("debt").eq("phone", phone).single();
-    const novaDiv = (c.debt || 0) + Number(ultimo.total);
-    await sb.from("clients").update({ debt: novaDiv }).eq("phone", phone);
-
-    // Salva como novo pedido
-    await sb.from("orders").insert({
-        customer_name: name,
-        customer_phone: phone,
-        total: Number(ultimo.total),
-        payment_method: 'FIADO',
-        items: ultimo.items
-    });
-
-    window._repetirTemp = null;
-    loadAdminClients();
-    showToast({ type: 'success', title: `✅ Pedido repetido!`, body: `R$ ${valor} lançado no fiado de ${name}.`, duration: 6000 });
-}
-
 // ===== REFAZER PEDIDOS =====
 let refazerSelecionados = {};
 let refazerBloqueados = JSON.parse(localStorage.getItem('refazer_bloqueados') || '[]');
@@ -1130,8 +1501,6 @@ async function executarAutoRefazer() {
     }
 })();
 
-
-
 async function loadRefazerPedidos() {
     atualizarBannerAgendamento();
     const list = document.getElementById('refazerList');
@@ -1213,8 +1582,6 @@ async function loadRefazerPedidos() {
     }).join('');
 }
 
-
-
 function verHistoricoExecucoes() {
     const modal = document.getElementById('modalHistoricoExec');
     const list = document.getElementById('historicoExecList');
@@ -1265,7 +1632,7 @@ function cancelarPedidoAutoRefazer(execIndex, orderId, phone, total, name) {
     showToast({
         type: 'confirm',
         title: `🗑️ Cancelar pedido de ${name}?`,
-        body: `R$ ${Number(total).toFixed(2).replace('.', ',')} será estornado do fiado.`,
+        body: `R$ ${Number(total).toFixed(2).replace('.', ',')} será estornado do pagar depois.`,
         actions: [
             { label: 'Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
             { label: '🗑️ Confirmar', bg: 'var(--danger)', color: 'white', fn: `executarCancelamentoAutoRefazer(${execIndex},'${orderId}','${phone}',${total},'${name}')` }
@@ -1295,9 +1662,8 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
 
     updateFiadoHeader();
     renderHistoricoExecucoes();
-    showToast({ type: 'success', title: '✅ Cancelado!', body: `R$ ${Number(total).toFixed(2).replace('.', ',')} estornado do fiado de ${name}.`, duration: 5000 });
+    showToast({ type: 'success', title: '✅ Cancelado!', body: `R$ ${Number(total).toFixed(2).replace('.', ',')} estornado do pagar depois de ${name}.`, duration: 5000 });
 }
-
 
 function toggleRefazer(phone, name, total, items, showName = false) {
     const card = document.getElementById('card_refazer_' + phone);
@@ -1343,7 +1709,7 @@ async function confirmarTodosRefazer() {
 
     showToast({
         type: 'confirm',
-        title: `🔁 Lançar FIADO para ${sel.length} cliente(s)?`,
+        title: `🔁 Lançar Pagar Depois para ${sel.length} cliente(s)?`,
         body: `${nomes}\n\nTotal geral: R$ ${totalGeral}`,
         actions: [
             { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
@@ -1374,7 +1740,7 @@ async function executarTodosRefazer() {
     salvarSelecoes();
     loadRefazerPedidos();
     updateFiadoHeader();
-    showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no fiado.\nTotal: R$ ${totalGeral}`, duration: 8000 });
+    showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no pagar depois.\nTotal: R$ ${totalGeral}`, duration: 8000 });
 }
 
 // ===== COMPRA NO NOME =====
@@ -1409,7 +1775,7 @@ function onCompraClienteChange() {
     compraClienteAtual = { phone: opt.value, name: opt.dataset.name, debt: parseFloat(opt.dataset.debt), fiado: opt.dataset.fiado === 'true' };
     const infoEl = document.getElementById('compraClienteInfo');
     const debt = compraClienteAtual.debt;
-    infoEl.innerHTML = `📞 ${opt.value} &nbsp;|&nbsp; ${debt > 0 ? '<span style="color:#e74c3c;">Débito: R$ ' + debt.toFixed(2) + '</span>' : debt < 0 ? '<span style="color:#3498db;">Crédito: R$ ' + Math.abs(debt).toFixed(2) + '</span>' : '<span style="color:#27ae60;">Em dia ✅</span>'} &nbsp;|&nbsp; Fiado: ${compraClienteAtual.fiado ? '✅' : '❌'}`;
+    infoEl.innerHTML = `📞 ${opt.value} &nbsp;|&nbsp; ${debt > 0 ? '<span style="color:#e74c3c;">Débito: R$ ' + debt.toFixed(2) + '</span>' : debt < 0 ? '<span style="color:#3498db;">Crédito: R$ ' + Math.abs(debt).toFixed(2) + '</span>' : '<span style="color:#27ae60;">Em dia ✅</span>'} &nbsp;|&nbsp; Pagar Depois: ${compraClienteAtual.fiado ? '✅' : '❌'}`;
     infoEl.style.display = 'block';
 }
 
@@ -1449,8 +1815,8 @@ function atualizarTotalCompra() {
 
 function selecionarPagamentoCompra(metodo) {
     compraPagamento = metodo;
-    ['PIX','DINHEIRO','FIADO'].forEach(m => {
-        const el = document.getElementById('cpopt-' + m);
+    ['FIADO','PAGA NA ENTREGA'].forEach(m => {
+        const el = document.getElementById('cpopt-' + m.replace(/ /g,'-'));
         if (el) el.style.borderColor = m === metodo ? 'var(--success)' : '#eee';
         if (el) el.style.background = m === metodo ? '#e8f5e9' : 'white';
         if (el) el.style.color = m === metodo ? 'var(--success)' : '#333';
@@ -1580,14 +1946,20 @@ async function executarCompra(total, pedidoTexto) {
 // Mapa seguro para dados dos pedidos do histórico
 const historicoMap = {};
 
-function loadHistoricoPagamentos() {
+async function loadHistoricoPagamentos() {
     const list = document.getElementById('pagamentosList');
     const contador = document.getElementById('pagamentosContador');
     const totalEl = document.getElementById('pagamentosTotalValor');
 
-    const data = JSON.parse(localStorage.getItem('historico_pagamentos') || '[]');
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
 
-    if (!data || data.length === 0) {
+    const { data, error } = await sb
+        .from("payments")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+    if (error || !data || data.length === 0) {
         list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhum pagamento registrado ainda.</div>';
         contador.textContent = '0 registros';
         totalEl.textContent = 'R$ 0,00';
@@ -1627,77 +1999,168 @@ function loadHistoricoPagamentos() {
     }).join('');
 }
 
+let _historicoAllData = [];
+let _historicoFiltroAtual = 'todos';
+let _historicoBuscaAtual = '';
+let _historicoPagina = 0;
+const _HISTORICO_PAGE_SIZE = 50;
+
 async function loadHistoricoFiado() {
     const list = document.getElementById('historicoList');
     const contador = document.getElementById('historicoContador');
     list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
 
-    const { data, error } = await sb
+    // Busca as últimas 50 compras do Supabase
+    const { data: allData, error } = await sb
         .from("orders")
         .select("*")
-        .eq("payment_method", "FIADO")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(50);
 
-    if (error || !data || data.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra no fiado encontrada.</div>';
+    if (error || !allData || allData.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
         contador.textContent = '0 registros';
         return;
     }
 
-    contador.textContent = `${data.length} registro${data.length > 1 ? 's' : ''}`;
+    allData.forEach(o => { historicoMap[o.id] = o; });
+    _historicoAllData = allData;
+    _historicoFiltroAtual = 'todos';
+    _historicoBuscaAtual = '';
+    _historicoPagina = 0;
+    document.getElementById('historicoBusca').value = '';
+    atualizarFiltrosHistorico('todos');
+    renderHistorico();
+}
 
-    // Guarda dados no mapa para evitar problemas com caracteres especiais no onclick
-    data.forEach(o => { historicoMap[o.id] = o; });
+function _getHistoricoFiltrado() {
+    let dados = _historicoAllData;
+    if (_historicoFiltroAtual === 'FIADO') {
+        dados = dados.filter(o => (o.payment_method || '').toUpperCase() === 'FIADO');
+    } else if (_historicoFiltroAtual === 'PAGO') {
+        dados = dados.filter(o => (o.payment_method || '').toUpperCase() !== 'FIADO');
+    }
+    if (_historicoBuscaAtual.trim()) {
+        const q = _historicoBuscaAtual.trim().toLowerCase();
+        dados = dados.filter(o => (o.customer_name || '').toLowerCase().includes(q) || (o.customer_phone || '').includes(q));
+    }
+    return dados;
+}
 
-    list.innerHTML = data.map((o) => {
+function filtrarHistorico(filtro) {
+    _historicoFiltroAtual = filtro;
+    _historicoPagina = 0;
+    atualizarFiltrosHistorico(filtro);
+    renderHistorico();
+}
+
+function buscarHistorico(valor) {
+    _historicoBuscaAtual = valor;
+    _historicoPagina = 0;
+    renderHistorico();
+}
+
+function carregarMaisHistorico() {
+    _historicoPagina++;
+    renderHistorico(true);
+}
+
+function atualizarFiltrosHistorico(ativo) {
+    const estilos = {
+        'todos': { id: 'filtro-todos', cor: '#16a085' },
+        'FIADO': { id: 'filtro-fiado', cor: '#e74c3c' },
+        'PAGO':  { id: 'filtro-pago',  cor: '#27ae60' }
+    };
+    Object.entries(estilos).forEach(([key, { id, cor }]) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        if (key === ativo) {
+            btn.style.background = cor;
+            btn.style.color = 'white';
+            btn.style.borderColor = cor;
+        } else {
+            btn.style.background = 'white';
+            btn.style.color = cor;
+            btn.style.borderColor = cor;
+        }
+    });
+}
+
+function renderHistorico(append = false) {
+    const list = document.getElementById('historicoList');
+    const contador = document.getElementById('historicoContador');
+    const loadMoreBtn = document.getElementById('historicoLoadMore');
+    const dados = _getHistoricoFiltrado();
+
+    if (!dados || dados.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
+        contador.textContent = '0 registros';
+        loadMoreBtn.style.display = 'none';
+        return;
+    }
+
+    const total = dados.length;
+    const ate = (_historicoPagina + 1) * _HISTORICO_PAGE_SIZE;
+    const paginados = dados.slice(0, ate);
+
+    contador.textContent = `${paginados.length} de ${total}`;
+    loadMoreBtn.style.display = ate < total ? 'block' : 'none';
+
+    const html = paginados.map((o) => {
         const date = new Date(o.created_at);
         const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
         const items = (o.items || '').trim().replace(/✅ /g, '').split('\n').filter(Boolean);
         const itemsHTML = items.map(it => `<span style="display:inline-block;background:#f0f0f0;border-radius:8px;padding:2px 8px;font-size:12px;margin:2px;">${it}</span>`).join('');
 
-        // Detecta origem: pedidos do cardápio vêm do número do admin como destino WhatsApp
-        // A diferença prática: pedidos do admin têm items com formato "✅ Nx Nome"
-        // Vamos marcar com base na presença do padrão de items
+        const ehFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
         const isCardapio = !(o.items || '').includes('✅');
-        const origemBadge = isCardapio
-            ? `<span style="background:#e8f4ff;color:#3498db;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">🛍️ Cardápio</span>`
-            : `<span style="background:#f0e8ff;color:#8e44ad;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">🖥️ Admin</span>`;
+
+        const pagamentoBadge = ehFiado
+            ? `<span style="background:#fff0f0;color:#e74c3c;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">⏳ Pagar Depois${isCardapio ? ' 🤖' : ''}</span>`
+            : `<span style="background:#e8faf0;color:#27ae60;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">✅ ${o.payment_method || 'Pago'}</span>`;
+
+        const borderColor = ehFiado ? '#e74c3c' : '#27ae60';
+        const valorColor  = ehFiado ? '#e74c3c' : '#27ae60';
+
+        const cancelBtn = ehFiado
+            ? `<button onclick="cancelarPedidoFiado('${o.id}')" style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑️ Cancelar</button>`
+            : `<button onclick="cancelarPedidoFiado('${o.id}')" style="background:#f0f0f0;border:1.5px solid #aaa;color:#777;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑️ Remover</button>`;
 
         return `
-        <div id="hist_${o.id}" style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid #16a085;">
+        <div id="hist_${o.id}" style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid ${borderColor};">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                 <div>
                     <div style="font-weight:800;font-size:15px;color:#222;">👤 ${o.customer_name}</div>
                     <div style="font-size:12px;color:#999;margin-top:2px;">📞 ${o.customer_phone || '—'}</div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:20px;font-weight:900;color:#e74c3c;">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</div>
+                    <div style="font-size:20px;font-weight:900;color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</div>
                     <div style="font-size:11px;color:#aaa;">${dateStr} às ${timeStr}</div>
                 </div>
             </div>
             <div style="margin-top:8px;line-height:1.8;">${itemsHTML}</div>
             <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <span style="background:#d5f5e3;color:#16a085;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">📝 FIADO${isCardapio ? ' 🤖' : ''}</span>
-                </div>
-                <button onclick="cancelarPedidoFiado('${o.id}')"
-                    style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
-                    🗑️ Cancelar
-                </button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">${pagamentoBadge}</div>
+                ${cancelBtn}
             </div>
         </div>`;
     }).join('');
+
+    list.innerHTML = html;
 }
 
 function cancelarPedidoFiado(orderId) {
     const o = historicoMap[orderId];
     if (!o) return;
+    const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
+    const bodyMsg = isFiado
+        ? `Itens: ${(o.items||'').replace(/✅ /g,'').replace(/\n/g,', ').trim()}\n\nO valor de R$ ${Number(o.total).toFixed(2).replace('.', ',')} será estornado do pagar depois.`
+        : `Itens: ${(o.items||'').replace(/✅ /g,'').replace(/\n/g,', ').trim()}\n\nPedido de R$ ${Number(o.total).toFixed(2).replace('.', ',')} será removido do histórico.`;
     showToast({
         type: 'confirm',
-        title: `❌ Cancelar pedido de ${o.customer_name}?`,
-        body: `Itens: ${(o.items||'').replace(/✅ /g,'').replace(/\n/g,', ').trim()}\n\nO valor de R$ ${Number(o.total).toFixed(2).replace('.', ',')} será estornado do fiado.`,
+        title: `❌ Remover pedido de ${o.customer_name}?`,
+        body: bodyMsg,
         actions: [
             { label: 'Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
             { label: '🗑️ Confirmar', bg: 'var(--danger)', color: 'white', fn: `executarCancelamento('${orderId}')` }
@@ -1714,15 +2177,31 @@ async function executarCancelamento(orderId) {
     // Remove o pedido
     await sb.from("orders").delete().eq("id", orderId);
 
-    // Estorna o valor do fiado do cliente
-    const { data: c } = await sb.from("clients").select("debt").eq("phone", o.customer_phone).single();
-    if (c) {
-        const novaDiv = (c.debt || 0) - Number(o.total);
-        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+    const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
+
+    // Só estorna o fiado se o pedido era fiado
+    if (isFiado) {
+        const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+        if (c) {
+            const saldoAntes = c.debt || 0;
+            const novaDiv = saldoAntes - Number(o.total);
+            await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+
+            // Registra o reembolso na tabela payments
+            await sb.from("payments").insert({
+                client_name: c.name || o.customer_name,
+                client_phone: o.customer_phone,
+                amount: Number(o.total),
+                saldo_anterior: saldoAntes,
+                saldo_posterior: novaDiv,
+                tipo: "reembolso"
+            });
+        }
     }
 
-    // Remove do mapa
+    // Remove do mapa e da lista global
     delete historicoMap[orderId];
+    _historicoAllData = _historicoAllData.filter(x => x.id !== orderId);
 
     // Anima e remove o card
     const card = document.getElementById('hist_' + orderId);
@@ -1734,7 +2213,10 @@ async function executarCancelamento(orderId) {
     }
 
     updateFiadoHeader();
-    showToast({ type: 'success', title: '✅ Pedido cancelado!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} estornado do fiado de ${o.customer_name}.`, duration: 5000 });
+    const msg = isFiado
+        ? `R$ ${Number(o.total).toFixed(2).replace('.', ',')} estornado do pagar depois de ${o.customer_name}.`
+        : `Pedido de ${o.customer_name} removido do histórico.`;
+    showToast({ type: 'success', title: '✅ Pedido removido!', body: msg, duration: 5000 });
 }
 
 </script>
