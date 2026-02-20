@@ -760,8 +760,29 @@ let _comprovanteTemp = { phone: null, texto: null };
 
 async function payDebt(phone) {
     const input = document.getElementById('pay_' + phone);
-    const val = parseFloat(input.value);
-    if (!val) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Digite um valor para abater.' }); return; }
+    const digitado = parseFloat(input.value);
+    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
+    if (!digitado) {
+        // Campo vazio: confirmar quitação total
+        if (!c.debt || c.debt <= 0) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Não há valor de débito para abater.' }); return; }
+        showToast({
+            type: 'confirm',
+            title: `💰 Quitar total de ${c.name}?`,
+            body: `Nenhum valor foi digitado.\nDeseja abater o débito total de R$ ${c.debt.toFixed(2).replace('.', ',')}?`,
+            actions: [
+                { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+                { label: '✅ Confirmar', bg: '#25d366', color: 'white', fn: `executarPayDebt('${phone}', ${c.debt})` }
+            ],
+            duration: 10000
+        });
+        return;
+    }
+    executarPayDebt(phone, digitado);
+}
+
+async function executarPayDebt(phone, val) {
+    closeToast();
+    const input = document.getElementById('pay_' + phone);
     const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
     const novoSaldo = c.debt - val;
     await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
@@ -776,7 +797,7 @@ async function payDebt(phone) {
         tipo: "pagamento"
     });
 
-    input.value = '';
+    if (input) input.value = '';
     loadAdminClients();
 
     // Monta o comprovante usando o template configurável
