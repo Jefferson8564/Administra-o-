@@ -2455,14 +2455,53 @@ function horaAtual() { return new Date().toLocaleTimeString('pt-BR',{hour:'2-dig
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("clients").select("*").order("name");
     clientesCache = clients || [];
-    const sel = document.getElementById('paradaCliente');
-    sel.innerHTML = '<option value="">-- Selecionar cliente --</option>' +
-        clientesCache.map(c => `<option value="${c.phone}" data-name="${c.name}">${c.name}</option>`).join('');
+    await preencherClientesComPedido();
     await calcularMediaEta();
     await carregarRotasHoje();
     await carregarRotasSalvas();
     // Monitor já iniciado no background — só reinicia se por algum motivo parou
     if (watchId === null) iniciarMonitorFabrica();
+}
+
+async function preencherClientesComPedido() {
+    // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
+    const hoje = new Date().toISOString().split('T')[0];
+    const { data: pedidosHoje } = await sb.from("orders")
+        .select("customer_phone, customer_name")
+        .gte("created_at", hoje + 'T00:00:00')
+        .lte("created_at", hoje + 'T23:59:59');
+
+    // Monta set de phones com pedido hoje
+    const phonesComPedido = new Set((pedidosHoje || []).map(p => p.customer_phone));
+
+    const sel = document.getElementById('paradaCliente');
+    const clientesComPedido = clientesCache.filter(c => phonesComPedido.has(c.phone));
+    const clientesSemPedido = clientesCache.filter(c => !phonesComPedido.has(c.phone));
+
+    sel.innerHTML = '<option value="">-- Selecionar cliente --</option>';
+
+    if (clientesComPedido.length > 0) {
+        const grpPedido = document.createElement('optgroup');
+        grpPedido.label = `✅ Com pedido hoje (${clientesComPedido.length})`;
+        clientesComPedido.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.phone; o.dataset.name = c.name; o.textContent = c.name;
+            grpPedido.appendChild(o);
+        });
+        sel.appendChild(grpPedido);
+    }
+
+    if (clientesSemPedido.length > 0) {
+        const grpSem = document.createElement('optgroup');
+        grpSem.label = `— Sem pedido hoje`;
+        clientesSemPedido.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.phone; o.dataset.name = c.name;
+            o.textContent = c.name; o.style.color = '#aaa';
+            grpSem.appendChild(o);
+        });
+        sel.appendChild(grpSem);
+    }
 }
 
 async function carregarRotasHoje() {
@@ -2820,6 +2859,19 @@ async function adicionarParada() {
     const clientePhone = sel.value;
     const clienteNome = sel.options[sel.selectedIndex]?.dataset?.name||'';
     if (!clientePhone && !endereco) return showToast({type:'confirm',title:'⚠️',body:'Selecione cliente ou informe endereço.',duration:2500});
+
+    // Verifica se o cliente tem pedido hoje
+    if (clientePhone) {
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data: pedido } = await sb.from("orders")
+            .select("id").eq("customer_phone", clientePhone)
+            .gte("created_at", hoje + 'T00:00:00')
+            .lte("created_at", hoje + 'T23:59:59')
+            .limit(1);
+        if (!pedido || pedido.length === 0) {
+            return showToast({type:'confirm', title:'⚠️ Sem pedido', body:`${clienteNome} não fez pedido hoje. Não é possível adicionar à rota.`, duration:4000});
+        }
+    }
     const parada = {
         id: Date.now().toString(), cliente_phone:clientePhone,
         nome:clienteNome||'Sem nome',
