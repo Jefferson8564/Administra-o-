@@ -1607,25 +1607,25 @@ async function executarAutoRefazer() {
             continue;
         }
 
-        const { data: cli } = await sb.from("clients").select("debt, saved_order, saved_order_total").eq("phone", s.phone).single();
-        if (!cli) continue;
+        // Busca o pedido SALVO (⭐) e o saldo do cliente
+        const { data: c } = await sb.from("clients")
+            .select("debt, saved_order, saved_order_total")
+            .eq("phone", s.phone).single();
+        if (!c) continue;
 
-        let itemsParaUsar = s.items;
-        let totalParaUsar = Number(s.total);
-
-        // Prioriza o pedido salvo (favorito) do cliente se existir
-        if (cli.saved_order && cli.saved_order.trim()) {
-            itemsParaUsar = cli.saved_order;
-            totalParaUsar = cli.saved_order_total || totalParaUsar;
+        if (!c.saved_order || !c.saved_order.trim()) {
+            pulados.push(s.name + ' (sem pedido salvo)');
+            continue;
         }
 
-        await sb.from("clients").update({ debt: (cli.debt || 0) + totalParaUsar }).eq("phone", s.phone);
+        const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
+        await sb.from("clients").update({ debt: (c.debt || 0) + totalParaUsar }).eq("phone", s.phone);
         const { data: novoPedido } = await sb.from("orders").insert({
             customer_name: s.name,
             customer_phone: s.phone,
             total: totalParaUsar,
             payment_method: 'FIADO',
-            items: itemsParaUsar
+            items: c.saved_order
         }).select().single();
         lancados.push({ name: s.name, phone: s.phone, total: totalParaUsar, orderId: novoPedido ? novoPedido.id : null });
     }
@@ -1686,24 +1686,19 @@ async function loadRefazerPedidos() {
         return;
     }
 
-    // Usa o pedido salvo (favorito) do cliente se existir, senão cai no último pedido real
-    const cards = await Promise.all(clients.map(async c => {
-        if (c.saved_order && c.saved_order.trim()) {
-            return { client: c, lastOrder: {
-                total: c.saved_order_total || 0,
-                items: c.saved_order,
-                created_at: null,
-                _isSaved: true
-            }};
-        }
-        const { data: orders } = await sb.from("orders")
-            .select("*").eq("customer_phone", c.phone)
-            .order("created_at", { ascending: false }).limit(1);
-        return { client: c, lastOrder: orders && orders.length > 0 ? orders[0] : null };
-    }));
+    // Usa o pedido SALVO (⭐) de cada cliente — lê diretamente de clients.saved_order
+    const cards = clients.map(c => {
+        const temSalvo = c.saved_order && c.saved_order.trim();
+        const lastOrder = temSalvo ? {
+            total: c.saved_order_total || 0,
+            items: c.saved_order,
+            _isSaved: true
+        } : null;
+        return { client: c, lastOrder };
+    });
 
-    // Filtra anônimos (show_name === false)
-    const cardsFiltrados = cards.filter(({ client: c }) => c.show_name !== false);
+    // Mostra TODOS os clientes, incluindo anônimos (show_name === false)
+    const cardsFiltrados = cards;
 
     // Pré-seleciona automaticamente clientes visíveis (show_name === true) que ainda não estão na seleção
     cardsFiltrados.forEach(({ client: c, lastOrder: o }) => {
@@ -1720,13 +1715,13 @@ async function loadRefazerPedidos() {
     }
 
     list.innerHTML = cardsFiltrados.map(({ client: c, lastOrder: o }) => {
+        const nomeExibido = c.show_name === false ? '🔒 Anônimo' : c.name;
         if (!o) return `
             <div style="background:white;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;opacity:0.5;display:flex;justify-content:space-between;align-items:center;">
-                <div><strong>${c.name}</strong><br><small style="color:#aaa;">Sem pedidos anteriores</small></div>
+                <div><strong>${nomeExibido}</strong><br><small style="color:#aaa;">⭐ Nenhum pedido salvo</small></div>
             </div>`;
 
         const valor = Number(o.total).toFixed(2).replace('.', ',');
-        const data = o._isSaved ? '⭐ Pedido salvo' : new Date(o.created_at).toLocaleDateString('pt-BR');
         const itens = (o.items || '').replace(/✅ /g,'').replace(/\n/g,' | ').trim();
         const isSel = !!refazerSelecionados[c.phone];
         const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
@@ -1745,9 +1740,9 @@ async function loadRefazerPedidos() {
                 style="background:${isSel?'#fdf6ff':'white'};border:2px solid ${isSel?'#8e44ad':'#eee'};border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;${isBloqueado?'opacity:0.6;':''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-        <strong style="font-size:15px;">${c.name}</strong>
+        <strong style="font-size:15px;">${nomeExibido}</strong>
                         <div style="font-size:12px;color:#888;margin-top:2px;">${itens}</div>
-                        <div style="font-size:12px;color:#aaa;margin-top:2px;">📅 ${data}</div>
+                        <div style="font-size:12px;color:#8e44ad;margin-top:2px;font-weight:700;">⭐ Pedido salvo</div>
                     </div>
                     <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                         <button onclick="toggleBloqueioRefazer('${c.phone}', event)" style="background:${isBloqueado?'#e74c3c':'#eee'};border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:${isBloqueado?'white':'#888'};" title="${isBloqueado?'Desbloquear automático':'Bloquear automático'}">🚫</button>
