@@ -194,6 +194,11 @@
                 <div class="home-card-label">Painel de Rotas</div>
                 <div class="home-card-sub">Gerenciar rotas de entrega</div>
             </button>
+            <button class="home-card" style="border-top:4px solid #e67e22; grid-column: span 2;" onclick="openSection('enderecos')">
+                <span class="home-card-icon">📍</span>
+                <div class="home-card-label">Endereços dos Clientes</div>
+                <div class="home-card-sub">Cadastrar localização de cada cliente</div>
+            </button>
         </div>
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
         <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
@@ -455,52 +460,42 @@
             <div id="pagamentosList"></div>
         </div>
 
+        <!-- ABA ENDEREÇOS DOS CLIENTES -->
+        <div id="tab-enderecos" class="section">
+            <div style="margin-bottom:12px;">
+                <input type="text" id="enderecosBusca" class="input-text" placeholder="🔍 Buscar cliente..." oninput="filtrarEnderecos(this.value)" style="margin-bottom:0;">
+            </div>
+            <div id="enderecosList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+        <!-- Modal cadastrar/editar endereço -->
+        <div id="modalEndereco" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
+            <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <h3 style="color:#e67e22;font-size:17px;">📍 Endereço de Entrega</h3>
+                    <button onclick="fecharModalEndereco()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+                </div>
+                <div id="modalEnderecoNome" style="font-size:15px;font-weight:800;color:#333;margin-bottom:16px;"></div>
+                <input type="text" id="enderecoTexto" class="input-text" placeholder="Rua, número, bairro... (opcional)">
+                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📌 Coordenadas</div>
+                <div style="position:relative;margin-bottom:6px;">
+                    <input type="text" id="enderecoCoords" class="input-text"
+                        placeholder="-8,2181191, -34,9332629"
+                        style="margin-bottom:0;font-size:15px;letter-spacing:0.3px;"
+                        oninput="validarCoordsInput(this)">
+                    <div id="coordsPreview" style="display:none;margin-top:6px;padding:8px 12px;background:#f0fff4;border:1px solid #27ae60;border-radius:10px;font-size:12px;color:#1e8449;font-weight:600;"></div>
+                    <div id="coordsErro" style="display:none;margin-top:6px;padding:8px 12px;background:#fff0f0;border:1px solid #e74c3c;border-radius:10px;font-size:12px;color:#c0392b;font-weight:600;"></div>
+                </div>
+                <div style="font-size:11px;color:#aaa;margin-bottom:14px;">Cole as coordenadas do Google Maps (com vírgula ou ponto como decimal)</div>
+                <button onclick="usarLocalizacaoAtualEndereco()" style="width:100%;padding:11px;background:#f0f8ff;border:2px dashed #3498db;border-radius:12px;color:#2980b9;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;">
+                    📍 Usar minha localização atual
+                </button>
+                <button onclick="salvarEndereco()" class="btn btn-success btn-block" style="padding:13px;font-size:15px;">💾 Salvar endereço</button>
+            </div>
+        </div>
+
         <!-- ABA PAINEL DE ROTAS -->
         <div id="tab-rotas" class="section">
-
-            <style>
-                @keyframes gpsPulse {
-                    0%   { transform:scale(1);   opacity:1; box-shadow:0 0 0 0 rgba(46,204,113,0.7); }
-                    70%  { transform:scale(1.3); opacity:0.7; box-shadow:0 0 0 8px rgba(46,204,113,0); }
-                    100% { transform:scale(1);   opacity:1; box-shadow:0 0 0 0 rgba(46,204,113,0); }
-                }
-                @keyframes aguardandoPulse {
-                    0%,100% { opacity:1; } 50% { opacity:0.4; }
-                }
-            </style>
-
-            <!-- STATUS INTELIGENTE DA FÁBRICA -->
-            <div id="fabricaStatusCard" style="border-radius:18px;padding:16px;margin-bottom:14px;color:white;display:none;">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="font-size:32px;" id="fabricaStatusIcon">🏭</div>
-                    <div style="flex:1;">
-                        <div style="font-size:15px;font-weight:900;" id="fabricaStatusTitulo">Verificando localização...</div>
-                        <div style="font-size:12px;opacity:0.75;margin-top:3px;" id="fabricaStatusSub"></div>
-                    </div>
-                    <div id="fabricaDistBadge" style="font-size:11px;font-weight:800;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,0.2);white-space:nowrap;"></div>
-                </div>
-                <div id="proximaRotaInfo" style="margin-top:10px;padding:10px 12px;background:rgba(255,255,255,0.1);border-radius:12px;font-size:12px;display:none;"></div>
-            </div>
-
-            <!-- GPS TRANSMITINDO -->
-            <div id="gpsTransmitindoBanner" style="display:none;background:linear-gradient(135deg,#1a1a2e,#0d3b1e);border-radius:18px;padding:16px;margin-bottom:14px;color:white;box-shadow:0 4px 20px rgba(0,0,0,0.4);border:1px solid rgba(39,174,96,0.4);">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="position:relative;width:46px;height:46px;flex-shrink:0;">
-                            <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#27ae60,#1e8449);display:flex;align-items:center;justify-content:center;font-size:22px;">🛵</div>
-                            <div style="position:absolute;top:0;right:0;width:14px;height:14px;border-radius:50%;background:#2ecc71;border:2px solid #1a1a2e;animation:gpsPulse 1.2s ease-in-out infinite;"></div>
-                        </div>
-                        <div>
-                            <div style="font-size:14px;font-weight:900;" id="gpsRotaNomeAtiva">GPS Ativo</div>
-                            <div id="gpsUltimaPos" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;">Aguardando sinal...</div>
-                        </div>
-                    </div>
-                    <button onclick="encerrarRotaManual()" style="background:rgba(231,76,60,0.25);border:1px solid rgba(231,76,60,0.5);color:#ff6b6b;padding:8px 12px;border-radius:12px;font-weight:700;cursor:pointer;font-size:12px;">✅ Encerrar</button>
-                </div>
-                <div id="gpsContadorEnvios" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.4);padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:8px;">0 atualizações enviadas</div>
-                <!-- Paradas em andamento -->
-                <div id="paradasEmAndamentoList" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
-            </div>
 
             <!-- CRIAR NOVA ROTA -->
             <div class="card-box">
@@ -550,15 +545,10 @@
                         <option value="">-- Selecionar cliente --</option>
                     </select>
                     <div id="paradaClienteInfo" style="display:none;font-size:12px;color:#888;padding:6px 10px;background:#f8f8f8;border-radius:8px;margin-top:6px;"></div>
-                </div>
-                <div style="margin-bottom:10px;">
-                    <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">🏠 Endereço</label>
-                    <input type="text" id="paradaEndereco" class="input-text" placeholder="Rua, número, bairro..." style="margin-bottom:6px;">
-                    <button onclick="usarEnderecoAtual()" style="width:100%;padding:10px;background:#f0f8ff;border:2px dashed #3498db;border-radius:12px;color:#2980b9;font-weight:700;font-size:13px;cursor:pointer;">📍 Usar minha localização atual</button>
-                </div>
-                <div style="display:flex;gap:8px;margin-bottom:10px;">
-                    <input type="number" id="paradaLat" class="input-text" placeholder="Latitude" style="flex:1;margin-bottom:0;font-size:12px;">
-                    <input type="number" id="paradaLon" class="input-text" placeholder="Longitude" style="flex:1;margin-bottom:0;font-size:12px;">
+                    <div id="paradaSemEndereco" style="display:none;margin-top:8px;padding:10px 12px;background:#fff3cd;border:1px solid #f0c040;border-radius:10px;font-size:12px;color:#856404;">
+                        ⚠️ Este cliente não tem endereço cadastrado.
+                        <button onclick="openSection('enderecos')" style="display:block;width:100%;margin-top:6px;padding:7px;background:#f0c040;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;">📍 Cadastrar endereço agora</button>
+                    </div>
                 </div>
                 <div id="paradaEtaPreview" style="display:none;background:#f0fff4;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
                     <div style="font-size:11px;font-weight:700;color:#27ae60;">⏱️ ETA Estimado</div>
@@ -610,18 +600,8 @@ async function initAdmin() {
     document.getElementById('homeScreen').style.display = 'block';
     await loadTemplates();
     await updateFiadoHeader();
-    // Inicia GPS e monitor de rotas automaticamente ao abrir o app
-    await iniciarMonitorBackground();
 }
 
-async function iniciarMonitorBackground() {
-    // Carrega dados necessários para o monitor funcionar
-    const { data: clients } = await sb.from("clients").select("*").order("name");
-    clientesCache = clients || [];
-    await calcularMediaEta();
-    await carregarRotasHoje();
-    iniciarMonitorFabrica();
-}
 
 async function updateFiadoHeader() {
     const { data } = await sb.from("clients").select("debt");
@@ -649,7 +629,8 @@ function openSection(section) {
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
-        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel }
+        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
+        enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos }
     };
     const s = map[section];
     document.getElementById(s.id).classList.add('active');
@@ -2448,9 +2429,6 @@ let rotaAtualId = null;
 let rotaParadas = [];
 let clientesCache = [];
 let mediaMinPorParada = 12;
-let gpsEnvios = 0;
-let monitorInterval = null;
-let estavaNaFabrica = null;
 let rotasHoje = [];
 let filaRotas = [];
 let rotaAtualObj = null;
@@ -2473,8 +2451,6 @@ async function loadRotasPanel() {
     await calcularMediaEta();
     await carregarRotasHoje();
     await carregarRotasSalvas();
-    // Monitor já iniciado no background — só reinicia se por algum motivo parou
-    if (watchId === null) iniciarMonitorFabrica();
 }
 
 async function preencherClientesComPedido() {
@@ -2520,15 +2496,28 @@ async function preencherClientesComPedido() {
 
 async function carregarRotasHoje() {
     const dia = diaHoje();
+    const hoje = new Date().toISOString().split('T')[0]; // "2025-02-21"
     const { data: todasRotas } = await sb.from("delivery_routes").select("*").order("hora_saida",{ascending:true});
-    rotasHoje = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
+
+    // Filtra rotas que têm o dia atual marcado
+    const rotasDoDia = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
+
+    // Calcula o status efetivo de cada rota baseado em se a ação foi HOJE
+    rotasHoje = rotasDoDia.map(r => {
+        const concluidoHoje = r.fim_em && r.fim_em.startsWith(hoje);
+        const emAndamentoHoje = r.saida_em && r.saida_em.startsWith(hoje);
+        // Se foi concluída ou iniciada em outro dia, reseta para 'criada'
+        if (r.status === 'concluido' && !concluidoHoje) return { ...r, status: 'criada', paradas: r.paradas_template || r.paradas || [] };
+        if (r.status === 'em_andamento' && !emAndamentoHoje) return { ...r, status: 'criada', paradas: r.paradas_template || r.paradas || [] };
+        return r;
+    });
+
     filaRotas = rotasHoje.filter(r => r.status !== 'concluido').sort((a,b)=>(a.hora_saida||'00:00').localeCompare(b.hora_saida||'00:00'));
     const emAndamento = rotasHoje.find(r => r.status === 'em_andamento');
     if (emAndamento) {
         rotaAtualId = emAndamento.id;
         rotaAtualObj = emAndamento;
         rotaParadas = emAndamento.paradas || [];
-        mostrarGpsAtivo(emAndamento);
     }
     renderRotasHoje();
 }
@@ -2563,231 +2552,19 @@ function renderRotasHoje() {
     }).join('');
 }
 
-let watchId = null;
-let ultimoTickMs = 0;
-const TICK_INTERVALO_MS = 5000;
 
-let ultimaPosCapturada = null; // guarda última posição para reenvio forçado
 
-function iniciarMonitorFabrica() {
-    if (!navigator.geolocation) return;
-    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-    clearInterval(monitorInterval);
-    document.getElementById('fabricaStatusCard').style.display = 'block';
 
-    // watchPosition — captura movimento
-    watchId = navigator.geolocation.watchPosition(async pos => {
-        ultimaPosCapturada = pos;
-        await processarPosicao(pos);
-    }, (err) => { console.warn('GPS erro:', err); }, {enableHighAccuracy:true, timeout:15000, maximumAge:3000});
-
-    // Intervalo forçado a cada 3s — garante envio mesmo parado
-    monitorInterval = setInterval(async () => {
-        if (ultimaPosCapturada) {
-            await enviarPosicaoGPS(
-                ultimaPosCapturada.coords.latitude,
-                ultimaPosCapturada.coords.longitude,
-                ultimaPosCapturada.coords.accuracy
-            );
-        } else {
-            // Sem posição ainda — tenta buscar
-            navigator.geolocation.getCurrentPosition(async pos => {
-                ultimaPosCapturada = pos;
-                await processarPosicao(pos);
-            }, null, {enableHighAccuracy:true, timeout:5000, maximumAge:3000});
-        }
-    }, 3000);
-}
-
-async function processarPosicao(pos) {
-    const agora = Date.now();
-    if (agora - ultimoTickMs < TICK_INTERVALO_MS) {
-        // Mesmo com throttle, ainda envia GPS
-        await enviarPosicaoGPS(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-        return;
-    }
-    ultimoTickMs = agora;
-
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const raio = parseInt(document.getElementById('rotaRaio')?.value) || 20;
-    const dist = Math.round(calcDistM(lat, lon, FABRICA_LAT, FABRICA_LON));
-    const naFabrica = dist <= raio;
-
-    atualizarCardFabrica(naFabrica, dist);
-
-    if (estavaNaFabrica === true && !naFabrica) await tentarIniciarProximaRota();
-    if (estavaNaFabrica === false && naFabrica && rotaAtualId) await encerrarRotaAutomatico();
-    estavaNaFabrica = naFabrica;
-
-    if (rotaAtualId && rotaParadas.length > 0) await monitorarParadaAtual(lat, lon);
-
-    await enviarPosicaoGPS(lat, lon, pos.coords.accuracy);
-}
-
-function tickMonitor() {} // mantido por compatibilidade
 
 // Controle de presença nas paradas
-let paradaAtualId = null;
-let estavaNaParada = false;
 
-async function monitorarParadaAtual(lat, lon) {
-    const proxima = rotaParadas.find(p => p.status === 'pendente' && p.coords);
-    if (!proxima) return;
 
-    const raio = parseInt(document.getElementById('rotaRaio')?.value) || 20;
-    const dist = Math.round(calcDistM(lat, lon, proxima.coords[0], proxima.coords[1]));
-    const naParada = dist <= raio;
 
-    // Entrou na área do cliente
-    if (!estavaNaParada && naParada && paradaAtualId !== proxima.id) {
-        paradaAtualId = proxima.id;
-        estavaNaParada = true;
-        showToast({
-            type: 'success',
-            title: '\uD83D\uDCCD Chegou em ' + proxima.nome + '!',
-            body: 'A ' + dist + 'm · Realize a entrega e saia da área para confirmar.',
-            duration: 5000
-        });
-        atualizarCardParada(proxima, dist, true);
-    }
 
-    // Saiu da área → entrega confirmada automaticamente
-    if (estavaNaParada && !naParada && paradaAtualId === proxima.id) {
-        estavaNaParada = false;
-        paradaAtualId = null;
-        await marcarEntregue(proxima.id);
-        const proxNome = rotaParadas.find(p => p.status === 'pendente' && p.id !== proxima.id && p.coords)?.nome;
-        showToast({
-            type: 'success',
-            title: '\u2705 Entrega confirmada!',
-            body: proxNome
-                ? proxima.nome + ' \u2713 · Próximo: ' + proxNome
-                : proxima.nome + ' \u2713 · Todas as entregas concluídas!',
-            duration: 5000
-        });
-        atualizarCardParada(null, 0, false);
-    }
 
-    // Atualiza distância enquanto se aproxima
-    if (!naParada && !estavaNaParada) {
-        atualizarCardParada(proxima, dist, false);
-    }
-}
 
-function atualizarCardParada(parada, dist, chegou) {
-    const sub = document.getElementById('fabricaStatusSub');
-    const titulo = document.getElementById('fabricaStatusTitulo');
-    if (!parada) return;
-    const raio = parseInt(document.getElementById('rotaRaio')?.value) || 20;
-    if (chegou) {
-        titulo.textContent = '\uD83D\uDCCD Na área de ' + parada.nome;
-        sub.textContent = 'Saia dos ' + raio + 'm após entregar para confirmar automaticamente';
-        sub.style.animation = 'aguardandoPulse 1.5s ease-in-out infinite';
-    } else {
-        titulo.textContent = '\uD83D\uDEF5 Indo para ' + parada.nome;
-        sub.textContent = dist + 'm de distância · Raio de confirmação: ' + raio + 'm';
-        sub.style.animation = '';
-    }
-}
 
-function atualizarCardFabrica(naFabrica, dist) {
-    const card = document.getElementById('fabricaStatusCard');
-    const titulo = document.getElementById('fabricaStatusTitulo');
-    const sub = document.getElementById('fabricaStatusSub');
-    const badge = document.getElementById('fabricaDistBadge');
-    const proximaInfo = document.getElementById('proximaRotaInfo');
 
-    badge.textContent = dist + 'm da fábrica';
-
-    if (naFabrica) {
-        card.style.background = 'linear-gradient(135deg,#1a3a2e,#0d2a1e)';
-        card.style.border = '1px solid rgba(39,174,96,0.4)';
-        document.getElementById('fabricaStatusIcon').textContent = '🏭';
-        titulo.textContent = 'Você está na fábrica';
-        sub.textContent = 'Aguardando você sair para iniciar a rota...';
-        sub.style.animation = 'aguardandoPulse 1.5s ease-in-out infinite';
-        const proxima = getProximaRotaPendente();
-        if (proxima) {
-            proximaInfo.style.display = 'block';
-            proximaInfo.innerHTML = `🛵 Próxima: <strong>${proxima.nome}</strong> · ⏰ ${proxima.hora_saida} · ${(proxima.paradas||[]).length} paradas`;
-        } else { proximaInfo.style.display = 'none'; }
-    } else {
-        card.style.background = 'linear-gradient(135deg,#1a1a2e,#2d1f4e)';
-        card.style.border = '1px solid rgba(52,152,219,0.3)';
-        document.getElementById('fabricaStatusIcon').textContent = rotaAtualId ? '🛵' : '📍';
-        titulo.textContent = rotaAtualId ? 'Entrega em andamento' : 'Fora da fábrica';
-        sub.textContent = rotaAtualId ? `Rota: ${rotaAtualObj?.nome||''}` : `${dist}m — volte à fábrica para encerrar`;
-        sub.style.animation = '';
-        proximaInfo.style.display = 'none';
-    }
-}
-
-function getProximaRotaPendente() {
-    if (rotaAtualId) return null;
-    const agora = horaAtual();
-    return filaRotas.find(r => r.status === 'criada' && (r.hora_saida||'00:00') <= agora) || null;
-}
-
-async function tentarIniciarProximaRota() {
-    const proxima = getProximaRotaPendente();
-    if (!proxima) return;
-    await sb.from("delivery_routes").update({status:'em_andamento', saida_em:new Date().toISOString()}).eq("id", proxima.id);
-    rotaAtualId = proxima.id;
-    rotaAtualObj = {...proxima, status:'em_andamento'};
-    rotaParadas = proxima.paradas || [];
-    filaRotas = filaRotas.filter(r => r.id !== proxima.id);
-    mostrarGpsAtivo(rotaAtualObj);
-    await carregarRotasHoje();
-    showToast({type:'success', title:`🛵 ${proxima.nome} iniciada!`, body:`Saiu às ${horaAtual()}. GPS ativo.`, duration:5000});
-}
-
-async function encerrarRotaAutomatico() {
-    if (!rotaAtualId) return;
-    await sb.from("delivery_routes").update({status:'concluido', fim_em:new Date().toISOString()}).eq("id", rotaAtualId);
-    await sb.from("config").upsert({key:"admin_gps", value:JSON.stringify({lat:null,lon:null,ts:null})},{onConflict:'key'});
-    const nome = rotaAtualObj?.nome || 'Rota';
-    rotaAtualId = null; rotaAtualObj = null; rotaParadas = [];
-    document.getElementById('gpsTransmitindoBanner').style.display = 'none';
-    await carregarRotasHoje();
-    await carregarRotasSalvas();
-    showToast({type:'success', title:`✅ ${nome} encerrada!`, body:`Chegou na fábrica às ${horaAtual()}. Próxima rota aguardando...`, duration:5000});
-}
-
-async function encerrarRotaManual() {
-    await encerrarRotaAutomatico();
-}
-
-function mostrarGpsAtivo(rota) {
-    document.getElementById('gpsTransmitindoBanner').style.display = 'block';
-    document.getElementById('gpsRotaNomeAtiva').textContent = `🛵 ${rota.nome}`;
-    const list = document.getElementById('paradasEmAndamentoList');
-    list.innerHTML = (rota.paradas||[]).map((p,i) => `
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.08);border-radius:10px;">
-            <div style="width:22px;height:22px;border-radius:50%;background:${p.status==='entregue'?'#27ae60':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white;flex-shrink:0;">${p.status==='entregue'?'✓':i+1}</div>
-            <div style="flex:1;font-size:12px;font-weight:700;color:white;">${p.nome} <span style="font-size:10px;color:rgba(255,255,255,0.45);">~${p.eta_min}min</span></div>
-            ${p.status!=='entregue'?`<button onclick="marcarEntregue('${p.id}')" style="padding:3px 8px;background:rgba(39,174,96,0.4);color:#2ecc71;border:1px solid rgba(39,174,96,0.5);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;">✓</button>`:''}
-        </div>`).join('');
-}
-
-async function enviarPosicaoGPS(lat, lon, precisao) {
-    const ts = new Date().toISOString();
-    // Sempre salva posição na tabela config — cardápio lê daqui em tempo real
-    await sb.from("config").upsert(
-        {key:"admin_gps", value:JSON.stringify({lat, lon, ts, precisao, rota_id: rotaAtualId || null})},
-        {onConflict:'key'}
-    );
-    // Se tiver rota ativa, salva também na rota
-    if (rotaAtualId) {
-        await sb.from("delivery_routes").update({posicao_entregador:{lat,lon,ts,precisao}}).eq("id",rotaAtualId);
-    }
-    gpsEnvios++;
-    const hora = new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const elPos = document.getElementById('gpsUltimaPos');
-    const elCount = document.getElementById('gpsContadorEnvios');
-    if (elPos) elPos.textContent = `📍 ${lat.toFixed(5)}, ${lon.toFixed(5)} · ${Math.round(precisao||0)}m`;
-    if (elCount) elCount.textContent = `${gpsEnvios} atualizações · última às ${hora}`;
-}
 
 function toggleNovaRota() {
     const f = document.getElementById('novaRotaForm');
@@ -2813,7 +2590,10 @@ async function criarRota() {
     const dias = getDiasSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    const {data:nova,error} = await sb.from("delivery_routes").insert({nome,dias_semana:dias,hora_saida:hora,raio_fabrica:raio,status:'criada',paradas:[]}).select().single();
+    const {data:nova,error} = await sb.from("delivery_routes").insert({
+        nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
+        status:'criada', paradas:[], paradas_template:[]
+    }).select().single();
     if (error||!nova) return showToast({type:'confirm',title:'❌ Erro',body:'Verifique se rodou o SQL: ALTER TABLE delivery_routes ADD COLUMN IF NOT EXISTS raio_fabrica int DEFAULT 20;',duration:4000});
     document.getElementById('novaRotaForm').style.display = 'none';
     document.getElementById('rotaNome').value = '';
@@ -2865,14 +2645,213 @@ function onParadaClienteChange() {
     const sel = document.getElementById('paradaCliente');
     const opt = sel.options[sel.selectedIndex];
     const info = document.getElementById('paradaClienteInfo');
-    if (opt.value) {
-        const c = clientesCache.find(x=>x.phone===opt.value);
-        if (c) {
-            const debt = c.debt>0?`💸 Deve R$ ${c.debt.toFixed(2)}`:c.debt<0?`✅ Crédito R$ ${Math.abs(c.debt).toFixed(2)}`:'✅ Em dia';
-            info.style.display='block'; info.textContent=`📱 ${c.phone} · ${debt}`;
+    const semEnd = document.getElementById('paradaSemEndereco');
+    if (!opt.value) {
+        info.style.display = 'none';
+        semEnd.style.display = 'none';
+        document.getElementById('paradaEtaPreview').style.display = 'none';
+        return;
+    }
+    const c = clientesCache.find(x => x.phone === opt.value);
+    if (c) {
+        const debt = c.debt > 0 ? `💸 Deve R$ ${c.debt.toFixed(2)}` : c.debt < 0 ? `✅ Crédito R$ ${Math.abs(c.debt).toFixed(2)}` : '✅ Em dia';
+        const temEnd = c.delivery_lat && c.delivery_lon;
+        info.style.display = 'block';
+        info.innerHTML = `📱 ${c.phone} · ${debt}` + (temEnd ? `<br>📍 ${c.delivery_address || `${c.delivery_lat}, ${c.delivery_lon}`}` : '');
+        semEnd.style.display = temEnd ? 'none' : 'block';
+        if (temEnd) mostrarEtaPreview();
+        else document.getElementById('paradaEtaPreview').style.display = 'none';
+    }
+}
+
+// ===== ENDEREÇOS DOS CLIENTES =====
+let enderecoClienteAtual = null;
+let todosClientesEnderecos = [];
+
+async function loadEnderecos() {
+    const el = document.getElementById('enderecosList');
+    el.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+
+    // Tenta buscar com colunas de endereço
+    const { data, error } = await sb.from('clients')
+        .select('phone,name,delivery_address,delivery_lat,delivery_lon')
+        .order('name');
+
+    if (error) {
+        // Colunas de endereço não existem ainda — faz fallback buscando só phone e name
+        const { data: dataFallback, error: errFallback } = await sb.from('clients')
+            .select('phone,name')
+            .order('name');
+
+        if (errFallback || !dataFallback || dataFallback.length === 0) {
+            el.innerHTML = `<div style="background:#fff3cd;border:1px solid #f0c040;border-radius:14px;padding:16px;color:#856404;font-size:13px;">
+                ⚠️ <strong>Nenhum cliente encontrado ou erro na conexão.</strong><br><br>
+                Verifique se há clientes cadastrados na aba Clientes.
+            </div>`;
+            return;
         }
-        mostrarEtaPreview();
-    } else { info.style.display='none'; document.getElementById('paradaEtaPreview').style.display='none'; }
+
+        // Clientes encontrados mas colunas de endereço não existem — mostra aviso SQL
+        todosClientesEnderecos = dataFallback.map(c => ({...c, delivery_address: null, delivery_lat: null, delivery_lon: null}));
+        el.innerHTML = `<div style="background:#fff3cd;border:1px solid #f0c040;border-radius:14px;padding:16px;margin-bottom:14px;color:#856404;font-size:13px;line-height:1.6;">
+            ⚠️ <strong>Execute este SQL no Supabase para habilitar endereços:</strong><br><br>
+            <code style="display:block;background:#1a1a2e;color:#2ecc71;padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;word-break:break-all;">
+                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_address text;<br>
+                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_lat float8;<br>
+                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_lon float8;
+            </code>
+        </div>`;
+        renderEnderecos(todosClientesEnderecos);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        el.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;font-size:14px;">😕 Nenhum cliente cadastrado ainda.<br><span style="font-size:12px;margin-top:6px;display:block;">Cadastre clientes na aba 👥 Clientes.</span></div>';
+        return;
+    }
+
+    todosClientesEnderecos = data;
+    renderEnderecos(todosClientesEnderecos);
+}
+
+function filtrarEnderecos(q) {
+    const f = q.toLowerCase();
+    renderEnderecos(todosClientesEnderecos.filter(c => c.name?.toLowerCase().includes(f) || c.phone?.includes(f)));
+}
+
+function renderEnderecos(lista) {
+    const el = document.getElementById('enderecosList');
+    if (!lista.length) { el.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;">Nenhum cliente encontrado</div>'; return; }
+    el.innerHTML = lista.map(c => {
+        const temEnd = c.delivery_lat && c.delivery_lon;
+        return `<div style="background:white;border-radius:14px;padding:13px 14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:14px;color:#222;">${c.name || 'Sem nome'}</div>
+                <div style="font-size:11px;color:#999;margin-top:2px;">📱 ${c.phone}</div>
+                ${temEnd
+                    ? `<div style="font-size:11px;color:#27ae60;margin-top:3px;">✅ ${c.delivery_address || `${(+c.delivery_lat).toFixed(5)}, ${(+c.delivery_lon).toFixed(5)}`}</div>`
+                    : `<div style="font-size:11px;color:#e74c3c;margin-top:3px;">⚠️ Sem endereço cadastrado</div>`}
+            </div>
+            <button onclick="abrirModalEndereco('${c.phone}')" style="padding:8px 14px;background:${temEnd ? '#f0faf5' : '#fff3cd'};color:${temEnd ? '#27ae60' : '#e67e22'};border:1.5px solid ${temEnd ? '#27ae60' : '#f0c040'};border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                ${temEnd ? '✏️ Editar' : '📍 Cadastrar'}
+            </button>
+        </div>`;
+    }).join('');
+}
+
+function abrirModalEndereco(phone) {
+    const c = todosClientesEnderecos.find(x => x.phone === phone);
+    if (!c) return;
+    enderecoClienteAtual = c;
+    document.getElementById('modalEnderecoNome').textContent = `👤 ${c.name || c.phone}`;
+    document.getElementById('enderecoTexto').value = c.delivery_address || '';
+    // Monta campo único de coordenadas
+    if (c.delivery_lat && c.delivery_lon) {
+        const latStr = String(c.delivery_lat).replace('.', ',');
+        const lonStr = String(c.delivery_lon).replace('.', ',');
+        document.getElementById('enderecoCoords').value = `${latStr}, ${lonStr}`;
+        document.getElementById('coordsPreview').style.display = 'block';
+        document.getElementById('coordsPreview').textContent = `✅ Lat: ${c.delivery_lat} · Lon: ${c.delivery_lon}`;
+        document.getElementById('coordsErro').style.display = 'none';
+    } else {
+        document.getElementById('enderecoCoords').value = '';
+        document.getElementById('coordsPreview').style.display = 'none';
+        document.getElementById('coordsErro').style.display = 'none';
+    }
+    document.getElementById('modalEndereco').style.display = 'flex';
+}
+
+function fecharModalEndereco() {
+    document.getElementById('modalEndereco').style.display = 'none';
+    enderecoClienteAtual = null;
+}
+
+function usarLocalizacaoAtualEndereco() {
+    if (!navigator.geolocation) return alert('Geolocalização não suportada');
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lon = pos.coords.longitude.toFixed(6);
+        const latStr = lat.replace('.', ',');
+        const lonStr = lon.replace('.', ',');
+        document.getElementById('enderecoCoords').value = `${latStr}, ${lonStr}`;
+        validarCoordsInput(document.getElementById('enderecoCoords'));
+        showToast({ type: 'success', title: '📍 Localização capturada!', body: `${lat}, ${lon}`, duration: 2500 });
+    }, () => alert('Não foi possível obter localização'));
+}
+
+// Valida e mostra preview enquanto digita
+function validarCoordsInput(input) {
+    const preview = document.getElementById('coordsPreview');
+    const erro = document.getElementById('coordsErro');
+    const parsed = parseCoordsInput(input.value);
+    if (!input.value.trim()) {
+        preview.style.display = 'none';
+        erro.style.display = 'none';
+        return;
+    }
+    if (parsed) {
+        preview.style.display = 'block';
+        preview.textContent = `✅ Lat: ${parsed.lat} · Lon: ${parsed.lon}`;
+        erro.style.display = 'none';
+    } else {
+        erro.style.display = 'block';
+        erro.textContent = '❌ Formato inválido. Use: -8,2181191, -34,9332629';
+        preview.style.display = 'none';
+    }
+}
+
+// Converte qualquer formato de coordenada em {lat, lon}
+function parseCoordsInput(valor) {
+    if (!valor || !valor.trim()) return null;
+    // Normaliza: troca vírgula decimal por ponto, mas mantém a vírgula separadora
+    // Suporta: "-8,2181191, -34,9332629" ou "-8.2181191, -34.9332629" ou "-8.218 -34.933"
+    let str = valor.trim();
+    // Detecta se usa vírgula como decimal (ex: -8,218 → dois números com vírgula)
+    // Estratégia: substitui vírgula dentro de números por ponto, mantém a que separa lat/lon
+    // Divide pelos separadores possíveis: vírgula entre números, espaço, ponto-e-vírgula
+    // Remove espaços extras
+    str = str.replace(/\s+/g, ' ');
+    let parts = null;
+    // Tenta dividir por "; " ou " / "
+    if (str.includes(';')) parts = str.split(';').map(s => s.trim());
+    // Tenta dividir por padrão: número, espaço/vírgula, número (com sinal negativo)
+    if (!parts || parts.length !== 2) {
+        // Regex: captura dois grupos que começam com - ou dígito
+        const match = str.match(/^(-?[\d.,]+)[,\s]+(-?[\d.,]+)$/);
+        if (match) parts = [match[1], match[2]];
+    }
+    if (!parts || parts.length !== 2) return null;
+    // Converte cada parte: troca vírgula por ponto para parseFloat
+    const lat = parseFloat(parts[0].replace(',', '.'));
+    const lon = parseFloat(parts[1].replace(',', '.'));
+    if (isNaN(lat) || isNaN(lon)) return null;
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+    return { lat, lon };
+}
+
+async function salvarEndereco() {
+    if (!enderecoClienteAtual) return;
+    const endereco = document.getElementById('enderecoTexto').value.trim();
+    const coordsRaw = document.getElementById('enderecoCoords').value;
+    const parsed = parseCoordsInput(coordsRaw);
+    if (!parsed) {
+        return showToast({ type: 'confirm', title: '⚠️ Coordenadas inválidas', body: 'Use o formato: -8,2181191, -34,9332629', duration: 3000 });
+    }
+    const { lat, lon } = parsed;
+    await sb.from('clients').update({
+        delivery_address: endereco || null,
+        delivery_lat: lat,
+        delivery_lon: lon
+    }).eq('phone', enderecoClienteAtual.phone);
+    // Atualiza cache local
+    const idx = todosClientesEnderecos.findIndex(x => x.phone === enderecoClienteAtual.phone);
+    if (idx >= 0) { todosClientesEnderecos[idx].delivery_address = endereco || null; todosClientesEnderecos[idx].delivery_lat = lat; todosClientesEnderecos[idx].delivery_lon = lon; }
+    // Atualiza clientesCache também (para onParadaClienteChange)
+    const cc = clientesCache.find(x => x.phone === enderecoClienteAtual.phone);
+    if (cc) { cc.delivery_address = endereco || null; cc.delivery_lat = lat; cc.delivery_lon = lon; }
+    fecharModalEndereco();
+    renderEnderecos(todosClientesEnderecos);
+    showToast({ type: 'success', title: '✅ Endereço salvo!', body: `${enderecoClienteAtual.name || enderecoClienteAtual.phone} · ${lat}, ${lon}`, duration: 3000 });
 }
 
 function mostrarEtaPreview() {
@@ -2883,56 +2862,50 @@ function mostrarEtaPreview() {
     document.getElementById('paradaEtaHistorico').textContent=`Parada #${num} · Média: ${mediaMinPorParada.toFixed(0)} min/entrega`;
 }
 
-function usarEnderecoAtual() {
-    if (!navigator.geolocation) return alert('Geolocalização não suportada');
-    navigator.geolocation.getCurrentPosition(pos => {
-        document.getElementById('paradaLat').value=pos.coords.latitude.toFixed(6);
-        document.getElementById('paradaLon').value=pos.coords.longitude.toFixed(6);
-        showToast({type:'success',title:'📍 Localização capturada!',body:'Coordenadas preenchidas.',duration:2500});
-    }, ()=>alert('Não foi possível obter localização'));
-}
 
 async function adicionarParada() {
     if (!rotaAtualId) return showToast({type:'confirm',title:'⚠️',body:'Selecione uma rota primeiro.',duration:2500});
     const sel = document.getElementById('paradaCliente');
-    const endereco = document.getElementById('paradaEndereco').value.trim();
-    const lat = parseFloat(document.getElementById('paradaLat').value);
-    const lon = parseFloat(document.getElementById('paradaLon').value);
     const clientePhone = sel.value;
-    const clienteNome = sel.options[sel.selectedIndex]?.dataset?.name||'';
-    if (!clientePhone && !endereco) return showToast({type:'confirm',title:'⚠️',body:'Selecione cliente ou informe endereço.',duration:2500});
+    const clienteNome = sel.options[sel.selectedIndex]?.dataset?.name || '';
+    if (!clientePhone) return showToast({type:'confirm',title:'⚠️',body:'Selecione um cliente.',duration:2500});
+
+    const c = clientesCache.find(x => x.phone === clientePhone);
+    if (!c?.delivery_lat || !c?.delivery_lon) {
+        return showToast({type:'confirm',title:'⚠️ Sem endereço',body:`${clienteNome} não tem endereço cadastrado. Cadastre primeiro na aba Endereços.`,duration:4000});
+    }
 
     // Verifica se o cliente tem pedido hoje
-    if (clientePhone) {
-        const hoje = new Date().toISOString().split('T')[0];
-        const { data: pedido } = await sb.from("orders")
-            .select("id").eq("customer_phone", clientePhone)
-            .gte("created_at", hoje + 'T00:00:00')
-            .lte("created_at", hoje + 'T23:59:59')
-            .limit(1);
-        if (!pedido || pedido.length === 0) {
-            return showToast({type:'confirm', title:'⚠️ Sem pedido', body:`${clienteNome} não fez pedido hoje. Não é possível adicionar à rota.`, duration:4000});
-        }
+    const hoje = new Date().toISOString().split('T')[0];
+    const { data: pedido } = await sb.from("orders")
+        .select("id").eq("customer_phone", clientePhone)
+        .gte("created_at", hoje + 'T00:00:00')
+        .lte("created_at", hoje + 'T23:59:59')
+        .limit(1);
+    if (!pedido || pedido.length === 0) {
+        return showToast({type:'confirm',title:'⚠️ Sem pedido',body:`${clienteNome} não fez pedido hoje. Não é possível adicionar à rota.`,duration:4000});
     }
+
     const parada = {
-        id: Date.now().toString(), cliente_phone:clientePhone,
-        nome:clienteNome||'Sem nome',
-        endereco:endereco||`${lat.toFixed(4)}, ${lon.toFixed(4)}`,
-        coords:(!isNaN(lat)&&!isNaN(lon))?[lat,lon]:null,
-        eta_min:Math.round((rotaParadas.length+1)*mediaMinPorParada),
-        status:'pendente'
+        id: Date.now().toString(),
+        cliente_phone: clientePhone,
+        nome: clienteNome || 'Sem nome',
+        endereco: c.delivery_address || `${(+c.delivery_lat).toFixed(4)}, ${(+c.delivery_lon).toFixed(4)}`,
+        coords: [parseFloat(c.delivery_lat), parseFloat(c.delivery_lon)],
+        eta_min: Math.round((rotaParadas.length + 1) * mediaMinPorParada),
+        status: 'pendente'
     };
     rotaParadas.push(parada);
-    await sb.from("delivery_routes").update({paradas:rotaParadas}).eq("id",rotaAtualId);
-    sel.value=''; document.getElementById('paradaEndereco').value='';
-    document.getElementById('paradaLat').value=''; document.getElementById('paradaLon').value='';
-    document.getElementById('paradaClienteInfo').style.display='none';
-    document.getElementById('paradaEtaPreview').style.display='none';
+    // paradas_template guarda a lista base (sem status de entrega) para reutilizar todo dia
+    const paradasTemplate = rotaParadas.map(p => ({...p, status: 'pendente'}));
+    await sb.from("delivery_routes").update({paradas: rotaParadas, paradas_template: paradasTemplate}).eq("id", rotaAtualId);
+    sel.value = '';
+    document.getElementById('paradaClienteInfo').style.display = 'none';
+    document.getElementById('paradaSemEndereco').style.display = 'none';
+    document.getElementById('paradaEtaPreview').style.display = 'none';
     renderParadasList();
-    if (rotaAtualObj?.id===rotaAtualId) mostrarGpsAtivo({...rotaAtualObj,paradas:rotaParadas});
     showToast({type:'success',title:'📍 Parada adicionada!',body:`${parada.nome} na rota.`,duration:2000});
 }
-
 function renderParadasList() {
     const list = document.getElementById('rotaParadasList');
     if (rotaParadas.length===0) {
@@ -2961,45 +2934,154 @@ async function marcarEntregue(paradaId) {
     if (p) p.status='entregue';
     await sb.from("delivery_routes").update({paradas:rotaParadas}).eq("id",rotaAtualId);
     renderParadasList();
-    if (rotaAtualObj?.id===rotaAtualId) mostrarGpsAtivo({...rotaAtualObj,paradas:rotaParadas});
 }
 
 async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p=>p.id!==paradaId);
     rotaParadas.forEach((p,i)=>{ p.eta_min=Math.round((i+1)*mediaMinPorParada); });
-    await sb.from("delivery_routes").update({paradas:rotaParadas}).eq("id",rotaAtualId);
+    const paradasTemplate = rotaParadas.map(p => ({...p, status: 'pendente'}));
+    await sb.from("delivery_routes").update({paradas:rotaParadas, paradas_template: paradasTemplate}).eq("id",rotaAtualId);
     renderParadasList();
 }
 
 async function excluirRota(rotaId) {
-    await sb.from("delivery_routes").delete().eq("id",rotaId);
-    await carregarRotasHoje();
-    await carregarRotasSalvas();
+    const r = rotasHoje.find(x => x.id === rotaId);
+    const nome = r ? r.nome : 'esta rota';
+    confirmarExcluirRota(rotaId, nome);
 }
 
 async function carregarRotasSalvas() {
-    const {data:rotas} = await sb.from("delivery_routes").select("*").order("created_at",{ascending:false}).limit(30);
+    const {data:rotas} = await sb.from("delivery_routes").select("*").order("created_at",{ascending:false}).limit(50);
     const list = document.getElementById('rotasSalvasList');
     if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
     list.innerHTML = rotas.map(r=>{
-        const entregues=(r.paradas||[]).filter(p=>p.status==='entregue').length;
-        const total=(r.paradas||[]).length;
+        const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
+        const total=(r.paradas_template||r.paradas||[]).length;
         const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
         const cor=corS[r.status]||'#ccc';
         return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                <div><div style="font-weight:700;font-size:13px;">${r.nome}</div>
-                <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'}</div></div>
-                <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};">${labS[r.status]||r.status}</span>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;">
+                    <div style="font-weight:700;font-size:13px;">${r.nome}</div>
+                    <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                    <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
+                </div>
+                <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
             </div>
-            <div style="margin-top:6px;font-size:11px;color:#777;">📦 ${entregues}/${total} entregas · ⏱️ ${dur}</div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
+                <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}\')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+            </div>
         </div>`;
     }).join('');
 }
 
+// ===== EDITAR / EXCLUIR ROTAS =====
+let rotaEditandoId = null;
+
+function confirmarExcluirRota(rotaId, nome) {
+    showToast({
+        type: 'confirm',
+        title: `🗑️ Excluir rota "${nome}"?`,
+        body: 'Ela será removida permanentemente e não aparecerá mais em nenhum dia.',
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '🗑️ Excluir', bg: 'var(--danger)', color: 'white', fn: `executarExcluirRota('${rotaId}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarExcluirRota(rotaId) {
+    closeToast();
+    await sb.from("delivery_routes").delete().eq("id", rotaId);
+    await carregarRotasHoje();
+    await carregarRotasSalvas();
+    showToast({type:'success', title:'✅ Rota excluída!', body:'A rota foi removida permanentemente.', duration:3000});
+}
+
+async function abrirEditarRota(rotaId) {
+    const {data:r} = await sb.from("delivery_routes").select("*").eq("id",rotaId).single();
+    if (!r) return;
+    rotaEditandoId = rotaId;
+    document.getElementById('editRotaNome').value = r.nome || '';
+    document.getElementById('editRotaHora').value = r.hora_saida || '05:20';
+    document.getElementById('editRotaRaio').value = r.raio_fabrica || 20;
+    // Marca os dias
+    document.querySelectorAll('[data-edit-dia]').forEach(el => {
+        const ativo = (r.dias_semana||[]).includes(el.dataset.editDia);
+        el.dataset.ativo = ativo ? 'true' : 'false';
+        el.style.border = ativo ? '2px solid #27ae60' : '2px solid #eee';
+        el.style.background = ativo ? 'linear-gradient(135deg,#e8f5e9,#f1fff4)' : '#fafafa';
+        el.querySelector('div').style.color = ativo ? '#27ae60' : '#aaa';
+    });
+    document.getElementById('modalEditarRota').style.display = 'flex';
+}
+
+function toggleDiaEdit(el, dia) {
+    const ativo = el.dataset.ativo === 'true';
+    el.dataset.ativo = ativo ? 'false' : 'true';
+    el.style.border = ativo ? '2px solid #eee' : '2px solid #27ae60';
+    el.style.background = ativo ? '#fafafa' : 'linear-gradient(135deg,#e8f5e9,#f1fff4)';
+    el.querySelector('div').style.color = ativo ? '#aaa' : '#27ae60';
+}
+
+function getDiasEditSelecionados() {
+    return [...document.querySelectorAll('[data-edit-dia]')].filter(el=>el.dataset.ativo==='true').map(el=>el.dataset.editDia);
+}
+
+async function salvarEdicaoRota() {
+    const nome = document.getElementById('editRotaNome').value.trim();
+    const hora = document.getElementById('editRotaHora').value;
+    const raio = parseInt(document.getElementById('editRotaRaio').value)||20;
+    const dias = getDiasEditSelecionados();
+    if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
+    if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
+    await sb.from("delivery_routes").update({nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
+    document.getElementById('modalEditarRota').style.display = 'none';
+    rotaEditandoId = null;
+    await carregarRotasHoje();
+    await carregarRotasSalvas();
+    showToast({type:'success',title:'✅ Rota atualizada!',body:`"${nome}" — ${dias.join(', ')} às ${hora}`,duration:3000});
+}
+
 </script>
+<!-- Modal Editar Rota -->
+<div id="modalEditarRota" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
+    <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="color:#3498db;font-size:17px;">✏️ Editar Rota</h3>
+            <button onclick="document.getElementById('modalEditarRota').style.display='none'" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+        </div>
+        <input type="text" id="editRotaNome" class="input-text" placeholder="Nome da rota (ex: Rota 1 — Manhã)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="flex:1;">
+                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">⏰ Horário de saída</div>
+                <input type="time" id="editRotaHora" class="input-text" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1;">
+                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">📍 Raio fábrica (m)</div>
+                <input type="number" id="editRotaRaio" class="input-text" style="margin-bottom:0;" value="20">
+            </div>
+        </div>
+        <div style="margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📅 Dias da semana</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
+                <div onclick="toggleDiaEdit(this,'Dom')" data-edit-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Dom</div></div>
+                <div onclick="toggleDiaEdit(this,'Seg')" data-edit-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Seg</div></div>
+                <div onclick="toggleDiaEdit(this,'Ter')" data-edit-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Ter</div></div>
+                <div onclick="toggleDiaEdit(this,'Qua')" data-edit-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qua</div></div>
+                <div onclick="toggleDiaEdit(this,'Qui')" data-edit-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qui</div></div>
+                <div onclick="toggleDiaEdit(this,'Sex')" data-edit-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sex</div></div>
+                <div onclick="toggleDiaEdit(this,'Sáb')" data-edit-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sáb</div></div>
+            </div>
+        </div>
+        <button onclick="salvarEdicaoRota()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar alterações</button>
+    </div>
+</div>
+
 </div><!-- /adminApp -->
 </body>
 </html>
