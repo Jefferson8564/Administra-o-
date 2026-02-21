@@ -1607,22 +1607,27 @@ async function executarAutoRefazer() {
             continue;
         }
 
-        const { data: orders } = await sb.from("orders")
-            .select("*").eq("customer_phone", s.phone)
-            .order("created_at", { ascending: false }).limit(1);
-        if (!orders || orders.length === 0) continue;
-        const ultimo = orders[0];
-        const { data: c } = await sb.from("clients").select("debt").eq("phone", s.phone).single();
-        if (!c) continue;
-        await sb.from("clients").update({ debt: (c.debt || 0) + Number(ultimo.total) }).eq("phone", s.phone);
+        const { data: cli } = await sb.from("clients").select("debt, saved_order, saved_order_total").eq("phone", s.phone).single();
+        if (!cli) continue;
+
+        let itemsParaUsar = s.items;
+        let totalParaUsar = Number(s.total);
+
+        // Prioriza o pedido salvo (favorito) do cliente se existir
+        if (cli.saved_order && cli.saved_order.trim()) {
+            itemsParaUsar = cli.saved_order;
+            totalParaUsar = cli.saved_order_total || totalParaUsar;
+        }
+
+        await sb.from("clients").update({ debt: (cli.debt || 0) + totalParaUsar }).eq("phone", s.phone);
         const { data: novoPedido } = await sb.from("orders").insert({
             customer_name: s.name,
             customer_phone: s.phone,
-            total: Number(ultimo.total),
+            total: totalParaUsar,
             payment_method: 'FIADO',
-            items: ultimo.items
+            items: itemsParaUsar
         }).select().single();
-        lancados.push({ name: s.name, phone: s.phone, total: Number(ultimo.total), orderId: novoPedido ? novoPedido.id : null });
+        lancados.push({ name: s.name, phone: s.phone, total: totalParaUsar, orderId: novoPedido ? novoPedido.id : null });
     }
 
     const agora = new Date();
@@ -1681,8 +1686,16 @@ async function loadRefazerPedidos() {
         return;
     }
 
-    // Busca último pedido de cada cliente
+    // Usa o pedido salvo (favorito) do cliente se existir, senão cai no último pedido real
     const cards = await Promise.all(clients.map(async c => {
+        if (c.saved_order && c.saved_order.trim()) {
+            return { client: c, lastOrder: {
+                total: c.saved_order_total || 0,
+                items: c.saved_order,
+                created_at: null,
+                _isSaved: true
+            }};
+        }
         const { data: orders } = await sb.from("orders")
             .select("*").eq("customer_phone", c.phone)
             .order("created_at", { ascending: false }).limit(1);
@@ -1713,7 +1726,7 @@ async function loadRefazerPedidos() {
             </div>`;
 
         const valor = Number(o.total).toFixed(2).replace('.', ',');
-        const data = new Date(o.created_at).toLocaleDateString('pt-BR');
+        const data = o._isSaved ? '⭐ Pedido salvo' : new Date(o.created_at).toLocaleDateString('pt-BR');
         const itens = (o.items || '').replace(/✅ /g,'').replace(/\n/g,' | ').trim();
         const isSel = !!refazerSelecionados[c.phone];
         const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
