@@ -140,7 +140,14 @@
     <div class="header">
         <div>
             <span class="header-fiado-label">💸 Total Pagar Depois</span>
-            <span class="header-fiado-valor zero" id="headerFiadoValor">R$ 0,00</span>
+            <span class="header-fiado-valor zero" id="headerFiadoValor"
+                style="cursor:pointer;user-select:none;-webkit-user-select:none;"
+                onmousedown="iniciarLongPress(event)"
+                onmouseup="cancelarLongPress()"
+                onmouseleave="cancelarLongPress()"
+                ontouchstart="iniciarLongPress(event)"
+                ontouchend="cancelarLongPress()"
+                ontouchmove="cancelarLongPress()">R$ 0,00</span>
         </div>
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; text-decoration:none;">← Loja</a>
     </div>
@@ -301,6 +308,93 @@
                     <span style="color:rgba(255,255,255,0.4); font-size:13px;">Carregando...</span>
                 </div>
                 <div id="summaryHoldBar" style="position:absolute; bottom:0; left:0; height:3px; width:0%; background:#f1c40f;"></div>
+            </div>
+
+            <!-- PAINEL AUTO-ZERAR COM JANELA DE TEMPO -->
+            <div style="background:linear-gradient(135deg,#1a1a2e,#2c1a3e);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
+                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
+                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Define o período dos pedidos que serão apagados automaticamente em um horário específico.</div>
+
+                <!-- Janela 1 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div>
+                            <div style="font-weight:800;font-size:14px;">📅 Janela 1</div>
+                            <div id="zerarStatus1" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="zerarToggle1" onchange="toggleZerar(1,this.checked)"><span class="slider"></span></label>
+                    </div>
+                    <!-- Horário de execução -->
+                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
+                    <input type="time" id="zerarExec1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
+                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
+                    <!-- Período dos pedidos a apagar -->
+                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+                        <div style="flex:1;">
+                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
+                            <input type="time" id="zerarDe1" class="input-text" value="12:00" onchange="salvarConfigZerar()"
+                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
+                        </div>
+                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
+                        <div style="flex:1;">
+                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
+                            <input type="time" id="zerarAte1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
+                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
+                        </div>
+                    </div>
+                    <div id="zerarPreview1" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
+                    <button onclick="abrirModalProtegidos(1)"
+                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
+                        🛡️ Clientes protegidos: <span id="zerarProtegidos1Label">nenhum</span>
+                    </button>
+                </div>
+
+                <!-- Janela 2 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div>
+                            <div style="font-weight:800;font-size:14px;">📅 Janela 2</div>
+                            <div id="zerarStatus2" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="zerarToggle2" onchange="toggleZerar(2,this.checked)"><span class="slider"></span></label>
+                    </div>
+                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
+                    <input type="time" id="zerarExec2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
+                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
+                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+                        <div style="flex:1;">
+                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
+                            <input type="time" id="zerarDe2" class="input-text" value="12:00" onchange="salvarConfigZerar()"
+                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
+                        </div>
+                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
+                        <div style="flex:1;">
+                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
+                            <input type="time" id="zerarAte2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
+                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
+                        </div>
+                    </div>
+                    <div id="zerarPreview2" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
+                    <button onclick="abrirModalProtegidos(2)"
+                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
+                        🛡️ Clientes protegidos: <span id="zerarProtegidos2Label">nenhum</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL PROTEGIDOS -->
+            <div id="modalProtegidos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
+                <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:82vh;overflow-y:auto;padding:20px 18px 36px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <h3 id="modalProtegidosTitulo" style="color:#1a1a2e;font-size:17px;">🛡️ Clientes Protegidos</h3>
+                        <button onclick="fecharModalProtegidos()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+                    </div>
+                    <p style="font-size:12px;color:#999;margin-bottom:14px;">Clientes marcados <strong>não terão os pedidos apagados</strong> nesta janela.</p>
+                    <div id="protegidosList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;"></div>
+                    <button onclick="salvarProtegidos()" style="margin-top:16px;width:100%;padding:13px;background:linear-gradient(135deg,#1a1a2e,#c75b24);color:white;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;">💾 Salvar</button>
+                </div>
             </div>
 
             <!-- MODAL: clientes do período -->
@@ -536,11 +630,19 @@
                 </div>
             </div>
 
-            <!-- ADICIONAR PARADAS -->
+            <!-- GERENCIAR CLIENTES FIXOS DA ROTA -->
             <div id="addParadaBox" class="card-box" style="display:none;">
-                <h4>📍 Adicionar Parada — <span id="addParadaRotaNome" style="color:#27ae60;"></span></h4>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <h4 style="margin-bottom:0;">👥 Clientes de <span id="addParadaRotaNome" style="color:#27ae60;"></span></h4>
+                    <button onclick="fecharAddParada()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#555;">✕</button>
+                </div>
+                <div style="font-size:12px;color:#888;margin-bottom:12px;padding:8px 10px;background:#f0f8ff;border-radius:10px;border-left:3px solid #3498db;">
+                    💡 Cadastre aqui os clientes que <strong>pertencem</strong> a esta rota. Todo dia que eles fizerem pedido, entram automaticamente na entrega.
+                </div>
+
+                <!-- Adicionar cliente -->
                 <div style="margin-bottom:10px;">
-                    <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">👤 Cliente</label>
+                    <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">➕ Adicionar cliente à rota</label>
                     <select id="paradaCliente" class="input-text" onchange="onParadaClienteChange()" style="margin-bottom:0;">
                         <option value="">-- Selecionar cliente --</option>
                     </select>
@@ -549,28 +651,34 @@
                         ⚠️ Este cliente não tem endereço cadastrado.
                         <button onclick="openSection('enderecos')" style="display:block;width:100%;margin-top:6px;padding:7px;background:#f0c040;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;">📍 Cadastrar endereço agora</button>
                     </div>
+                    <div id="paradaEtaPreview" style="display:none;background:#f0fff4;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;margin-top:8px;">
+                        <div style="font-size:11px;font-weight:700;color:#27ae60;">⏱️ Posição estimada</div>
+                        <div id="paradaEtaValor" style="font-size:18px;font-weight:900;color:#1e8449;">-- min</div>
+                        <div id="paradaEtaHistorico" style="font-size:11px;color:#555;margin-top:2px;"></div>
+                    </div>
+                    <button onclick="adicionarParada()" class="btn btn-blue btn-block" style="margin-top:10px;">➕ Adicionar à rota</button>
                 </div>
-                <div id="paradaEtaPreview" style="display:none;background:#f0fff4;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
-                    <div style="font-size:11px;font-weight:700;color:#27ae60;">⏱️ ETA Estimado</div>
-                    <div id="paradaEtaValor" style="font-size:18px;font-weight:900;color:#1e8449;">-- min</div>
-                    <div id="paradaEtaHistorico" style="font-size:11px;color:#555;margin-top:2px;"></div>
-                </div>
-                <div style="display:flex;gap:8px;">
-                    <button onclick="fecharAddParada()" class="btn" style="background:#f0f0f0;color:#555;flex:1;">Cancelar</button>
-                    <button onclick="adicionarParada()" class="btn btn-blue" style="flex:2;">+ Adicionar</button>
+
+                <!-- Lista de clientes fixos -->
+                <div style="border-top:1px solid #eee;padding-top:10px;">
+                    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">📋 Clientes cadastrados nesta rota</div>
+                    <div id="rotaParadasList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    <div id="rotaResumoEta" style="margin-top:10px;padding:10px;background:#f8fff8;border-radius:12px;border:1px solid #d5f5e3;font-size:13px;color:#555;display:none;">
+                        <strong>📊 Resumo:</strong> <span id="rotaResumoTexto"></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- PARADAS DA ROTA SELECIONADA -->
+            <!-- INFO PARADAS ATIVAS DO DIA (somente leitura) -->
             <div id="rotaAtualBox" class="card-box" style="display:none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <h4 style="margin-bottom:0;">📋 <span id="rotaAtualNomeLabel"></span></h4>
-                    <button onclick="fecharRotaAtual()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#555;">✕ Fechar</button>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <h4 style="margin-bottom:0;">🛵 Paradas de hoje — <span id="rotaAtualNomeLabel"></span></h4>
+                    <button onclick="fecharRotaAtual()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#555;">✕</button>
                 </div>
-                <div id="rotaParadasList" style="display:flex;flex-direction:column;gap:8px;"></div>
-                <div id="rotaResumoEta" style="margin-top:12px;padding:12px;background:#f8fff8;border-radius:12px;border:1px solid #d5f5e3;font-size:13px;color:#555;display:none;">
-                    <strong>📊 Resumo:</strong> <span id="rotaResumoTexto"></span>
+                <div id="rotaAtualInfo" style="font-size:12px;color:#888;margin-bottom:10px;padding:8px 10px;background:#fffbf0;border-radius:10px;border-left:3px solid #f1c40f;">
+                    ⚡ Apenas clientes com pedido hoje aparecem aqui.
                 </div>
+                <div id="rotaParadasAtivasList" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
 
             <!-- ROTAS SALVAS -->
@@ -600,6 +708,8 @@ async function initAdmin() {
     document.getElementById('homeScreen').style.display = 'block';
     await loadTemplates();
     await updateFiadoHeader();
+    // Inicia os timers de auto-zerar em background
+    setTimeout(() => carregarConfigZerar(), 500);
 }
 
 
@@ -618,7 +728,7 @@ function openSection(section) {
     const map = {
         salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
         clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
-        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); setTimeout(initSummaryHold, 100); } },
+        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); setTimeout(initSummaryHold, 100); carregarConfigZerar(); } },
         mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {
             document.getElementById('editTemplate').value = msgTemplate;
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
@@ -1425,6 +1535,257 @@ async function executarMudarParaFiado(orderId) {
 
     updateFiadoHeader();
     showToast({ type: 'success', title: '✅ Alterado para Pagar Depois!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} lançado no pagar depois de ${o.customer_name}.`, duration: 5000 });
+}
+
+// ===== AUTO-ZERAR PEDIDOS (JANELA DE TEMPO) =====
+let zerarTimers = [null, null];
+let zerarModalSlot = 1;
+
+function carregarConfigZerar() {
+    try {
+        const cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
+        for (const slot of [1, 2]) {
+            const exec = cfg[`exec${slot}`] || (slot === 1 ? '11:00' : '23:00');
+            const de   = cfg[`de${slot}`]   || '12:00';
+            const ate  = cfg[`ate${slot}`]  || (slot === 1 ? '11:00' : '23:00');
+            const ativo = cfg[`ativo${slot}`] || false;
+            const protegidos = cfg[`protegidos${slot}`] || [];
+
+            document.getElementById(`zerarExec${slot}`).value = exec;
+            document.getElementById(`zerarDe${slot}`).value   = de;
+            document.getElementById(`zerarAte${slot}`).value  = ate;
+            document.getElementById(`zerarToggle${slot}`).checked = ativo;
+
+            atualizarPreviewJanela(slot);
+            atualizarLabelProtegidos(slot, protegidos);
+            atualizarStatusZerar(slot, ativo, exec);
+            if (ativo) agendarZerar(slot);
+        }
+    } catch(e) { console.warn('carregarConfigZerar', e); }
+}
+
+function getConfigZerar() {
+    try { return JSON.parse(localStorage.getItem('autoZerar_config') || '{}'); } catch(e) { return {}; }
+}
+
+function salvarConfigZerar() {
+    const cfg = getConfigZerar();
+    for (const slot of [1, 2]) {
+        cfg[`exec${slot}`] = document.getElementById(`zerarExec${slot}`)?.value || cfg[`exec${slot}`];
+        cfg[`de${slot}`]   = document.getElementById(`zerarDe${slot}`)?.value   || cfg[`de${slot}`];
+        cfg[`ate${slot}`]  = document.getElementById(`zerarAte${slot}`)?.value  || cfg[`ate${slot}`];
+        atualizarPreviewJanela(slot);
+    }
+    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
+    // Reagenda os ativos
+    for (const slot of [1, 2]) {
+        if (cfg[`ativo${slot}`]) agendarZerar(slot);
+    }
+}
+
+// Mostra no painel o intervalo legível: "seg 12:00 → ter 11:00"
+function atualizarPreviewJanela(slot) {
+    const el = document.getElementById(`zerarPreview${slot}`);
+    if (!el) return;
+    const de  = document.getElementById(`zerarDe${slot}`)?.value  || '--:--';
+    const ate = document.getElementById(`zerarAte${slot}`)?.value || '--:--';
+    const exec = document.getElementById(`zerarExec${slot}`)?.value || '--:--';
+    el.textContent = `🗑️ Pedidos de ontem ${de} até hoje ${ate} → executado às ${exec}`;
+}
+
+function toggleZerar(slot, ativo) {
+    const cfg = getConfigZerar();
+    cfg[`ativo${slot}`] = ativo;
+    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
+    const exec = document.getElementById(`zerarExec${slot}`)?.value || '11:00';
+    atualizarStatusZerar(slot, ativo, exec);
+    if (ativo) {
+        agendarZerar(slot);
+    } else {
+        if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
+    }
+}
+
+function atualizarStatusZerar(slot, ativo, execHora) {
+    const el = document.getElementById(`zerarStatus${slot}`);
+    if (!el) return;
+    if (!ativo) { el.textContent = 'Desativado'; return; }
+    const [hh, mm] = execHora.split(':').map(Number);
+    const agora = new Date();
+    const alvo = new Date(agora);
+    alvo.setHours(hh, mm, 0, 0);
+    if (agora >= alvo) alvo.setDate(alvo.getDate() + 1);
+    const diff = alvo - agora;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    el.textContent = `✅ Ativo · Executa às ${execHora} · faltam ${h}h ${m}min`;
+}
+
+function agendarZerar(slot) {
+    if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
+    const cfg = getConfigZerar();
+    if (!cfg[`ativo${slot}`]) return;
+    const exec = document.getElementById(`zerarExec${slot}`)?.value || cfg[`exec${slot}`] || '11:00';
+    const [hh, mm] = exec.split(':').map(Number);
+    const agora = new Date();
+    const alvo = new Date(agora);
+    alvo.setHours(hh, mm, 0, 0);
+    if (agora >= alvo) alvo.setDate(alvo.getDate() + 1);
+    const ms = alvo - agora;
+    zerarTimers[slot-1] = setTimeout(async () => {
+        await executarZerarJanela(slot);
+        const cfgAtual = getConfigZerar();
+        if (cfgAtual[`ativo${slot}`]) agendarZerar(slot);
+    }, ms);
+    atualizarStatusZerar(slot, true, exec);
+}
+
+async function executarZerarJanela(slot) {
+    const cfg = getConfigZerar();
+    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
+    const deHora  = cfg[`de${slot}`]  || '12:00';
+    const ateHora = cfg[`ate${slot}`] || '11:00';
+
+    // Monta o intervalo: de = ontem no horário "de", ate = hoje no horário "ate"
+    const agora = new Date();
+    const ontem = new Date(agora);
+    ontem.setDate(ontem.getDate() - 1);
+
+    const [deH, deM] = deHora.split(':').map(Number);
+    const [ateH, ateM] = ateHora.split(':').map(Number);
+
+    const inicio = new Date(ontem);
+    inicio.setHours(deH, deM, 0, 0);
+
+    const fim = new Date(agora);
+    fim.setHours(ateH, ateM, 59, 999);
+
+    const inicioISO = inicio.toISOString();
+    const fimISO    = fim.toISOString();
+
+    // Busca pedidos no período
+    const { data: pedidos } = await sb.from("orders")
+        .select("id,customer_phone,customer_name")
+        .gte("created_at", inicioISO)
+        .lte("created_at", fimISO);
+
+    if (!pedidos || pedidos.length === 0) {
+        showToast({ type:'success', title:`📅 Janela ${slot} executada`, body:'Nenhum pedido encontrado no período.', duration:4000 });
+        return;
+    }
+
+    const parasApagar = pedidos.filter(p => !protegidos.has(p.customer_phone));
+    for (const p of parasApagar) {
+        await sb.from("orders").delete().eq("id", p.id);
+    }
+
+    // Log
+    const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
+    log.unshift({
+        slot,
+        periodo: `${ontem.toLocaleDateString('pt-BR')} ${deHora} → ${agora.toLocaleDateString('pt-BR')} ${ateHora}`,
+        ts: new Date().toLocaleString('pt-BR'),
+        apagados: parasApagar.length,
+        protegidos: protegidos.size
+    });
+    if (log.length > 20) log.pop();
+    localStorage.setItem('autoZerar_log', JSON.stringify(log));
+
+    showToast({
+        type: 'success',
+        title: `🗑️ Janela ${slot} executada!`,
+        body: `${parasApagar.length} pedido(s) apagados do período.
+${protegidos.size} cliente(s) protegido(s).`,
+        duration: 5000
+    });
+    loadOrders();
+}
+
+// ===== MODAL PROTEGIDOS =====
+async function abrirModalProtegidos(slot) {
+    zerarModalSlot = slot;
+    document.getElementById('modalProtegidosTitulo').textContent = `🛡️ Protegidos — Janela ${slot}`;
+    document.getElementById('modalProtegidos').style.display = 'flex';
+
+    const cfg = getConfigZerar();
+    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
+    const deHora  = document.getElementById(`zerarDe${slot}`)?.value  || cfg[`de${slot}`]  || '12:00';
+    const ateHora = document.getElementById(`zerarAte${slot}`)?.value || cfg[`ate${slot}`] || '11:00';
+
+    // Busca clientes e os pedidos do período configurado
+    const agora = new Date();
+    const ontem = new Date(agora); ontem.setDate(ontem.getDate() - 1);
+    const [deH, deM] = deHora.split(':').map(Number);
+    const [ateH, ateM] = ateHora.split(':').map(Number);
+    const inicio = new Date(ontem); inicio.setHours(deH, deM, 0, 0);
+    const fim = new Date(agora);    fim.setHours(ateH, ateM, 59, 999);
+
+    const [{ data: clientes }, { data: pedidosPeriodo }] = await Promise.all([
+        sb.from("clients").select("phone,name").order("name"),
+        sb.from("orders")
+            .select("customer_phone,total")
+            .gte("created_at", inicio.toISOString())
+            .lte("created_at", fim.toISOString())
+    ]);
+
+    // Agrega total por cliente no período
+    const totalPorPhone = {};
+    (pedidosPeriodo || []).forEach(p => {
+        totalPorPhone[p.customer_phone] = (totalPorPhone[p.customer_phone] || 0) + Number(p.total);
+    });
+
+    const todos = clientes || [];
+    const comPedido = todos.filter(c => totalPorPhone[c.phone]);
+    const semPedido = todos.filter(c => !totalPorPhone[c.phone]);
+
+    const renderItem = (c, temPedido) => {
+        const checked = protegidos.has(c.phone) ? 'checked' : '';
+        const badge = temPedido
+            ? `<span style="font-size:10px;background:#fff3cd;color:#e67e22;padding:2px 8px;border-radius:20px;font-weight:700;">🗑️ Seria apagado · R$ ${totalPorPhone[c.phone].toFixed(2).replace('.',',')}</span>`
+            : `<span style="font-size:10px;background:#f5f5f5;color:#aaa;padding:2px 8px;border-radius:20px;">Sem pedido no período</span>`;
+        return `<label style="display:flex;align-items:center;gap:12px;background:${temPedido?'#fffbf0':'#fafafa'};border:1.5px solid ${temPedido?'#f0c040':'#eee'};border-radius:14px;padding:12px 14px;cursor:pointer;">
+            <input type="checkbox" data-phone="${c.phone}" ${checked}
+                style="width:20px;height:20px;accent-color:#c75b24;cursor:pointer;flex-shrink:0;">
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:14px;color:#222;">${c.name}</div>
+                <div style="margin-top:4px;">${badge}</div>
+            </div>
+        </label>`;
+    };
+
+    let html = '';
+    if (comPedido.length > 0) {
+        html += `<div style="font-size:11px;font-weight:700;color:#e67e22;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">🗑️ Seriam apagados nesta janela</div>`;
+        html += comPedido.map(c => renderItem(c, true)).join('');
+        if (semPedido.length > 0) html += `<div style="margin:10px 0;border-top:1px solid #eee;"></div>`;
+    }
+    if (semPedido.length > 0) {
+        html += `<div style="font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">— Sem pedido neste período</div>`;
+        html += semPedido.map(c => renderItem(c, false)).join('');
+    }
+    document.getElementById('protegidosList').innerHTML = html || '<div style="text-align:center;color:#aaa;padding:20px;">Nenhum cliente cadastrado</div>';
+}
+
+function fecharModalProtegidos() {
+    document.getElementById('modalProtegidos').style.display = 'none';
+}
+
+function salvarProtegidos() {
+    const checks = document.querySelectorAll('#protegidosList input[type=checkbox]');
+    const protegidos = [];
+    checks.forEach(c => { if (c.checked) protegidos.push(c.dataset.phone); });
+    const cfg = getConfigZerar();
+    cfg[`protegidos${zerarModalSlot}`] = protegidos;
+    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
+    atualizarLabelProtegidos(zerarModalSlot, protegidos);
+    fecharModalProtegidos();
+    showToast({ type:'success', title:'🛡️ Protegidos salvos!', body:`${protegidos.length} cliente(s) não serão apagados na Janela ${zerarModalSlot}.`, duration:3000 });
+}
+
+function atualizarLabelProtegidos(slot, protegidos) {
+    const el = document.getElementById(`zerarProtegidos${slot}Label`);
+    if (!el) return;
+    el.textContent = (protegidos && protegidos.length > 0) ? `${protegidos.length} protegido(s)` : 'nenhum';
 }
 
 async function clearAllOrders() {
@@ -2470,21 +2831,25 @@ async function preencherClientesComPedido() {
 
     sel.innerHTML = '<option value="">-- Selecionar cliente --</option>';
 
-    if (clientesComPedido.length > 0) {
-        const grpPedido = document.createElement('optgroup');
-        grpPedido.label = `✅ Com pedido hoje (${clientesComPedido.length})`;
-        clientesComPedido.forEach(c => {
+    // Mostra todos os clientes com endereço cadastrado (qualquer um pode ser adicionado à rota)
+    const comEndereco = clientesCache.filter(c => c.delivery_lat && c.delivery_lon);
+    const semEndereco = clientesCache.filter(c => !c.delivery_lat || !c.delivery_lon);
+
+    if (comEndereco.length > 0) {
+        const grpEnd = document.createElement('optgroup');
+        grpEnd.label = `✅ Com endereço cadastrado (${comEndereco.length})`;
+        comEndereco.forEach(c => {
             const o = document.createElement('option');
             o.value = c.phone; o.dataset.name = c.name; o.textContent = c.name;
-            grpPedido.appendChild(o);
+            grpEnd.appendChild(o);
         });
-        sel.appendChild(grpPedido);
+        sel.appendChild(grpEnd);
     }
 
-    if (clientesSemPedido.length > 0) {
+    if (semEndereco.length > 0) {
         const grpSem = document.createElement('optgroup');
-        grpSem.label = `— Sem pedido hoje`;
-        clientesSemPedido.forEach(c => {
+        grpSem.label = `⚠️ Sem endereço (${semEndereco.length})`;
+        semEndereco.forEach(c => {
             const o = document.createElement('option');
             o.value = c.phone; o.dataset.name = c.name;
             o.textContent = c.name; o.style.color = '#aaa';
@@ -2506,11 +2871,23 @@ async function carregarRotasHoje() {
     rotasHoje = rotasDoDia.map(r => {
         const concluidoHoje = r.fim_em && r.fim_em.startsWith(hoje);
         const emAndamentoHoje = r.saida_em && r.saida_em.startsWith(hoje);
-        // Se foi concluída ou iniciada em outro dia, reseta para 'criada'
-        if (r.status === 'concluido' && !concluidoHoje) return { ...r, status: 'criada', paradas: r.paradas_template || r.paradas || [] };
-        if (r.status === 'em_andamento' && !emAndamentoHoje) return { ...r, status: 'criada', paradas: r.paradas_template || r.paradas || [] };
+        // Se foi concluída ou iniciada em outro dia, reseta status (template permanece)
+        if (r.status === 'concluido' && !concluidoHoje) return { ...r, status: 'criada' };
+        if (r.status === 'em_andamento' && !emAndamentoHoje) return { ...r, status: 'criada' };
         return r;
     });
+
+    // Para cada rota no status "criada", regenera as paradas ativas do dia automaticamente
+    for (const r of rotasHoje) {
+        if (r.status === 'criada') {
+            const template = r.paradas_template || r.paradas || [];
+            if (template.length > 0) {
+                const ativas = await gerarParadasAtivas(template);
+                await sb.from("delivery_routes").update({ paradas: ativas }).eq("id", r.id);
+                r.paradas = ativas;
+            }
+        }
+    }
 
     filaRotas = rotasHoje.filter(r => r.status !== 'concluido').sort((a,b)=>(a.hora_saida||'00:00').localeCompare(b.hora_saida||'00:00'));
     const emAndamento = rotasHoje.find(r => r.status === 'em_andamento');
@@ -2541,7 +2918,7 @@ function renderRotasHoje() {
                     <div style="font-weight:800;font-size:14px;">${r.nome}</div>
                     <div style="font-size:11px;color:#aaa;margin-top:2px;">⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
                     <div style="font-size:12px;font-weight:700;color:${cor};margin-top:4px;${pulse}">${labelStatus[r.status]||r.status}</div>
-                    ${total>0?`<div style="font-size:11px;color:#888;margin-top:2px;">📦 ${entregues}/${total} entregas</div>`:''}
+                    ${total>0?`<div style="font-size:11px;color:#888;margin-top:2px;">👥 ${total} clientes · 📦 ${entregues} entregas hoje</div>`:''}
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
                     <button onclick="abrirParadasRota('${r.id}')" style="padding:5px 10px;background:${cor};color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📋 Paradas</button>
@@ -2610,22 +2987,37 @@ async function abrirParadasRota(rotaId) {
     const {data:r} = await sb.from("delivery_routes").select("*").eq("id",rotaId).single();
     if (!r) return;
     rotaAtualId = rotaId;
-    rotaParadas = r.paradas||[];
+    // Template = clientes fixos da rota (permanentes)
+    rotaParadas = r.paradas_template || r.paradas || [];
     document.getElementById('rotaAtualNomeLabel').textContent = r.nome;
     document.getElementById('addParadaRotaNome').textContent = r.nome;
-    document.getElementById('rotaAtualBox').style.display = 'block';
     document.getElementById('addParadaBox').style.display = 'block';
+
+    // Mostra paradas ativas do dia se a rota estiver em andamento
+    const emAndamento = r.status === 'em_andamento';
+    const paradasAtivas = emAndamento ? (r.paradas || []) : [];
+    if (emAndamento && paradasAtivas.length > 0) {
+        document.getElementById('rotaAtualBox').style.display = 'block';
+        renderParadasAtivasList(paradasAtivas);
+    } else {
+        document.getElementById('rotaAtualBox').style.display = 'none';
+    }
+
     renderParadasList();
     window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function fecharRotaAtual() {
-    document.getElementById('rotaAtualBox').style.display='none';
-    document.getElementById('addParadaBox').style.display='none';
+    document.getElementById('rotaAtualBox').style.display = 'none';
+    document.getElementById('addParadaBox').style.display = 'none';
     if (rotaAtualObj) rotaAtualId = rotaAtualObj.id; else rotaAtualId = null;
 }
 
-function fecharAddParada() { document.getElementById('addParadaBox').style.display='none'; }
+function fecharAddParada() {
+    document.getElementById('addParadaBox').style.display = 'none';
+    document.getElementById('rotaAtualBox').style.display = 'none';
+    if (rotaAtualObj) rotaAtualId = rotaAtualObj.id; else rotaAtualId = null;
+}
 
 async function calcularMediaEta() {
     const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
@@ -2875,18 +3267,13 @@ async function adicionarParada() {
         return showToast({type:'confirm',title:'⚠️ Sem endereço',body:`${clienteNome} não tem endereço cadastrado. Cadastre primeiro na aba Endereços.`,duration:4000});
     }
 
-    // Verifica se o cliente tem pedido hoje
-    const hoje = new Date().toISOString().split('T')[0];
-    const { data: pedido } = await sb.from("orders")
-        .select("id").eq("customer_phone", clientePhone)
-        .gte("created_at", hoje + 'T00:00:00')
-        .lte("created_at", hoje + 'T23:59:59')
-        .limit(1);
-    if (!pedido || pedido.length === 0) {
-        return showToast({type:'confirm',title:'⚠️ Sem pedido',body:`${clienteNome} não fez pedido hoje. Não é possível adicionar à rota.`,duration:4000});
+    // Verifica se já está no template
+    if (rotaParadas.find(p => p.cliente_phone === clientePhone)) {
+        return showToast({type:'confirm',title:'ℹ️ Já cadastrado',body:`${clienteNome} já está nesta rota.`,duration:2500});
     }
 
-    const parada = {
+    // Adiciona ao template (lista fixa da rota — sem verificar pedido)
+    const entrada = {
         id: Date.now().toString(),
         cliente_phone: clientePhone,
         nome: clienteNome || 'Sem nome',
@@ -2895,38 +3282,79 @@ async function adicionarParada() {
         eta_min: Math.round((rotaParadas.length + 1) * mediaMinPorParada),
         status: 'pendente'
     };
-    rotaParadas.push(parada);
-    // paradas_template guarda a lista base (sem status de entrega) para reutilizar todo dia
-    const paradasTemplate = rotaParadas.map(p => ({...p, status: 'pendente'}));
-    await sb.from("delivery_routes").update({paradas: rotaParadas, paradas_template: paradasTemplate}).eq("id", rotaAtualId);
+    rotaParadas.push(entrada);
+
+    // Gera paradas ativas: apenas quem tem pedido hoje
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+
+    await sb.from("delivery_routes").update({
+        paradas_template: rotaParadas,
+        paradas: paradasAtivas
+    }).eq("id", rotaAtualId);
+
     sel.value = '';
     document.getElementById('paradaClienteInfo').style.display = 'none';
     document.getElementById('paradaSemEndereco').style.display = 'none';
     document.getElementById('paradaEtaPreview').style.display = 'none';
     renderParadasList();
-    showToast({type:'success',title:'📍 Parada adicionada!',body:`${parada.nome} na rota.`,duration:2000});
+    showToast({type:'success',title:'✅ Cliente adicionado à rota!',body:`${entrada.nome} faz parte desta rota. Aparecerá nas entregas quando fizer pedido.`,duration:3000});
+}
+
+// Gera lista de paradas ativas do dia: só clientes do template que fizeram pedido hoje
+async function gerarParadasAtivas(template) {
+    const hoje = new Date().toISOString().split('T')[0];
+    const phones = template.map(p => p.cliente_phone).filter(Boolean);
+    if (!phones.length) return [];
+    const { data: pedidos } = await sb.from("orders")
+        .select("customer_phone")
+        .in("customer_phone", phones)
+        .gte("created_at", hoje + 'T00:00:00')
+        .lte("created_at", hoje + 'T23:59:59');
+    const phonesComPedido = new Set((pedidos || []).map(p => p.customer_phone));
+    let ordem = 0;
+    return template
+        .filter(p => phonesComPedido.has(p.cliente_phone))
+        .map(p => ({
+            ...p,
+            status: 'pendente',
+            eta_min: Math.round((++ordem) * mediaMinPorParada)
+        }));
 }
 function renderParadasList() {
     const list = document.getElementById('rotaParadasList');
-    if (rotaParadas.length===0) {
-        list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma parada ainda</div>';
-        document.getElementById('rotaResumoEta').style.display='none'; return;
+    if (rotaParadas.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhum cliente cadastrado nesta rota ainda</div>';
+        document.getElementById('rotaResumoEta').style.display = 'none';
+        return;
     }
-    list.innerHTML = rotaParadas.map((p,i)=>`
-        <div style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid ${p.status==='entregue'?'#27ae60':'#3498db'};">
-            <div style="width:28px;height:28px;border-radius:50%;background:${p.status==='entregue'?'#27ae60':'#3498db'};display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:13px;flex-shrink:0;">${p.status==='entregue'?'✓':i+1}</div>
+    list.innerHTML = rotaParadas.map((p, i) => `
+        <div style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid #3498db;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:13px;flex-shrink:0;">${i+1}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:13px;">👤 ${p.nome}</div>
+                <div style="font-size:11px;color:#aaa;">📍 ${p.endereco || 'Endereço não informado'}</div>
+            </div>
+            <button onclick="removerParada('${p.id}')" style="padding:4px 8px;background:#fee;color:#e74c3c;border:1px solid #fcc;border-radius:8px;font-size:11px;cursor:pointer;flex-shrink:0;">✕</button>
+        </div>`).join('');
+    document.getElementById('rotaResumoEta').style.display = 'block';
+    document.getElementById('rotaResumoTexto').textContent = `${rotaParadas.length} cliente(s) cadastrado(s) nesta rota`;
+}
+
+function renderParadasAtivasList(paradas) {
+    const list = document.getElementById('rotaParadasAtivasList');
+    const info = document.getElementById('rotaAtualInfo');
+    const comPedido = paradas.filter(p => p.status !== undefined);
+    const entregues = comPedido.filter(p => p.status === 'entregue').length;
+    info.textContent = `⚡ ${comPedido.length} clientes com pedido hoje · ${entregues} entregues`;
+    list.innerHTML = comPedido.map((p, i) => `
+        <div style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid ${p.status==='entregue'?'#27ae60':'#f1c40f'};">
+            <div style="width:28px;height:28px;border-radius:50%;background:${p.status==='entregue'?'#27ae60':'#f1c40f'};display:flex;align-items:center;justify-content:center;color:${p.status==='entregue'?'white':'#333'};font-weight:900;font-size:13px;flex-shrink:0;">${p.status==='entregue'?'✓':i+1}</div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:700;font-size:13px;">${p.nome}</div>
                 <div style="font-size:11px;color:#aaa;">📍 ${p.endereco} · ⏱️ ~${p.eta_min}min</div>
-            </div>
-            <div style="display:flex;gap:4px;">
-                ${p.status!=='entregue'?`<button onclick="marcarEntregue('${p.id}')" style="padding:4px 8px;background:#e8f5e9;color:#27ae60;border:1px solid #c8e6c9;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">✓</button>`:''}
-                <button onclick="removerParada('${p.id}')" style="padding:4px 8px;background:#fee;color:#e74c3c;border:1px solid #fcc;border-radius:8px;font-size:11px;cursor:pointer;">✕</button>
+                <div style="font-size:10px;font-weight:700;margin-top:2px;color:${p.status==='entregue'?'#27ae60':'#e67e22'};">${p.status==='entregue'?'✅ Entregue':'📦 Pendente'}</div>
             </div>
         </div>`).join('');
-    const totalMin = Math.round(rotaParadas.length*mediaMinPorParada);
-    document.getElementById('rotaResumoEta').style.display='block';
-    document.getElementById('rotaResumoTexto').textContent=`${rotaParadas.length} paradas · ~${totalMin} min total · ${mediaMinPorParada.toFixed(0)} min/entrega`;
 }
 
 async function marcarEntregue(paradaId) {
@@ -2937,11 +3365,15 @@ async function marcarEntregue(paradaId) {
 }
 
 async function removerParada(paradaId) {
-    rotaParadas = rotaParadas.filter(p=>p.id!==paradaId);
-    rotaParadas.forEach((p,i)=>{ p.eta_min=Math.round((i+1)*mediaMinPorParada); });
-    const paradasTemplate = rotaParadas.map(p => ({...p, status: 'pendente'}));
-    await sb.from("delivery_routes").update({paradas:rotaParadas, paradas_template: paradasTemplate}).eq("id",rotaAtualId);
+    rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
+    rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+    await sb.from("delivery_routes").update({
+        paradas_template: rotaParadas,
+        paradas: paradasAtivas
+    }).eq("id", rotaAtualId);
     renderParadasList();
+    showToast({type:'success',title:'✅ Removido!',body:'Cliente removido da rota.',duration:2000});
 }
 
 async function excluirRota(rotaId) {
@@ -2978,7 +3410,85 @@ async function carregarRotasSalvas() {
     }).join('');
 }
 
-// ===== EDITAR / EXCLUIR ROTAS =====
+// ===== LONG PRESS NO SALDO DO CABEÇALHO =====
+let longPressTimer = null;
+let longPressEl = null;
+
+function iniciarLongPress(e) {
+    cancelarLongPress();
+    const el = document.getElementById('headerFiadoValor');
+    el.style.transition = 'opacity 2s';
+    el.style.opacity = '0.4';
+    longPressTimer = setTimeout(() => {
+        el.style.opacity = '';
+        el.style.transition = '';
+        abrirModalEditarSaldoCliente();
+    }, 2000);
+}
+
+function cancelarLongPress() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    const el = document.getElementById('headerFiadoValor');
+    if (el) { el.style.opacity = ''; el.style.transition = ''; }
+}
+
+async function abrirModalEditarSaldoCliente() {
+    // Carrega clientes para o select
+    const { data } = await sb.from("clients").select("phone,name,debt").order("name");
+    const select = document.getElementById('editarSaldoSelect');
+    select.innerHTML = '<option value="">— Selecione o cliente —</option>' +
+        (data || []).map(c => `<option value="${c.phone}" data-debt="${c.debt}">${c.name} (${c.debt > 0 ? 'Débito: R$ ' + c.debt.toFixed(2) : c.debt < 0 ? 'Crédito: R$ ' + Math.abs(c.debt).toFixed(2) : 'Zerado'})</option>`).join('');
+    document.getElementById('editarSaldoValor').value = '';
+    document.getElementById('editarSaldoNome').textContent = '';
+    document.getElementById('editarSaldoAtual').textContent = '';
+    document.getElementById('modalEditarSaldo').style.display = 'flex';
+}
+
+function onSelectClienteSaldo() {
+    const select = document.getElementById('editarSaldoSelect');
+    const opt = select.options[select.selectedIndex];
+    if (!opt || !opt.value) {
+        document.getElementById('editarSaldoNome').textContent = '';
+        document.getElementById('editarSaldoAtual').textContent = '';
+        document.getElementById('editarSaldoValor').value = '';
+        editarSaldoPhone = null;
+        return;
+    }
+    editarSaldoPhone = opt.value;
+    const debt = parseFloat(opt.dataset.debt) || 0;
+    document.getElementById('editarSaldoNome').textContent = opt.text.split(' (')[0];
+    document.getElementById('editarSaldoAtual').textContent = debt > 0
+        ? `Débito atual: R$ ${debt.toFixed(2).replace('.',',')}`
+        : debt < 0 ? `Crédito atual: R$ ${Math.abs(debt).toFixed(2).replace('.',',')}`
+        : 'Saldo atual: R$ 0,00';
+    document.getElementById('editarSaldoValor').value = debt.toFixed(2);
+}
+
+// ===== EDITAR SALDO DO CLIENTE =====
+let editarSaldoPhone = null;
+
+function fecharEditarSaldo() {
+    document.getElementById('modalEditarSaldo').style.display = 'none';
+    editarSaldoPhone = null;
+}
+
+async function salvarEditarSaldo() {
+    if (!editarSaldoPhone) return;
+    const raw = document.getElementById('editarSaldoValor').value.replace(',', '.').trim();
+    const novoSaldo = parseFloat(raw);
+    if (isNaN(novoSaldo)) {
+        return showToast({ type:'confirm', title:'⚠️ Valor inválido', body:'Digite um número válido.', duration:2500 });
+    }
+    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", editarSaldoPhone);
+    fecharEditarSaldo();
+    await loadAdminClients();
+    showToast({ type:'success', title:'✅ Saldo atualizado!',
+        body: novoSaldo > 0 ? `Débito definido: R$ ${novoSaldo.toFixed(2).replace('.',',')}` :
+              novoSaldo < 0 ? `Crédito definido: R$ ${Math.abs(novoSaldo).toFixed(2).replace('.',',')}` :
+              'Saldo zerado ✅', duration:3000 });
+}
+
+
 let rotaEditandoId = null;
 
 function confirmarExcluirRota(rotaId, nome) {
@@ -3079,6 +3589,28 @@ async function salvarEdicaoRota() {
             </div>
         </div>
         <button onclick="salvarEdicaoRota()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar alterações</button>
+    </div>
+</div>
+
+<!-- Modal Editar Saldo do Cliente -->
+<div id="modalEditarSaldo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
+    <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="color:#3498db;font-size:17px;">✏️ Editar Saldo do Cliente</h3>
+            <button onclick="fecharEditarSaldo()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">👤 Cliente</div>
+        <select id="editarSaldoSelect" onchange="onSelectClienteSaldo()" class="input-text" style="appearance:auto;">
+            <option value="">— Selecione o cliente —</option>
+        </select>
+        <div id="editarSaldoNome" style="font-size:15px;font-weight:800;color:#1a1a2e;margin-bottom:2px;min-height:20px;"></div>
+        <div id="editarSaldoAtual" style="font-size:12px;color:#888;margin-bottom:12px;min-height:16px;"></div>
+        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">💰 Novo saldo (positivo = débito · negativo = crédito · 0 = zerado)</div>
+        <input type="number" id="editarSaldoValor" class="input-text" step="0.01" placeholder="Ex: 25.50">
+        <div style="display:flex;gap:10px;margin-top:6px;">
+            <button onclick="fecharEditarSaldo()" class="btn btn-block" style="background:#f0f0f0;color:#555;">Cancelar</button>
+            <button onclick="salvarEditarSaldo()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar</button>
+        </div>
     </div>
 </div>
 
