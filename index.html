@@ -1607,7 +1607,7 @@ async function executarAutoRefazer() {
             continue;
         }
 
-        // Busca o pedido SALVO (⭐) e o saldo do cliente
+        // Busca o pedido SALVO (⭐) do cliente direto do Supabase
         const { data: c } = await sb.from("clients")
             .select("debt, saved_order, saved_order_total")
             .eq("phone", s.phone).single();
@@ -1686,7 +1686,7 @@ async function loadRefazerPedidos() {
         return;
     }
 
-    // Usa o pedido SALVO (⭐) de cada cliente — lê diretamente de clients.saved_order
+    // Usa o pedido SALVO (⭐) de cada cliente — lê de clients.saved_order no Supabase
     const cards = clients.map(c => {
         const temSalvo = c.saved_order && c.saved_order.trim();
         const lastOrder = temSalvo ? {
@@ -1742,7 +1742,7 @@ async function loadRefazerPedidos() {
                     <div>
         <strong style="font-size:15px;">${nomeExibido}</strong>
                         <div style="font-size:12px;color:#888;margin-top:2px;">${itens}</div>
-                        <div style="font-size:12px;color:#8e44ad;margin-top:2px;font-weight:700;">⭐ Pedido salvo</div>
+                        <div style="font-size:12px;color:#8e44ad;font-weight:700;margin-top:2px;">⭐ Pedido salvo</div>
                     </div>
                     <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                         <button onclick="toggleBloqueioRefazer('${c.phone}', event)" style="background:${isBloqueado?'#e74c3c':'#eee'};border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:${isBloqueado?'white':'#888'};" title="${isBloqueado?'Desbloquear automático':'Bloquear automático'}">🚫</button>
@@ -1899,14 +1899,20 @@ async function executarTodosRefazer() {
     const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
 
     for (const s of sel) {
-        const { data: c } = await sb.from("clients").select("debt").eq("phone", s.phone).single();
-        await sb.from("clients").update({ debt: (c.debt || 0) + Number(s.total) }).eq("phone", s.phone);
+        // Sempre busca o saved_order atualizado do Supabase na hora de lançar
+        const { data: c } = await sb.from("clients")
+            .select("debt, saved_order, saved_order_total")
+            .eq("phone", s.phone).single();
+        if (!c) continue;
+        const itemsFinais = (c.saved_order && c.saved_order.trim()) ? c.saved_order : s.items.replace(/\\n/g, '\n');
+        const totalFinal = (c.saved_order_total && c.saved_order_total > 0) ? Number(c.saved_order_total) : Number(s.total);
+        await sb.from("clients").update({ debt: (c.debt || 0) + totalFinal }).eq("phone", s.phone);
         await sb.from("orders").insert({
             customer_name: s.name,
             customer_phone: s.phone,
-            total: Number(s.total),
+            total: totalFinal,
             payment_method: 'FIADO',
-            items: s.items.replace(/\\n/g, '\n')
+            items: itemsFinais
         });
     }
 
