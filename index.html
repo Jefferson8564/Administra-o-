@@ -156,11 +156,6 @@
     <div id="homeScreen">
         <div style="padding: 18px 0 12px; text-align:center; color:#666; font-size:14px; font-weight:600;">Selecione uma opção</div>
         <div class="home-grid">
-            <button class="home-card" style="border-top:4px solid #16a085; grid-column: span 2;" onclick="openSection('historico')">
-                <span class="home-card-icon">🛍️</span>
-                <div class="home-card-label">Histórico de Compras</div>
-                <div class="home-card-sub">Todas as compras registradas</div>
-            </button>
             <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
                 <span class="home-card-icon">🤖</span>
                 <div class="home-card-label">Refazer Pedidos</div>
@@ -310,93 +305,6 @@
                 <div id="summaryHoldBar" style="position:absolute; bottom:0; left:0; height:3px; width:0%; background:#f1c40f;"></div>
             </div>
 
-            <!-- PAINEL AUTO-ZERAR COM JANELA DE TEMPO -->
-            <div style="background:linear-gradient(135deg,#1a1a2e,#2c1a3e);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
-                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
-                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Define o período dos pedidos que serão apagados automaticamente em um horário específico.</div>
-
-                <!-- Janela 1 -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <div>
-                            <div style="font-weight:800;font-size:14px;">📅 Janela 1</div>
-                            <div id="zerarStatus1" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
-                        </div>
-                        <label class="switch"><input type="checkbox" id="zerarToggle1" onchange="toggleZerar(1,this.checked)"><span class="slider"></span></label>
-                    </div>
-                    <!-- Horário de execução -->
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
-                    <input type="time" id="zerarExec1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
-                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
-                    <!-- Período dos pedidos a apagar -->
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
-                            <input type="time" id="zerarDe1" class="input-text" value="12:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
-                            <input type="time" id="zerarAte1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                    </div>
-                    <div id="zerarPreview1" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
-                    <button onclick="abrirModalProtegidos(1)"
-                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
-                        🛡️ Clientes protegidos: <span id="zerarProtegidos1Label">nenhum</span>
-                    </button>
-                </div>
-
-                <!-- Janela 2 -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <div>
-                            <div style="font-weight:800;font-size:14px;">📅 Janela 2</div>
-                            <div id="zerarStatus2" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
-                        </div>
-                        <label class="switch"><input type="checkbox" id="zerarToggle2" onchange="toggleZerar(2,this.checked)"><span class="slider"></span></label>
-                    </div>
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
-                    <input type="time" id="zerarExec2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
-                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
-                            <input type="time" id="zerarDe2" class="input-text" value="12:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
-                            <input type="time" id="zerarAte2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                    </div>
-                    <div id="zerarPreview2" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
-                    <button onclick="abrirModalProtegidos(2)"
-                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
-                        🛡️ Clientes protegidos: <span id="zerarProtegidos2Label">nenhum</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- MODAL PROTEGIDOS -->
-            <div id="modalProtegidos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-                <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:82vh;overflow-y:auto;padding:20px 18px 36px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                        <h3 id="modalProtegidosTitulo" style="color:#1a1a2e;font-size:17px;">🛡️ Clientes Protegidos</h3>
-                        <button onclick="fecharModalProtegidos()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
-                    </div>
-                    <p style="font-size:12px;color:#999;margin-bottom:14px;">Clientes marcados <strong>não terão os pedidos apagados</strong> nesta janela.</p>
-                    <div id="protegidosList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;"></div>
-                    <button onclick="salvarProtegidos()" style="margin-top:16px;width:100%;padding:13px;background:linear-gradient(135deg,#1a1a2e,#c75b24);color:white;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;">💾 Salvar</button>
-                </div>
-            </div>
-
             <!-- MODAL: clientes do período -->
             <div id="modalExcluirClientes" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
                 <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
@@ -491,7 +399,7 @@
             <div id="agendamentoBanner" style="background:linear-gradient(135deg,#1a1a2e,#4a235a);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático às 6h</div>
+                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático às 3h</div>
                         <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
                     </div>
                     <label class="switch" style="transform:scale(1.2);">
@@ -500,7 +408,7 @@
                     </label>
                 </div>
                 <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;display:none;">
-                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente às <strong>06:00</strong> de amanhã.
+                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente às <strong>03:00</strong> de amanhã.
                 </div>
                 <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
             </div>
@@ -1462,9 +1370,17 @@ function buildOrderCard(o) {
 
     const btnFiado = !isFiado ? `<button class="order-fiado-btn" onclick="mudarParaFiado('${o.id}')">📝 Mudar para Pagar Depois</button>` : '';
 
+    const isCancelado = o.status === 'CANCELADO';
+    const cancelBtnStyle = isCancelado
+        ? `background:#fafafa;border:1.5px solid #ccc;color:#aaa;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:default;width:100%;margin-top:8px;`
+        : `background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;`;
+    const cancelBtnContent = isCancelado ? `❌ Pedido Cancelado` : `❌ Cancelou`;
+    const cancelBtnAction = isCancelado ? `` : `onclick="confirmarCancelamentoPedido('${o.id}')"`;
+    const cancelBtn = `<button ${cancelBtnAction} style="${cancelBtnStyle}">${cancelBtnContent}</button>`;
+
     return `
     <div class="order-wrap" id="wrap_${o.id}">
-        <div id="order_${o.id}" class="order-card">
+        <div id="order_${o.id}" class="order-card" style="${isCancelado ? 'opacity:0.6;' : ''}">
             <div class="order-card-header">
                 <div>
                     <div class="order-card-name">${o.customer_name}</div>
@@ -1480,6 +1396,7 @@ function buildOrderCard(o) {
                 <span class="order-card-valor" style="color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</span>
             </div>
             ${btnFiado}
+            ${cancelBtn}
         </div>
     </div>`;
 }
@@ -1487,6 +1404,64 @@ function buildOrderCard(o) {
 async function deletarPedido(orderId) {
     await sb.from("orders").delete().eq("id", orderId);
     delete ordersMap[orderId];
+}
+
+function confirmarCancelamentoPedido(orderId) {
+    const o = ordersMap[orderId];
+    if (!o) return;
+    showToast({
+        type: 'confirm',
+        title: `❌ Cancelar pedido?`,
+        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\n\nO pedido será marcado como cancelado.`,
+        actions: [
+            { label: 'Voltar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '❌ Confirmar', bg: '#e74c3c', color: 'white', fn: `executarCancelamentoPedido('${orderId}')` }
+        ],
+        duration: 8000
+    });
+}
+
+async function executarCancelamentoPedido(orderId) {
+    closeToast();
+    const o = ordersMap[orderId];
+    if (!o) return;
+
+    const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
+
+    // Busca dados atuais do cliente
+    if (o.customer_phone) {
+        const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+        if (c) {
+            const saldoAntes = c.debt || 0;
+            // FIADO: reverte a dívida. Pago na entrega: gera crédito (saldo negativo)
+            const novaDiv = saldoAntes - Number(o.total);
+            await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+
+            // Registra reembolso na tabela payments
+            await sb.from("payments").insert({
+                client_name: c.name || o.customer_name,
+                client_phone: o.customer_phone,
+                amount: Number(o.total),
+                saldo_anterior: saldoAntes,
+                saldo_posterior: novaDiv,
+                tipo: "reembolso"
+            });
+        }
+    }
+
+    // Deleta o pedido do banco
+    await sb.from("orders").delete().eq("id", orderId);
+    delete ordersMap[orderId];
+
+    // Remove o card visualmente
+    const wrap = document.getElementById('wrap_' + orderId);
+    if (wrap) {
+        wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
+        wrap.style.opacity = '0';
+        setTimeout(() => wrap.remove(), 300);
+    }
+
+    showToast({ type: 'success', title: '✅ Cancelado!', body: `Pedido de ${o.customer_name} removido e reembolso registrado.`, duration: 3000 });
 }
 
 function mudarParaFiado(orderId) {
@@ -1886,16 +1861,16 @@ function atualizarBannerAgendamento() {
     }
     if (ativo) {
         const agora = new Date();
-        const proximo6h = new Date(agora);
-        proximo6h.setHours(6, 0, 0, 0);
-        if (agora >= proximo6h) proximo6h.setDate(proximo6h.getDate() + 1);
-        const diff = proximo6h - agora;
+        const proximo3h = new Date(agora);
+        proximo3h.setHours(3, 0, 0, 0);
+        if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
+        const diff = proximo3h - agora;
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min`;
         info.style.display = 'block';
     } else {
-        status.textContent = '⏸️ Desativado · Ative para lançar pedidos automaticamente às 6h';
+        status.textContent = '⏸️ Desativado · Ative para lançar pedidos automaticamente às 3h';
         info.style.display = 'none';
     }
 }
@@ -1903,17 +1878,44 @@ function atualizarBannerAgendamento() {
 function agendarAutoRefazer() {
     if (autoRefazerTimer) clearTimeout(autoRefazerTimer);
     const agora = new Date();
-    const proximo4h = new Date(agora);
-    proximo4h.setHours(6, 0, 0, 0);
-    if (agora >= proximo4h) proximo4h.setDate(proximo4h.getDate() + 1);
-    const msAte4h = proximo4h - agora;
+    const hoje3h = new Date(agora);
+    hoje3h.setHours(3, 0, 0, 0);
+    const hoje5h = new Date(agora);
+    hoje5h.setHours(5, 0, 0, 0);
+
+    // Se está entre 03:00 e 05:00, verifica se já executou hoje
+    if (agora >= hoje3h && agora < hoje5h) {
+        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
+        let jaExecutouHoje = false;
+        if (ultimaExec) {
+            try {
+                const partes = ultimaExec.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                if (partes) {
+                    const dataExec = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T03:00:00`);
+                    jaExecutouHoje = dataExec >= hoje3h;
+                }
+            } catch(e) {}
+        }
+        if (!jaExecutouHoje) {
+            setTimeout(async () => {
+                await executarAutoRefazer();
+                if (localStorage.getItem('autoRefazer_ativo') === '1') agendarAutoRefazer();
+            }, 1000);
+            return;
+        }
+    }
+
+    // Agenda para as 03:00 do próximo dia (ou de hoje se ainda não chegou)
+    const proximo3h = new Date(agora);
+    proximo3h.setHours(3, 0, 0, 0);
+    if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
+    const msAte3h = proximo3h - agora;
     autoRefazerTimer = setTimeout(async () => {
         await executarAutoRefazer();
-        // Reagenda para o próximo dia
         if (localStorage.getItem('autoRefazer_ativo') === '1') {
             agendarAutoRefazer();
         }
-    }, msAte4h);
+    }, msAte3h);
 }
 
 async function executarAutoRefazer() {
@@ -1961,7 +1963,17 @@ async function executarAutoRefazer() {
         }
 
         const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
-        await sb.from("clients").update({ debt: (c.debt || 0) + totalParaUsar }).eq("phone", s.phone);
+        const saldoAntes = c.debt || 0;
+        const novoSaldo = saldoAntes + totalParaUsar;
+        await sb.from("clients").update({ debt: novoSaldo }).eq("phone", s.phone);
+        await sb.from("payments").insert({
+            client_name: s.name,
+            client_phone: s.phone,
+            amount: totalParaUsar,
+            saldo_anterior: saldoAntes,
+            saldo_posterior: novoSaldo,
+            tipo: "fiado"
+        });
         const { data: novoPedido } = await sb.from("orders").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -2000,7 +2012,7 @@ async function executarAutoRefazer() {
 
     showToast({
         type: 'success',
-        title: `🤖 Automático executado às 06:00`,
+        title: `🤖 Automático executado às ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`,
         body: body.trim(),
         duration: 12000
     });
