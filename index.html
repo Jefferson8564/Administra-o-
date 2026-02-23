@@ -342,9 +342,80 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="color:#333;">Últimos Pedidos</h3>
-                <button onclick="clearAllOrders()" class="btn btn-danger btn-sm">Zerar Tudo</button>
             </div>
             <div id="orderList"></div>
+
+            <!-- AUTO-ZERAR PEDIDOS -->
+            <div style="background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
+                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
+                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Apaga pedidos criados antes do horário limite definido</div>
+
+                <!-- Slot 1 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);">⏰ Janela 1</div>
+                        <label class="switch">
+                            <input type="checkbox" id="zerarToggle1" onchange="salvarConfigZerar(1)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
+                            <input type="time" id="zerarAte1" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(1)">
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
+                            <input type="time" id="zerarExec1" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(1)">
+                        </div>
+                    </div>
+                    <div id="zerarPreview1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div id="zerarStatus1" style="font-size:11px;color:rgba(255,255,255,0.5);flex:1;"></div>
+                        <button onclick="abrirModalProtegidos(1)" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;cursor:pointer;">
+                            🛡️ Protegidos: <span id="zerarProtegidos1Label">nenhum</span>
+                        </button>
+                    </div>
+                    <button onclick="salvarConfigZerar(1)" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar Janela 1</button>
+                </div>
+
+                <!-- Slot 2 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);">⏰ Janela 2</div>
+                        <label class="switch">
+                            <input type="checkbox" id="zerarToggle2" onchange="salvarConfigZerar(2)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
+                            <input type="time" id="zerarAte2" value="23:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(2)">
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
+                            <input type="time" id="zerarExec2" value="23:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(2)">
+                        </div>
+                    </div>
+                    <div id="zerarPreview2" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div id="zerarStatus2" style="font-size:11px;color:rgba(255,255,255,0.5);flex:1;"></div>
+                        <button onclick="abrirModalProtegidos(2)" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;cursor:pointer;">
+                            🛡️ Protegidos: <span id="zerarProtegidos2Label">nenhum</span>
+                        </button>
+                    </div>
+                    <button onclick="salvarConfigZerar(2)" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar Janela 2</button>
+                </div>
+            </div>
         </div>
 
         <div id="tab-msg" class="section">
@@ -421,7 +492,7 @@
             <div id="agendamentoBanner" style="background:linear-gradient(135deg,#1a1a2e,#4a235a);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático às 3h</div>
+                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático</div>
                         <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
                     </div>
                     <label class="switch" style="transform:scale(1.2);">
@@ -429,8 +500,17 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <!-- Editor de horário -->
+                <div style="margin-top:12px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+                    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🕐 Horário do disparo automático</div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <input type="time" id="autoRefazerHorario" value="03:00"
+                            style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:20px;font-weight:900;padding:8px 12px;outline:none;flex:1;">
+                        <button onclick="salvarHorarioRefazer()" style="padding:9px 14px;background:linear-gradient(135deg,#8e44ad,#6c3483);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💾 Salvar</button>
+                    </div>
+                </div>
                 <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;display:none;">
-                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente às <strong>03:00</strong> de amanhã.
+                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente no horário configurado.
                 </div>
                 <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
             </div>
@@ -685,6 +765,10 @@ function brasiliaDate(d) {
   const offset = -3 * 60;
   return new Date(d.getTime() + (offset - d.getTimezoneOffset()) * 60000);
 }
+function horasBRT(d) {
+  // Retorna o objeto Date ajustado para BRT, útil para .getHours()/.getMinutes()
+  return brasiliaDate(d || new Date());
+}
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
 let msgComprovante = "🧾 *COMPROVANTE DE PAGAMENTO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}\n──────────────────\n✅ Obrigado pelo pagamento!";
@@ -699,8 +783,54 @@ async function initAdmin() {
     document.getElementById('homeScreen').style.display = 'block';
     await loadTemplates();
     await updateFiadoHeader();
-    // Inicia os timers de auto-zerar em background
-    setTimeout(() => carregarConfigZerar(), 500);
+    // Inicia os timers e verifica execucoes perdidas
+    setTimeout(async () => {
+        carregarConfigZerar();
+        await verificarExecucoesPerdidas();
+    }, 500);
+}
+
+// Verifica se algum disparo automatico deveria ter ocorrido hoje e foi perdido
+async function verificarExecucoesPerdidas() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+
+    // Auto-Refazer
+    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec') || '';
+        const jaExecutouHoje = ultimaExec.startsWith(hoje);
+        const horario = getHorarioRefazer();
+        const [hh, mm] = horario.split(':').map(Number);
+        const agora = new Date();
+        const hojeAlvo = new Date(agora);
+        hojeAlvo.setHours(hh, mm, 0, 0);
+        const passouHorario = agora >= hojeAlvo;
+
+        if (passouHorario && !jaExecutouHoje) {
+            console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
+            await executarAutoRefazer();
+        }
+        agendarAutoRefazer();
+    }
+
+    // Auto-Zerar slots 1 e 2
+    const cfg = getConfigZerar();
+    for (const slot of [1, 2]) {
+        if (!cfg['ativo' + slot]) continue;
+        const exec = cfg['exec' + slot] || '11:00';
+        const [hh, mm] = exec.split(':').map(Number);
+        const agora = new Date();
+        const hojeAlvo = new Date(agora);
+        hojeAlvo.setHours(hh, mm, 0, 0);
+        const passouHorario = agora >= hojeAlvo;
+
+        const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
+        const jaExecutouHoje = log.some(function(entry) { return entry.slot === slot && entry.ts && entry.ts.startsWith(hoje); });
+
+        if (passouHorario && !jaExecutouHoje) {
+            console.log('[AutoZerar slot ' + slot + '] Execucao perdida detectada, executando agora');
+            await executarZerarJanela(slot);
+        }
+    }
 }
 
 
@@ -1072,16 +1202,6 @@ function enviarComprovanteWpp() {
     _comprovanteTemp = { phone: null, texto: null };
 }
 
-function enviarComprovanteManual(phone, name, debt) {
-    const now = new Date();
-    const dataHora = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const extrato = msgExtrato
-        .replace('{nome}', name)
-        .replace('{data}', dataHora)
-        .replace('{saldo}', Number(debt).toFixed(2).replace('.', ','));
-    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(extrato)}`, '_blank');
-}
-
 async function deleteClient(phone) {
     if (phone === ADMIN_NUM) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Não é possível remover o administrador!' }); return; }
     showToast({
@@ -1216,7 +1336,7 @@ async function loadOrderSummary() {
     const start = new Date(now);
     start.setHours(12, 0, 0, 0);
     // Se agora for antes das 12h, volta para 12h do dia anterior
-    if (now.getHours() < 12) {
+    if (horasBRT(now).getHours() < 12) {
         start.setDate(start.getDate() - 1);
     }
     const end = new Date(start);
@@ -1332,7 +1452,7 @@ async function abrirModalExcluir() {
     const now = new Date();
     const start = new Date(now);
     start.setHours(12, 0, 0, 0);
-    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
@@ -1392,7 +1512,7 @@ async function aplicarExclusoes() {
     const now = new Date();
     const start = new Date(now);
     start.setHours(12, 0, 0, 0);
-    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
@@ -1482,11 +1602,6 @@ function buildOrderCard(o) {
             ${cancelBtn}
         </div>
     </div>`;
-}
-
-async function deletarPedido(orderId) {
-    await sb.from("orders").delete().eq("id", orderId);
-    delete ordersMap[orderId];
 }
 
 function confirmarCancelamentoPedido(orderId) {
@@ -1603,16 +1718,17 @@ function carregarConfigZerar() {
     try {
         const cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
         for (const slot of [1, 2]) {
-            const exec = cfg[`exec${slot}`] || (slot === 1 ? '11:00' : '23:00');
-            const de   = cfg[`de${slot}`]   || '12:00';
-            const ate  = cfg[`ate${slot}`]  || (slot === 1 ? '11:00' : '23:00');
-            const ativo = cfg[`ativo${slot}`] || false;
-            const protegidos = cfg[`protegidos${slot}`] || [];
+            const exec = cfg['exec' + slot] || (slot === 1 ? '12:00' : '23:00');
+            const ate  = cfg['ate'  + slot] || (slot === 1 ? '12:00' : '23:00');
+            const ativo = cfg['ativo' + slot] || false;
+            const protegidos = cfg['protegidos' + slot] || [];
 
-            document.getElementById(`zerarExec${slot}`).value = exec;
-            document.getElementById(`zerarDe${slot}`).value   = de;
-            document.getElementById(`zerarAte${slot}`).value  = ate;
-            document.getElementById(`zerarToggle${slot}`).checked = ativo;
+            const elExec = document.getElementById('zerarExec' + slot);
+            const elAte  = document.getElementById('zerarAte'  + slot);
+            const elTog  = document.getElementById('zerarToggle' + slot);
+            if (elExec) elExec.value = exec;
+            if (elAte)  elAte.value  = ate;
+            if (elTog)  elTog.checked = ativo;
 
             atualizarPreviewJanela(slot);
             atualizarLabelProtegidos(slot, protegidos);
@@ -1622,46 +1738,36 @@ function carregarConfigZerar() {
     } catch(e) { console.warn('carregarConfigZerar', e); }
 }
 
+function salvarConfigZerar(slot) {
+    const cfg = getConfigZerar();
+    const exec  = document.getElementById('zerarExec' + slot)?.value || '12:00';
+    const ate   = document.getElementById('zerarAte'  + slot)?.value || '12:00';
+    const ativo = document.getElementById('zerarToggle' + slot)?.checked || false;
+
+    cfg['exec' + slot]  = exec;
+    cfg['ate'  + slot]  = ate;
+    cfg['ativo'+ slot]  = ativo;
+
+    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
+    atualizarPreviewJanela(slot);
+    atualizarStatusZerar(slot, ativo, exec);
+    if (ativo) agendarZerar(slot);
+    else if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
+
+    showToast({ type:'success', title:'✅ Janela ' + slot + ' salva!', body: ativo ? 'Executará às ' + exec : 'Janela desativada.', duration: 3000 });
+}
+
 function getConfigZerar() {
     try { return JSON.parse(localStorage.getItem('autoZerar_config') || '{}'); } catch(e) { return {}; }
 }
 
-function salvarConfigZerar() {
-    const cfg = getConfigZerar();
-    for (const slot of [1, 2]) {
-        cfg[`exec${slot}`] = document.getElementById(`zerarExec${slot}`)?.value || cfg[`exec${slot}`];
-        cfg[`de${slot}`]   = document.getElementById(`zerarDe${slot}`)?.value   || cfg[`de${slot}`];
-        cfg[`ate${slot}`]  = document.getElementById(`zerarAte${slot}`)?.value  || cfg[`ate${slot}`];
-        atualizarPreviewJanela(slot);
-    }
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    // Reagenda os ativos
-    for (const slot of [1, 2]) {
-        if (cfg[`ativo${slot}`]) agendarZerar(slot);
-    }
-}
-
 // Mostra no painel o intervalo legível: "seg 12:00 → ter 11:00"
 function atualizarPreviewJanela(slot) {
-    const el = document.getElementById(`zerarPreview${slot}`);
+    const el = document.getElementById('zerarPreview' + slot);
     if (!el) return;
-    const de  = document.getElementById(`zerarDe${slot}`)?.value  || '--:--';
-    const ate = document.getElementById(`zerarAte${slot}`)?.value || '--:--';
-    const exec = document.getElementById(`zerarExec${slot}`)?.value || '--:--';
-    el.textContent = `🗑️ Pedidos de ontem ${de} até hoje ${ate} → executado às ${exec}`;
-}
-
-function toggleZerar(slot, ativo) {
-    const cfg = getConfigZerar();
-    cfg[`ativo${slot}`] = ativo;
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    const exec = document.getElementById(`zerarExec${slot}`)?.value || '11:00';
-    atualizarStatusZerar(slot, ativo, exec);
-    if (ativo) {
-        agendarZerar(slot);
-    } else {
-        if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
-    }
+    const ate  = document.getElementById('zerarAte' + slot)?.value  || '--:--';
+    const exec = document.getElementById('zerarExec' + slot)?.value || '--:--';
+    el.textContent = '🗑️ Apaga todos os pedidos anteriores a ' + ate + ' de hoje · disparo às ' + exec;
 }
 
 function atualizarStatusZerar(slot, ativo, execHora) {
@@ -1700,35 +1806,22 @@ function agendarZerar(slot) {
 
 async function executarZerarJanela(slot) {
     const cfg = getConfigZerar();
-    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
-    const deHora  = cfg[`de${slot}`]  || '12:00';
-    const ateHora = cfg[`ate${slot}`] || '11:00';
+    const protegidos = new Set(cfg['protegidos' + slot] || []);
+    const ateHora = cfg['ate' + slot] || '12:00';
 
-    // Monta o intervalo: de = ontem no horário "de", ate = hoje no horário "ate"
+    // Apaga TODOS os pedidos criados antes do horário limite de hoje
     const agora = new Date();
-    const ontem = new Date(agora);
-    ontem.setDate(ontem.getDate() - 1);
-
-    const [deH, deM] = deHora.split(':').map(Number);
     const [ateH, ateM] = ateHora.split(':').map(Number);
+    const limite = new Date(agora);
+    limite.setHours(ateH, ateM, 59, 999);
+    const limiteISO = brasiliaDate(limite).toISOString();
 
-    const inicio = new Date(ontem);
-    inicio.setHours(deH, deM, 0, 0);
-
-    const fim = new Date(agora);
-    fim.setHours(ateH, ateM, 59, 999);
-
-    const inicioISO = brasiliaDate(inicio).toISOString();
-    const fimISO    = brasiliaDate(fim).toISOString();
-
-    // Busca pedidos no período
     const { data: pedidos } = await sb.from("orders")
         .select("id,customer_phone,customer_name")
-        .gte("created_at", inicioISO)
-        .lte("created_at", fimISO);
+        .lte("created_at", limiteISO);
 
     if (!pedidos || pedidos.length === 0) {
-        showToast({ type:'success', title:`📅 Janela ${slot} executada`, body:'Nenhum pedido encontrado no período.', duration:4000 });
+        showToast({ type:'success', title:'📅 Janela ' + slot + ' executada', body:'Nenhum pedido encontrado.', duration:4000 });
         return;
     }
 
@@ -1737,11 +1830,10 @@ async function executarZerarJanela(slot) {
         await sb.from("orders").delete().eq("id", p.id);
     }
 
-    // Log
     const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
     log.unshift({
         slot,
-        periodo: `${ontem.toLocaleDateString('pt-BR')} ${deHora} → ${agora.toLocaleDateString('pt-BR')} ${ateHora}`,
+        periodo: 'Tudo anterior a ' + ateHora + ' de ' + agora.toLocaleDateString('pt-BR'),
         ts: new Date().toLocaleString('pt-BR'),
         apagados: parasApagar.length,
         protegidos: protegidos.size
@@ -1751,93 +1843,15 @@ async function executarZerarJanela(slot) {
 
     showToast({
         type: 'success',
-        title: `🗑️ Janela ${slot} executada!`,
-        body: `${parasApagar.length} pedido(s) apagados do período.
-${protegidos.size} cliente(s) protegido(s).`,
+        title: '🗑️ Janela ' + slot + ' executada!',
+        body: parasApagar.length + ' pedido(s) apagados.\n' + protegidos.size + ' cliente(s) protegido(s).',
         duration: 5000
     });
     loadOrders();
 }
 
-// ===== MODAL PROTEGIDOS =====
-async function abrirModalProtegidos(slot) {
-    zerarModalSlot = slot;
-    document.getElementById('modalProtegidosTitulo').textContent = `🛡️ Protegidos — Janela ${slot}`;
-    document.getElementById('modalProtegidos').style.display = 'flex';
-
-    const cfg = getConfigZerar();
-    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
-    const deHora  = document.getElementById(`zerarDe${slot}`)?.value  || cfg[`de${slot}`]  || '12:00';
-    const ateHora = document.getElementById(`zerarAte${slot}`)?.value || cfg[`ate${slot}`] || '11:00';
-
-    // Busca clientes e os pedidos do período configurado
-    const agora = new Date();
-    const ontem = new Date(agora); ontem.setDate(ontem.getDate() - 1);
-    const [deH, deM] = deHora.split(':').map(Number);
-    const [ateH, ateM] = ateHora.split(':').map(Number);
-    const inicio = new Date(ontem); inicio.setHours(deH, deM, 0, 0);
-    const fim = new Date(agora);    fim.setHours(ateH, ateM, 59, 999);
-
-    const [{ data: clientes }, { data: pedidosPeriodo }] = await Promise.all([
-        sb.from("clients").select("phone,name").order("name"),
-        sb.from("orders")
-            .select("customer_phone,total")
-            .gte("created_at", brasiliaDate(inicio).toISOString())
-            .lte("created_at", brasiliaDate(fim).toISOString())
-    ]);
-
-    // Agrega total por cliente no período
-    const totalPorPhone = {};
-    (pedidosPeriodo || []).forEach(p => {
-        totalPorPhone[p.customer_phone] = (totalPorPhone[p.customer_phone] || 0) + Number(p.total);
-    });
-
-    const todos = clientes || [];
-    const comPedido = todos.filter(c => totalPorPhone[c.phone]);
-    const semPedido = todos.filter(c => !totalPorPhone[c.phone]);
-
-    const renderItem = (c, temPedido) => {
-        const checked = protegidos.has(c.phone) ? 'checked' : '';
-        const badge = temPedido
-            ? `<span style="font-size:10px;background:#fff3cd;color:#e67e22;padding:2px 8px;border-radius:20px;font-weight:700;">🗑️ Seria apagado · R$ ${totalPorPhone[c.phone].toFixed(2).replace('.',',')}</span>`
-            : `<span style="font-size:10px;background:#f5f5f5;color:#aaa;padding:2px 8px;border-radius:20px;">Sem pedido no período</span>`;
-        return `<label style="display:flex;align-items:center;gap:12px;background:${temPedido?'#fffbf0':'#fafafa'};border:1.5px solid ${temPedido?'#f0c040':'#eee'};border-radius:14px;padding:12px 14px;cursor:pointer;">
-            <input type="checkbox" data-phone="${c.phone}" ${checked}
-                style="width:20px;height:20px;accent-color:#c75b24;cursor:pointer;flex-shrink:0;">
-            <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;font-size:14px;color:#222;">${c.name}</div>
-                <div style="margin-top:4px;">${badge}</div>
-            </div>
-        </label>`;
-    };
-
-    let html = '';
-    if (comPedido.length > 0) {
-        html += `<div style="font-size:11px;font-weight:700;color:#e67e22;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">🗑️ Seriam apagados nesta janela</div>`;
-        html += comPedido.map(c => renderItem(c, true)).join('');
-        if (semPedido.length > 0) html += `<div style="margin:10px 0;border-top:1px solid #eee;"></div>`;
-    }
-    if (semPedido.length > 0) {
-        html += `<div style="font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">— Sem pedido neste período</div>`;
-        html += semPedido.map(c => renderItem(c, false)).join('');
-    }
-    document.getElementById('protegidosList').innerHTML = html || '<div style="text-align:center;color:#aaa;padding:20px;">Nenhum cliente cadastrado</div>';
-}
-
 function fecharModalProtegidos() {
     document.getElementById('modalProtegidos').style.display = 'none';
-}
-
-function salvarProtegidos() {
-    const checks = document.querySelectorAll('#protegidosList input[type=checkbox]');
-    const protegidos = [];
-    checks.forEach(c => { if (c.checked) protegidos.push(c.dataset.phone); });
-    const cfg = getConfigZerar();
-    cfg[`protegidos${zerarModalSlot}`] = protegidos;
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    atualizarLabelProtegidos(zerarModalSlot, protegidos);
-    fecharModalProtegidos();
-    showToast({ type:'success', title:'🛡️ Protegidos salvos!', body:`${protegidos.length} cliente(s) não serão apagados na Janela ${zerarModalSlot}.`, duration:3000 });
 }
 
 function atualizarLabelProtegidos(slot, protegidos) {
@@ -1915,6 +1929,22 @@ function carregarSelecoes() {
     try { return JSON.parse(localStorage.getItem('refazer_selecionados') || '{}'); } catch(e) { return {}; }
 }
 
+function salvarHorarioRefazer() {
+    const horario = document.getElementById('autoRefazerHorario')?.value || '03:00';
+    localStorage.setItem('autoRefazer_horario', horario);
+    // Re-agenda se estiver ativo
+    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+        if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
+        agendarAutoRefazer();
+    }
+    atualizarBannerAgendamento();
+    showToast({ type:'success', title:'✅ Horário salvo!', body:`Pedidos automáticos às ${horario}`, duration:3000 });
+}
+
+function getHorarioRefazer() {
+    return localStorage.getItem('autoRefazer_horario') || '03:00';
+}
+
 // ---- Toggle automático ----
 function toggleAutoRefazer(ativo) {
     localStorage.setItem('autoRefazer_ativo', ativo ? '1' : '0');
@@ -1928,11 +1958,14 @@ function toggleAutoRefazer(ativo) {
 
 function atualizarBannerAgendamento() {
     const ativo = localStorage.getItem('autoRefazer_ativo') === '1';
+    const horario = getHorarioRefazer();
     const toggle = document.getElementById('autoRefazerToggle');
     const status = document.getElementById('agendamentoStatus');
     const info = document.getElementById('agendamentoInfo');
     const ultimo = document.getElementById('agendamentoUltimo');
+    const horarioInput = document.getElementById('autoRefazerHorario');
     if (toggle) toggle.checked = ativo;
+    if (horarioInput) horarioInput.value = horario;
     const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
     const temHistorico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]').length > 0;
     if (ultimaExec) {
@@ -1943,39 +1976,42 @@ function atualizarBannerAgendamento() {
         ultimo.style.display = 'block';
     }
     if (ativo) {
+        const [hh, mm] = horario.split(':').map(Number);
         const agora = new Date();
-        const proximo3h = new Date(agora);
-        proximo3h.setHours(3, 0, 0, 0);
-        if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
-        const diff = proximo3h - agora;
+        const proximo = new Date(agora);
+        proximo.setHours(hh, mm, 0, 0);
+        if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
+        const diff = proximo - agora;
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
-        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min`;
+        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min (às ${horario})`;
         info.style.display = 'block';
     } else {
-        status.textContent = '⏸️ Desativado · Ative para lançar pedidos automaticamente às 3h';
+        status.textContent = `⏸️ Desativado · Ative para lançar pedidos automaticamente às ${horario}`;
         info.style.display = 'none';
     }
 }
 
 function agendarAutoRefazer() {
     if (autoRefazerTimer) clearTimeout(autoRefazerTimer);
+    const horario = getHorarioRefazer();
+    const [hh, mm] = horario.split(':').map(Number);
     const agora = new Date();
-    const hoje3h = new Date(agora);
-    hoje3h.setHours(3, 0, 0, 0);
-    const hoje5h = new Date(agora);
-    hoje5h.setHours(5, 0, 0, 0);
+    const hojeAlvo = new Date(agora);
+    hojeAlvo.setHours(hh, mm, 0, 0);
+    const hojeAlvoFim = new Date(agora);
+    hojeAlvoFim.setHours(hh + 2, mm, 0, 0); // janela de 2h após o horário
 
-    // Se está entre 03:00 e 05:00, verifica se já executou hoje
-    if (agora >= hoje3h && agora < hoje5h) {
+    // Se está dentro da janela (horário até horário+2h), verifica se já executou hoje
+    if (agora >= hojeAlvo && agora < hojeAlvoFim) {
         const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
         let jaExecutouHoje = false;
         if (ultimaExec) {
             try {
                 const partes = ultimaExec.match(/(\d{2})\/(\d{2})\/(\d{4})/);
                 if (partes) {
-                    const dataExec = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T03:00:00`);
-                    jaExecutouHoje = dataExec >= hoje3h;
+                    const dataExec = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T${horario}:00`);
+                    jaExecutouHoje = dataExec >= hojeAlvo;
                 }
             } catch(e) {}
         }
@@ -1988,17 +2024,17 @@ function agendarAutoRefazer() {
         }
     }
 
-    // Agenda para as 03:00 do próximo dia (ou de hoje se ainda não chegou)
-    const proximo3h = new Date(agora);
-    proximo3h.setHours(3, 0, 0, 0);
-    if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
-    const msAte3h = proximo3h - agora;
+    // Agenda para o próximo disparo
+    const proximo = new Date(agora);
+    proximo.setHours(hh, mm, 0, 0);
+    if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
+    const msAte = proximo - agora;
     autoRefazerTimer = setTimeout(async () => {
         await executarAutoRefazer();
         if (localStorage.getItem('autoRefazer_ativo') === '1') {
             agendarAutoRefazer();
         }
-    }, msAte3h);
+    }, msAte);
 }
 
 async function executarAutoRefazer() {
@@ -2102,12 +2138,7 @@ async function executarAutoRefazer() {
     atualizarBannerAgendamento();
 }
 
-// Inicializa o scheduler ao carregar a página
-(function initAutoRefazer() {
-    if (localStorage.getItem('autoRefazer_ativo') === '1') {
-        agendarAutoRefazer();
-    }
-})();
+
 
 async function loadRefazerPedidos() {
     atualizarBannerAgendamento();
@@ -2309,25 +2340,6 @@ function atualizarResumoRefazer() {
         `<strong>${sel.length} cliente(s) selecionado(s)</strong> · Total: <strong style="color:#8e44ad;">R$ ${totalGeral.toFixed(2).replace('.', ',')}</strong><br>` +
         sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.', ',')}`).join('<br>');
     resumo.style.display = 'block';
-}
-
-async function confirmarTodosRefazer() {
-    const sel = Object.values(refazerSelecionados);
-    if (sel.length === 0) return;
-
-    const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
-    const nomes = sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.',',')}`).join('\n');
-
-    showToast({
-        type: 'confirm',
-        title: `🔁 Lançar Pagar Depois para ${sel.length} cliente(s)?`,
-        body: `${nomes}\n\nTotal geral: R$ ${totalGeral}`,
-        actions: [
-            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
-            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: 'executarTodosRefazer()' }
-        ],
-        duration: 8000
-    });
 }
 
 async function executarTodosRefazer() {
@@ -2898,8 +2910,6 @@ function calcDistM(lat1, lon1, lat2, lon2) {
 }
 
 function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
-function horaAtual() { return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
-
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("clients").select("*").order("name");
     clientesCache = clients || [];
@@ -3493,13 +3503,6 @@ function renderParadasAtivasList(paradas) {
                 <div style="font-size:10px;font-weight:700;margin-top:2px;color:${p.status==='entregue'?'#27ae60':'#e67e22'};">${p.status==='entregue'?'✅ Entregue':'📦 Pendente'}</div>
             </div>
         </div>`).join('');
-}
-
-async function marcarEntregue(paradaId) {
-    const p = rotaParadas.find(x=>x.id===paradaId);
-    if (p) p.status='entregue';
-    await sb.from("delivery_routes").update({paradas:rotaParadas}).eq("id",rotaAtualId);
-    renderParadasList();
 }
 
 async function removerParada(paradaId) {
