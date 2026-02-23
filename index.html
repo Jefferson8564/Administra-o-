@@ -1792,16 +1792,16 @@ async function executarCancelamentoPedido(orderId) {
 
     const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
 
-    // Busca dados atuais do cliente
-    if (o.customer_phone) {
+    // Só reverte o saldo se o pedido era FIADO (pagar depois)
+    // Pagar na entrega: cliente ainda não pagou, não há nada a devolver
+    if (isFiado && o.customer_phone) {
         const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
         if (c) {
             const saldoAntes = c.debt || 0;
-            // FIADO: reverte a dívida. Pago na entrega: gera crédito (saldo negativo)
             const novaDiv = saldoAntes - Number(o.total);
             await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
 
-            // Registra reembolso na tabela payments
+            // Registra estorno na tabela payments
             await sb.from("payments").insert({
                 client_name: c.name || o.customer_name,
                 client_phone: o.customer_phone,
@@ -1825,7 +1825,10 @@ async function executarCancelamentoPedido(orderId) {
         setTimeout(() => wrap.remove(), 300);
     }
 
-    showToast({ type: 'success', title: '✅ Cancelado!', body: `Pedido de ${o.customer_name} removido e reembolso registrado.`, duration: 3000 });
+    const msg = isFiado
+        ? `Pedido de ${o.customer_name} cancelado e débito revertido.`
+        : `Pedido de ${o.customer_name} cancelado. Nenhum valor foi cobrado.`;
+    showToast({ type: 'success', title: '✅ Cancelado!', body: msg, duration: 3000 });
 }
 
 function mudarParaFiado(orderId) {
