@@ -233,7 +233,7 @@
         <div class="back-area" style="justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
-                <span class="back-section-title" id="sectionTitle"></span>
+                <span class="back-section-title" id="sectionTitle" onclick="toggleAutoZerarBox()" style="cursor:pointer;user-select:none;-webkit-user-select:none;"></span>
             </div>
             <button id="btnInativos" onclick="verClientesInativos()" style="display:none; padding:7px 12px; background:#fff3e0; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">
                 ⏰ Inativos
@@ -340,13 +340,23 @@
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#333;">Últimos Pedidos</h3>
+            <!-- ABAS DE ROTAS -->
+            <div id="rotaTabsBar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+                <!-- preenchido dinamicamente pelo JS -->
             </div>
-            <div id="orderList"></div>
+
+            <!-- CARROSSEL DE PEDIDOS -->
+            <div id="orderCarousel" style="overflow:hidden;position:relative;">
+                <div id="orderSlides" style="display:flex;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;">
+                    <!-- slides preenchidos dinamicamente -->
+                </div>
+            </div>
+
+            <!-- fallback antigo (escondido) -->
+            <div id="orderList" style="display:none;"></div>
 
             <!-- AUTO-ZERAR PEDIDOS -->
-            <div style="background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
+            <div id="autoZerarBox" style="display:none;background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
                 <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
                 <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Apaga pedidos criados antes do horário limite definido</div>
 
@@ -869,6 +879,17 @@ function openSection(section) {
     // Mostra botão de inativos apenas na aba clientes
     document.getElementById('btnInativos').style.display = section === 'clientes' ? 'block' : 'none';
     s.fn();
+}
+
+function toggleAutoZerarBox() {
+    // Só abre se estiver na aba de pedidos
+    const box = document.getElementById('autoZerarBox');
+    if (!box) return;
+    const visivel = box.style.display !== 'none';
+    box.style.display = visivel ? 'none' : 'block';
+    // Feedback visual no título
+    const titulo = document.getElementById('sectionTitle');
+    if (titulo) titulo.style.opacity = visivel ? '1' : '0.7';
 }
 
 function goHome() {
@@ -1543,14 +1564,159 @@ async function aplicarExclusoes() {
     renderSummaryGrid(contagem);
 }
 
+// Controle do carrossel de abas de pedidos
+let _abaAtual = 0;
+let _totalAbas = 0;
+let _carrosselStartX = 0;
+let _carrosselDragging = false;
+
 async function loadOrders() {
     loadOrderSummary();
-    const list = document.getElementById('orderList');
-    list.innerHTML = '<div style="text-align:center;color:#888;">Carregando...</div>';
+
+    // Mostra "Carregando..." no carrossel
+    document.getElementById('rotaTabsBar').innerHTML = '';
+    document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Carregando...</div>';
+
+    // Busca pedidos
     const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
-    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>'; return; }
+
+    // Busca rotas e rota especial com proteção individual
+    let todasRotas = [];
+    let appCfgREValor = null;
+    try { const { data: rd } = await sb.from("delivery_routes").select("id, nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
+    try { const { data: cd } = await sb.from("app_config").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
+
+    if (!data || data.length === 0) {
+        document.getElementById('rotaTabsBar').innerHTML = '';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Sem pedidos</div>';
+        return;
+    }
+
     data.forEach(o => { ordersMap[o.id] = o; });
-    list.innerHTML = data.map(o => buildOrderCard(o)).join('');
+
+    // Monta mapa phone → rota que o cliente pertence
+    const phoneParaRotas = {};
+    (todasRotas || []).forEach(r => {
+        (r.paradas_template || r.paradas || []).forEach(p => {
+            const phone = p.cliente_phone;
+            if (!phone) return;
+            if (!phoneParaRotas[phone]) phoneParaRotas[phone] = [];
+            phoneParaRotas[phone].push({ id: r.id, nome: r.nome });
+        });
+    });
+
+    // Rota Especial
+    let phonesRotaEspecial = new Set();
+    try {
+        if (appCfgREValor) {
+            const cfgRE = JSON.parse(appCfgREValor);
+            (cfgRE.clientes_fila || []).forEach(x => { if (x.phone) phonesRotaEspecial.add(x.phone); });
+        }
+    } catch(e) {}
+
+    // Separa pedidos: 1º pedido do cliente → rota, demais → Geral
+    const primeirosPorCliente = new Set();
+    const grupos = {};
+    const geral = [];
+
+    data.forEach(o => {
+        const phone = o.customer_phone;
+        if (!primeirosPorCliente.has(phone)) {
+            if (phonesRotaEspecial.has(phone)) {
+                const key = '⚡ Rota Especial';
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(o);
+                primeirosPorCliente.add(phone);
+                return;
+            }
+            const rotasDoCliente = phoneParaRotas[phone];
+            if (rotasDoCliente && rotasDoCliente.length > 0) {
+                const key = rotasDoCliente[0].nome;
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(o);
+                primeirosPorCliente.add(phone);
+                return;
+            }
+        }
+        geral.push(o);
+    });
+
+    // Monta lista de abas: Geral primeiro, depois rotas em ordem crescente (Rota 1, Rota 2...)
+    const abas = [];
+    abas.push({ label: '📋 Geral', orders: geral, cor: '#555' });
+    const rotasOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+    rotasOrdenadas.forEach(nome => {
+        const isEspecial = nome.toLowerCase().includes('especial');
+        abas.push({ label: (isEspecial ? '⚡ ' : '🗺️ ') + nome, orders: grupos[nome], cor: isEspecial ? '#c75b24' : '#1e8449' });
+    });
+
+    _totalAbas = abas.length;
+    _abaAtual = 0;
+
+    // Renderiza barra de abas
+    const tabsBar = document.getElementById('rotaTabsBar');
+    tabsBar.innerHTML = abas.map((a, i) => `
+        <button id="rotaTab_${i}" onclick="irParaAba(${i})" data-cor="${a.cor}"
+            style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;white-space:nowrap;
+            background:${i===0 ? a.cor : '#e8e8e8'};color:${i===0 ? 'white' : '#555'};">
+            ${a.label} <span style="opacity:0.8;font-size:11px;">${a.orders.length}</span>
+        </button>`).join('');
+
+    // Renderiza slides
+    const slides = document.getElementById('orderSlides');
+    slides.innerHTML = abas.map(a => `
+        <div style="min-width:100%;box-sizing:border-box;padding:0 2px;">
+            ${a.orders.length === 0
+                ? '<div style="text-align:center;color:#aaa;padding:40px 0;font-size:14px;">Nenhum pedido nesta aba</div>'
+                : a.orders.map(o => buildOrderCard(o)).join('')
+            }
+        </div>`).join('');
+
+    // Configura swipe no carrossel
+    _setupCarrosselSwipe();
+}
+
+function irParaAba(idx) {
+    _abaAtual = Math.max(0, Math.min(idx, _totalAbas - 1));
+    document.getElementById('orderSlides').style.transform = `translateX(-${_abaAtual * 100}%)`;
+    // Atualiza visual das abas
+    document.querySelectorAll('[id^="rotaTab_"]').forEach(btn => {
+        const aba = parseInt(btn.id.replace('rotaTab_', ''));
+        btn.style.background = aba === _abaAtual ? (btn.dataset.cor || '#555') : '#e8e8e8';
+        btn.style.color = aba === _abaAtual ? 'white' : '#555';
+    });
+    // Scroll a aba ativa para o centro
+    const tabEl = document.getElementById('rotaTab_' + _abaAtual);
+    if (tabEl) tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function _setupCarrosselSwipe() {
+    const slides = document.getElementById('orderSlides');
+    if (!slides || slides._swipeSetup) return;
+    slides._swipeSetup = true;
+    let startX = 0, startY = 0, isHoriz = null;
+
+    slides.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isHoriz = null;
+    }, { passive: true });
+
+    slides.addEventListener('touchmove', e => {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (isHoriz === null) isHoriz = Math.abs(dx) > Math.abs(dy);
+        if (isHoriz) e.preventDefault();
+    }, { passive: false });
+
+    slides.addEventListener('touchend', e => {
+        if (!isHoriz) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) {
+            if (dx < 0 && _abaAtual < _totalAbas - 1) irParaAba(_abaAtual + 1);
+            else if (dx > 0 && _abaAtual > 0) irParaAba(_abaAtual - 1);
+        }
+    }, { passive: true });
 }
 
 function buildOrderCard(o) {
