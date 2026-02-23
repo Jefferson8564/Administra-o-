@@ -42,6 +42,28 @@
         .back-btn { background: #f0f0f0; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #333; }
         .back-section-title { font-weight: 700; color: var(--primary); font-size: 16px; }
 
+        /* ROTA ESPECIAL */
+        .rota-especial-card { background: linear-gradient(135deg, #1a1a2e 0%, #0d2137 100%); border-radius: 18px; padding: 16px; margin-bottom: 15px; border: 1.5px solid rgba(255,165,0,0.3); box-shadow: 0 4px 20px rgba(255,140,0,0.15); }
+        .rota-especial-ativa { border-color: rgba(255,165,0,0.7); box-shadow: 0 4px 24px rgba(255,140,0,0.35); }
+        .re-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .re-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+        .re-horarios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .re-campo { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 12px; }
+        .re-campo label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+        .re-campo input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 800; width: 100%; outline: none; }
+        .re-dias { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 14px; }
+        .re-dia { text-align: center; padding: 7px 2px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); }
+        .re-dia.ativo { border-color: #f5a623; background: rgba(245,166,35,0.2); color: #f5a623; }
+        .re-status { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+        .re-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; flex-shrink: 0; }
+        .re-status-dot.ativa { background: #f5a623; box-shadow: 0 0 8px #f5a623; animation: rePulse 1.5s ease-in-out infinite; }
+        .re-status-dot.fora { background: #95a5a6; }
+        @keyframes rePulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        .re-clientes-fila { margin-top: 10px; }
+        .re-cliente-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+        .re-cliente-nome { font-size: 13px; font-weight: 700; color: #f0f0f8; flex: 1; }
+        .re-cliente-hora { font-size: 11px; color: rgba(255,255,255,0.4); }
+
         /* CARDS */
         .card-box { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
         .card-box h4 { color: var(--primary); margin-bottom: 12px; }
@@ -499,6 +521,69 @@
         <!-- ABA PAINEL DE ROTAS -->
         <div id="tab-rotas" class="section">
 
+            <!-- SETUP SQL -->
+            <div id="setupSqlCard" class="card-box" style="background:linear-gradient(135deg,#0d1117,#161b22);border:1.5px solid rgba(88,166,255,0.3);border-radius:18px;padding:16px;margin-bottom:15px;display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <h4 style="color:#58a6ff;margin-bottom:0;font-size:14px;">🗄️ Setup SQL — Primeira vez</h4>
+                    <button onclick="document.getElementById('setupSqlCard').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:4px 10px;color:#888;cursor:pointer;font-size:13px;">✕</button>
+                </div>
+                <p style="font-size:12px;color:#8b949e;margin-bottom:10px;line-height:1.5;">Execute este SQL no <b style="color:#58a6ff;">Supabase SQL Editor</b> para criar a tabela necessária para a Rota Especial:</p>
+                <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:monospace;font-size:12px;color:#79c0ff;line-height:1.7;white-space:pre;overflow-x:auto;position:relative;">CREATE TABLE IF NOT EXISTS app_config (
+  chave text PRIMARY KEY,
+  valor text
+);
+
+-- Permissão de leitura/escrita anônima
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON app_config FOR ALL USING (true) WITH CHECK (true);<button onclick="copiarSQL()" style="position:absolute;top:8px;right:8px;background:rgba(88,166,255,0.2);border:1px solid rgba(88,166,255,0.4);border-radius:8px;padding:4px 10px;color:#58a6ff;cursor:pointer;font-size:11px;font-weight:700;font-family:sans-serif;">📋 Copiar</button></div>
+                <div id="sqlCopiadoMsg" style="display:none;margin-top:8px;font-size:12px;color:#3fb950;font-weight:700;">✅ SQL copiado!</div>
+            </div>
+
+            <!-- ROTA ESPECIAL -->
+            <div class="rota-especial-card" id="rotaEspecialCard">
+                <div class="re-title">⚡ Rota Especial
+                    <span id="reStatusBadge" style="font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-weight:700;margin-left:auto;">Inativa</span>
+                </div>
+                <div class="re-sub">Clientes que pedirem no horário entram automaticamente</div>
+
+                <div class="re-horarios">
+                    <div class="re-campo">
+                        <label>⏰ Início</label>
+                        <input type="time" id="reHoraInicio" value="14:00">
+                    </div>
+                    <div class="re-campo">
+                        <label>🏁 Fim</label>
+                        <input type="time" id="reHoraFim" value="17:00">
+                    </div>
+                </div>
+
+                <div class="re-dias" id="reDias">
+                    <div class="re-dia" data-re-dia="Dom" onclick="toggleReDia(this)">Dom</div>
+                    <div class="re-dia" data-re-dia="Seg" onclick="toggleReDia(this)">Seg</div>
+                    <div class="re-dia" data-re-dia="Ter" onclick="toggleReDia(this)">Ter</div>
+                    <div class="re-dia" data-re-dia="Qua" onclick="toggleReDia(this)">Qua</div>
+                    <div class="re-dia" data-re-dia="Qui" onclick="toggleReDia(this)">Qui</div>
+                    <div class="re-dia" data-re-dia="Sex" onclick="toggleReDia(this)">Sex</div>
+                    <div class="re-dia" data-re-dia="Sáb" onclick="toggleReDia(this)">Sáb</div>
+                </div>
+
+                <div class="re-status">
+                    <div class="re-status-dot" id="reStatusDot"></div>
+                    <div style="flex:1;">
+                        <div id="reStatusTexto" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);">Configurar e ativar</div>
+                        <div id="reClientesFila" style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;"></div>
+                    </div>
+                    <div id="reContador" style="font-size:22px;font-weight:900;color:#f5a623;display:none;">0</div>
+                </div>
+
+                <div id="reClientesLista" class="re-clientes-fila" style="display:none;"></div>
+
+                <div style="display:flex;gap:8px;">
+                    <button onclick="salvarRotaEspecial()" style="flex:1;padding:12px;background:linear-gradient(135deg,#f5a623,#e67e22);color:#000;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
+                    <button onclick="toggleAtivarRotaEspecial()" id="btnAtivarRE" style="flex:1;padding:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">▶ Ativar</button>
+                </div>
+            </div>
+
             <!-- CRIAR NOVA ROTA -->
             <div class="card-box">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -602,6 +687,22 @@ const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
+function agoraISO() {
+  const now = new Date();
+  const offset = -3 * 60;
+  const local = new Date(now.getTime() + (offset - now.getTimezoneOffset()) * 60000);
+  return local.toISOString().replace('Z', '-03:00');
+}
+function hojeStr() {
+  return agoraISO().split('T')[0];
+}
+function brasiliaDate(d) {
+  // Converte qualquer Date para o equivalente em Brasília
+  const offset = -3 * 60;
+  return new Date(d.getTime() + (offset - d.getTimezoneOffset()) * 60000);
+}
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
 let msgComprovante = "🧾 *COMPROVANTE DE PAGAMENTO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}\n──────────────────\n✅ Obrigado pelo pagamento!";
@@ -618,6 +719,42 @@ async function initAdmin() {
     await updateFiadoHeader();
     // Inicia os timers de auto-zerar em background
     setTimeout(() => carregarConfigZerar(), 500);
+    // Verifica se a tabela app_config existe
+    setTimeout(() => verificarTabelaAppConfig(), 1000);
+}
+
+// Verifica se a tabela app_config existe e mostra card de setup se não existir
+async function verificarTabelaAppConfig() {
+    try {
+        const { error } = await sb.from('app_config').select('chave').limit(1);
+        if (error && (error.code === '42P01' || error.message?.includes('app_config'))) {
+            // Tabela não existe — mostrar card de setup na próxima vez que abrir rotas
+            window._appConfigFaltando = true;
+        }
+    } catch(e) { window._appConfigFaltando = true; }
+}
+
+function copiarSQL() {
+    const sql = `CREATE TABLE IF NOT EXISTS app_config (
+  chave text PRIMARY KEY,
+  valor text
+);
+
+-- Permissão de leitura/escrita anônima
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON app_config FOR ALL USING (true) WITH CHECK (true);`;
+    navigator.clipboard.writeText(sql).then(() => {
+        const msg = document.getElementById('sqlCopiadoMsg');
+        if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
+    }).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = sql; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        const msg = document.getElementById('sqlCopiadoMsg');
+        if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
+    });
 }
 
 
@@ -647,7 +784,12 @@ function openSection(section) {
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
-        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
+        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: () => {
+            // Mostra card SQL se a tabela app_config não existir
+            const sqlCard = document.getElementById('setupSqlCard');
+            if (sqlCard && window._appConfigFaltando) sqlCard.style.display = 'block';
+            loadRotasPanel();
+        }},
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos }
     };
     const s = map[section];
@@ -1142,8 +1284,8 @@ async function loadOrderSummary() {
 
     const { data } = await sb.from("orders")
         .select("items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", brasiliaDate(start).toISOString())
+        .lte("created_at", brasiliaDate(end).toISOString());
 
     const contagem = {};
     let totalGeral = 0;
@@ -1256,8 +1398,8 @@ async function abrirModalExcluir() {
 
     const { data } = await sb.from("orders")
         .select("customer_name, customer_phone, items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", brasiliaDate(start).toISOString())
+        .lte("created_at", brasiliaDate(end).toISOString());
 
     _summaryOrders = data || [];
 
@@ -1316,8 +1458,8 @@ async function aplicarExclusoes() {
 
     const { data } = await sb.from("orders")
         .select("customer_phone, items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", brasiliaDate(start).toISOString())
+        .lte("created_at", brasiliaDate(end).toISOString());
 
     const contagem = {};
     (data || []).forEach(o => {
@@ -1635,8 +1777,8 @@ async function executarZerarJanela(slot) {
     const fim = new Date(agora);
     fim.setHours(ateH, ateM, 59, 999);
 
-    const inicioISO = inicio.toISOString();
-    const fimISO    = fim.toISOString();
+    const inicioISO = brasiliaDate(inicio).toISOString();
+    const fimISO    = brasiliaDate(fim).toISOString();
 
     // Busca pedidos no período
     const { data: pedidos } = await sb.from("orders")
@@ -1699,8 +1841,8 @@ async function abrirModalProtegidos(slot) {
         sb.from("clients").select("phone,name").order("name"),
         sb.from("orders")
             .select("customer_phone,total")
-            .gte("created_at", inicio.toISOString())
-            .lte("created_at", fim.toISOString())
+            .gte("created_at", brasiliaDate(inicio).toISOString())
+            .lte("created_at", brasiliaDate(fim).toISOString())
     ]);
 
     // Agrega total por cliente no período
@@ -1943,7 +2085,7 @@ async function executarAutoRefazer() {
         const { data: pedidoRecente } = await sb.from("orders")
             .select("id")
             .eq("customer_phone", s.phone)
-            .gte("created_at", ontem12h.toISOString())
+            .gte("created_at", brasiliaDate(ontem12h).toISOString())
             .limit(1);
 
         if (pedidoRecente && pedidoRecente.length > 0) {
@@ -2814,7 +2956,7 @@ function calcDistM(lat1, lon1, lat2, lon2) {
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function diaHoje() { return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()]; }
+function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
 function horaAtual() { return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 
 async function loadRotasPanel() {
@@ -2824,11 +2966,12 @@ async function loadRotasPanel() {
     await calcularMediaEta();
     await carregarRotasHoje();
     await carregarRotasSalvas();
+    await loadRotaEspecial();
 }
 
 async function preencherClientesComPedido() {
     // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = hojeStr();
     const { data: pedidosHoje } = await sb.from("orders")
         .select("customer_phone, customer_name")
         .gte("created_at", hoje + 'T00:00:00')
@@ -2873,7 +3016,7 @@ async function preencherClientesComPedido() {
 
 async function carregarRotasHoje() {
     const dia = diaHoje();
-    const hoje = new Date().toISOString().split('T')[0]; // "2025-02-21"
+    const hoje = hojeStr(); // "2025-02-21"
     const { data: todasRotas } = await sb.from("delivery_routes").select("*").order("hora_saida",{ascending:true});
 
     // Filtra rotas que têm o dia atual marcado
@@ -3033,7 +3176,7 @@ function fecharAddParada() {
 
 async function calcularMediaEta() {
     const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
-    const ontemStr = ontem.toISOString().split('T')[0];
+    const ontemStr = brasiliaDate(ontem).toISOString().split('T')[0];
     const {data:hist} = await sb.from("delivery_routes").select("paradas,saida_em,fim_em")
         .gte("created_at",ontemStr+'T00:00:00').lte("created_at",ontemStr+'T23:59:59')
         .eq("status","concluido").limit(5);
@@ -3314,7 +3457,7 @@ async function adicionarParada() {
 
 // Gera lista de paradas ativas do dia: só clientes do template que fizeram pedido hoje
 async function gerarParadasAtivas(template) {
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = hojeStr();
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
     const { data: pedidos } = await sb.from("orders")
@@ -3567,6 +3710,196 @@ async function salvarEdicaoRota() {
     await carregarRotasHoje();
     await carregarRotasSalvas();
     showToast({type:'success',title:'✅ Rota atualizada!',body:`"${nome}" — ${dias.join(', ')} às ${hora}`,duration:3000});
+}
+
+
+
+// ===== ROTA ESPECIAL =====
+let rotaEspecialConfig = null; // config salva no supabase (tabela app_config)
+let rotaEspecialAtiva = false;
+let reRealtimeCh = null;
+
+async function loadRotaEspecial() {
+    // Busca config da rota especial no supabase
+    const { data } = await sb.from('app_config').select('*').eq('chave', 'rota_especial').single();
+    if (data) {
+        try { rotaEspecialConfig = JSON.parse(data.valor); } catch(e) { rotaEspecialConfig = null; }
+    }
+    if (rotaEspecialConfig) {
+        document.getElementById('reHoraInicio').value = rotaEspecialConfig.hora_inicio || '14:00';
+        document.getElementById('reHoraFim').value    = rotaEspecialConfig.hora_fim    || '17:00';
+        // Marca dias
+        const dias = rotaEspecialConfig.dias || [];
+        document.querySelectorAll('[data-re-dia]').forEach(el => {
+            if (dias.includes(el.dataset.reDia)) el.classList.add('ativo');
+        });
+        rotaEspecialAtiva = rotaEspecialConfig.ativa || false;
+    }
+    atualizarStatusRE();
+    if (rotaEspecialAtiva) monitorarRotaEspecial();
+}
+
+function toggleReDia(el) {
+    el.classList.toggle('ativo');
+}
+
+function getDiasRE() {
+    return [...document.querySelectorAll('[data-re-dia].ativo')].map(el => el.dataset.reDia);
+}
+
+async function salvarRotaEspecial() {
+    const inicio = document.getElementById('reHoraInicio').value;
+    const fim    = document.getElementById('reHoraFim').value;
+    const dias   = getDiasRE();
+    if (!inicio || !fim) return showToast({type:'confirm',title:'⚠️',body:'Defina o horário de início e fim.',duration:2500});
+    if (dias.length === 0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
+
+    rotaEspecialConfig = { hora_inicio: inicio, hora_fim: fim, dias, ativa: rotaEspecialAtiva, clientes_fila: rotaEspecialConfig?.clientes_fila || [] };
+
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    showToast({type:'success',title:'✅ Rota Especial salva!',body:`${inicio} → ${fim} · ${dias.join(', ')}`,duration:3000});
+    atualizarStatusRE();
+}
+
+async function toggleAtivarRotaEspecial() {
+    if (!rotaEspecialConfig) return showToast({type:'confirm',title:'⚠️',body:'Salve a configuração primeiro.',duration:2500});
+    rotaEspecialAtiva = !rotaEspecialAtiva;
+    rotaEspecialConfig.ativa = rotaEspecialAtiva;
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    atualizarStatusRE();
+    if (rotaEspecialAtiva) {
+        monitorarRotaEspecial();
+        showToast({type:'success',title:'⚡ Rota Especial ativada!',body:'Novos pedidos no horário entrarão automaticamente.',duration:3000});
+    } else {
+        if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); reRealtimeCh = null; }
+        showToast({type:'confirm',title:'⏹ Rota Especial desativada',body:'',duration:2000});
+    }
+}
+
+function horaAtualMinutos() {
+    const d = new Date();
+    const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000);
+    return b.getHours() * 60 + b.getMinutes();
+}
+
+function estaDentroDoHorarioRE() {
+    if (!rotaEspecialConfig) return false;
+    const diaAtual = diaHoje();
+    if (!(rotaEspecialConfig.dias||[]).includes(diaAtual)) return false;
+    const agora = horaAtualMinutos();
+    const [hI, mI] = rotaEspecialConfig.hora_inicio.split(':').map(Number);
+    const [hF, mF] = rotaEspecialConfig.hora_fim.split(':').map(Number);
+    return agora >= hI*60+mI && agora <= hF*60+mF;
+}
+
+function atualizarStatusRE() {
+    const dot  = document.getElementById('reStatusDot');
+    const txt  = document.getElementById('reStatusTexto');
+    const badge = document.getElementById('reStatusBadge');
+    const btn  = document.getElementById('btnAtivarRE');
+    const card = document.getElementById('rotaEspecialCard');
+    const cont = document.getElementById('reContador');
+    const filaTxt = document.getElementById('reClientesFila');
+    const fila = rotaEspecialConfig?.clientes_fila || [];
+
+    if (!rotaEspecialAtiva) {
+        dot.className = 're-status-dot';
+        txt.textContent = 'Inativa — clique em Ativar para iniciar';
+        badge.textContent = 'Inativa';
+        badge.style.background = 'rgba(255,255,255,0.08)';
+        badge.style.color = 'rgba(255,255,255,0.35)';
+        btn.textContent = '▶ Ativar';
+        btn.style.background = 'rgba(255,255,255,0.08)';
+        btn.style.color = 'rgba(255,255,255,0.6)';
+        card.classList.remove('rota-especial-ativa');
+        cont.style.display = 'none';
+        filaTxt.textContent = '';
+    } else if (estaDentroDoHorarioRE()) {
+        dot.className = 're-status-dot ativa';
+        txt.textContent = `Ativa · ${rotaEspecialConfig.hora_inicio} → ${rotaEspecialConfig.hora_fim}`;
+        badge.textContent = '⚡ Ativa';
+        badge.style.background = 'rgba(245,166,35,0.2)';
+        badge.style.color = '#f5a623';
+        btn.textContent = '⏹ Desativar';
+        btn.style.background = 'rgba(231,76,60,0.15)';
+        btn.style.color = '#e74c3c';
+        card.classList.add('rota-especial-ativa');
+        cont.style.display = fila.length > 0 ? 'block' : 'none';
+        cont.textContent = fila.length;
+        filaTxt.textContent = fila.length > 0 ? `${fila.length} cliente(s) aguardando na fila` : 'Aguardando novos pedidos...';
+        renderFilaRE(fila);
+    } else {
+        dot.className = 're-status-dot fora';
+        const config = rotaEspecialConfig;
+        txt.textContent = `Fora do horário · ${config?.hora_inicio||'--'} → ${config?.hora_fim||'--'}`;
+        badge.textContent = '⏰ Fora do horário';
+        badge.style.background = 'rgba(149,165,166,0.15)';
+        badge.style.color = '#95a5a6';
+        btn.textContent = '⏹ Desativar';
+        btn.style.background = 'rgba(231,76,60,0.15)';
+        btn.style.color = '#e74c3c';
+        card.classList.remove('rota-especial-ativa');
+        cont.style.display = 'none';
+        filaTxt.textContent = `Próxima janela: ${config?.hora_inicio||'--'}`;
+    }
+}
+
+function renderFilaRE(fila) {
+    const el = document.getElementById('reClientesLista');
+    if (!fila || fila.length === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.innerHTML = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">👥 Na fila</div>` +
+        fila.map(c => `
+        <div class="re-cliente-item">
+            <div class="re-cliente-nome">👤 ${c.nome}</div>
+            <div class="re-cliente-hora">${c.hora_pedido || ''}</div>
+        </div>`).join('');
+}
+
+// Monitora novos pedidos em tempo real para adicionar à fila da rota especial
+function monitorarRotaEspecial() {
+    if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); }
+    reRealtimeCh = sb.channel('rota-especial-orders')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+            if (!rotaEspecialAtiva || !estaDentroDoHorarioRE()) return;
+            const pedido = payload.new;
+            await adicionarClienteFilaRE(pedido);
+        })
+        .subscribe();
+    // Atualiza status a cada minuto (para checar se entrou/saiu do horário)
+    setInterval(atualizarStatusRE, 60000);
+}
+
+async function adicionarClienteFilaRE(pedido) {
+    // Busca dados do cliente
+    const { data: cliente } = await sb.from('clients')
+        .select('name, phone, delivery_lat, delivery_lon, delivery_address')
+        .eq('phone', pedido.customer_phone).single();
+
+    if (!cliente?.delivery_lat || !cliente?.delivery_lon) return; // sem endereço, ignora
+
+    // Verifica se já está na fila com status pendente
+    // (clientes com status 'em_rota' já foram despachados e podem pedir de novo)
+    const fila = rotaEspecialConfig.clientes_fila || [];
+    if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
+
+    const agora = agoraISO();
+    const hora = agora.substring(11, 16);
+
+    fila.push({
+        id: Date.now().toString(),
+        phone: pedido.customer_phone,
+        nome: cliente.name || pedido.customer_name,
+        endereco: cliente.delivery_address || `${cliente.delivery_lat}, ${cliente.delivery_lon}`,
+        coords: [parseFloat(cliente.delivery_lat), parseFloat(cliente.delivery_lon)],
+        hora_pedido: hora,
+        status: 'pendente'
+    });
+
+    rotaEspecialConfig.clientes_fila = fila;
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    atualizarStatusRE();
+    showToast({type:'success',title:'⚡ Cliente na fila!',body:`${cliente.name} entrou na rota especial.`,duration:3000});
 }
 
 </script>
