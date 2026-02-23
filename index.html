@@ -521,24 +521,6 @@
         <!-- ABA PAINEL DE ROTAS -->
         <div id="tab-rotas" class="section">
 
-            <!-- SETUP SQL -->
-            <div id="setupSqlCard" class="card-box" style="background:linear-gradient(135deg,#0d1117,#161b22);border:1.5px solid rgba(88,166,255,0.3);border-radius:18px;padding:16px;margin-bottom:15px;display:none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <h4 style="color:#58a6ff;margin-bottom:0;font-size:14px;">🗄️ Setup SQL — Primeira vez</h4>
-                    <button onclick="document.getElementById('setupSqlCard').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:4px 10px;color:#888;cursor:pointer;font-size:13px;">✕</button>
-                </div>
-                <p style="font-size:12px;color:#8b949e;margin-bottom:10px;line-height:1.5;">Execute este SQL no <b style="color:#58a6ff;">Supabase SQL Editor</b> para criar a tabela necessária para a Rota Especial:</p>
-                <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:monospace;font-size:12px;color:#79c0ff;line-height:1.7;white-space:pre;overflow-x:auto;position:relative;">CREATE TABLE IF NOT EXISTS app_config (
-  chave text PRIMARY KEY,
-  valor text
-);
-
--- Permissão de leitura/escrita anônima
-ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "allow_all" ON app_config FOR ALL USING (true) WITH CHECK (true);<button onclick="copiarSQL()" style="position:absolute;top:8px;right:8px;background:rgba(88,166,255,0.2);border:1px solid rgba(88,166,255,0.4);border-radius:8px;padding:4px 10px;color:#58a6ff;cursor:pointer;font-size:11px;font-weight:700;font-family:sans-serif;">📋 Copiar</button></div>
-                <div id="sqlCopiadoMsg" style="display:none;margin-top:8px;font-size:12px;color:#3fb950;font-weight:700;">✅ SQL copiado!</div>
-            </div>
-
             <!-- ROTA ESPECIAL -->
             <div class="rota-especial-card" id="rotaEspecialCard">
                 <div class="re-title">⚡ Rota Especial
@@ -719,42 +701,6 @@ async function initAdmin() {
     await updateFiadoHeader();
     // Inicia os timers de auto-zerar em background
     setTimeout(() => carregarConfigZerar(), 500);
-    // Verifica se a tabela app_config existe
-    setTimeout(() => verificarTabelaAppConfig(), 1000);
-}
-
-// Verifica se a tabela app_config existe e mostra card de setup se não existir
-async function verificarTabelaAppConfig() {
-    try {
-        const { error } = await sb.from('app_config').select('chave').limit(1);
-        if (error && (error.code === '42P01' || error.message?.includes('app_config'))) {
-            // Tabela não existe — mostrar card de setup na próxima vez que abrir rotas
-            window._appConfigFaltando = true;
-        }
-    } catch(e) { window._appConfigFaltando = true; }
-}
-
-function copiarSQL() {
-    const sql = `CREATE TABLE IF NOT EXISTS app_config (
-  chave text PRIMARY KEY,
-  valor text
-);
-
--- Permissão de leitura/escrita anônima
-ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "allow_all" ON app_config FOR ALL USING (true) WITH CHECK (true);`;
-    navigator.clipboard.writeText(sql).then(() => {
-        const msg = document.getElementById('sqlCopiadoMsg');
-        if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
-    }).catch(() => {
-        // Fallback
-        const ta = document.createElement('textarea');
-        ta.value = sql; document.body.appendChild(ta);
-        ta.select(); document.execCommand('copy');
-        document.body.removeChild(ta);
-        const msg = document.getElementById('sqlCopiadoMsg');
-        if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
-    });
 }
 
 
@@ -784,12 +730,7 @@ function openSection(section) {
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
-        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: () => {
-            // Mostra card SQL se a tabela app_config não existir
-            const sqlCard = document.getElementById('setupSqlCard');
-            if (sqlCard && window._appConfigFaltando) sqlCard.style.display = 'block';
-            loadRotasPanel();
-        }},
+        rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos }
     };
     const s = map[section];
@@ -2967,6 +2908,48 @@ async function loadRotasPanel() {
     await carregarRotasHoje();
     await carregarRotasSalvas();
     await loadRotaEspecial();
+    // Inicia monitoramento independente de pedidos (funciona mesmo sem entregador aberto)
+    iniciarMonitorPedidosADM();
+}
+
+function iniciarMonitorPedidosADM() {
+    if (reRealtimeCh) return; // já está monitorando
+    reRealtimeCh = sb.channel('re_pedidos_adm')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+            // Recarrega config do banco para pegar versão mais recente (pode ter sido atualizada pelo entregador)
+            const { data } = await sb.from('app_config').select('valor').eq('chave','rota_especial').single().catch(()=>({data:null}));
+            if (!data) return;
+            let cfg; try { cfg = JSON.parse(data.valor); } catch(e) { return; }
+            if (!cfg?.ativa) return;
+            // Verifica horário
+            const agora = agoraISO();
+            const hora = agora.substring(11,16);
+            const diaAtual = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()];
+            if (cfg.dias?.length && !cfg.dias.includes(diaAtual)) return;
+            if (hora < cfg.hora_inicio || hora > cfg.hora_fim) return;
+            // Verifica se cliente já está na fila
+            const fila = cfg.clientes_fila || [];
+            const pedido = payload.new;
+            if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
+            // Busca dados do cliente
+            const { data: cli } = await sb.from('clients').select('name,phone,delivery_lat,delivery_lon,delivery_address').eq('phone', pedido.customer_phone).maybeSingle();
+            if (!cli?.delivery_lat || !cli?.delivery_lon) return;
+            fila.push({
+                id: Date.now().toString(),
+                phone: cli.phone,
+                nome: cli.name || pedido.customer_name,
+                endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
+                coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
+                hora_pedido: agora.substring(11,16),
+                status: 'pendente'
+            });
+            cfg.clientes_fila = fila;
+            await sb.from('app_config').upsert({ chave:'rota_especial', valor: JSON.stringify(cfg) }, { onConflict:'chave' });
+            rotaEspecialConfig = cfg;
+            atualizarStatusRE();
+            showToast({type:'success', title:'⚡ Cliente na fila!', body:`${cli.name} entrou na rota especial.`, duration:3000});
+        })
+        .subscribe();
 }
 
 async function preencherClientesComPedido() {
@@ -3543,26 +3526,64 @@ async function carregarRotasSalvas() {
     if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
-    list.innerHTML = rotas.map(r=>{
-        const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
-        const total=(r.paradas_template||r.paradas||[]).length;
-        const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
-        const cor=corS[r.status]||'#ccc';
-        return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div style="flex:1;">
-                    <div style="font-weight:700;font-size:13px;">${r.nome}</div>
-                    <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
-                    <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
-                </div>
-                <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
-                <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}\')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
-            </div>
-        </div>`;
-    }).join('');
+
+    // Separa rotas especiais das normais
+    const rotasEspeciais = rotas.filter(r => r.tipo === 'especial');
+    const rotasNormais   = rotas.filter(r => r.tipo !== 'especial');
+
+    // Bloco de rotas especiais (histórico)
+    let htmlEspeciais = '';
+    if (rotasEspeciais.length > 0) {
+        htmlEspeciais = `<div style="margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:700;color:#e67e22;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⚡ Rotas Especiais</div>` +
+            rotasEspeciais.map(r => {
+                const entregues=(r.paradas||[]).filter(p=>p.status==='entregue').length;
+                const total=(r.paradas||[]).length;
+                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const cor=corS[r.status]||'#ccc';
+                const dataHora = r.saida_em ? new Date(r.saida_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
+                return `<div style="background:linear-gradient(135deg,#fff8ee,#fff3e0);border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid #e67e22;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:13px;">⚡ ${r.nome}</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:2px;">🕐 ${dataHora} · ⏱️ ${dur}</div>
+                            <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${entregues}/${total} entregas</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
+                    </div>
+                    <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="width:100%;margin-top:8px;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                </div>`;
+            }).join('') +
+        `</div>`;
+    }
+
+    // Bloco de rotas normais
+    let htmlNormais = '';
+    if (rotasNormais.length > 0) {
+        htmlNormais = `<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🗺️ Rotas Normais</div>` +
+            rotasNormais.map(r=>{
+                const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
+                const total=(r.paradas_template||r.paradas||[]).length;
+                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const cor=corS[r.status]||'#ccc';
+                return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:13px;">${r.nome}</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                            <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
+                        <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                    </div>
+                </div>`;
+            }).join('');
+    }
+
+    list.innerHTML = htmlEspeciais + htmlNormais || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
 }
 
 // ===== LONG PRESS NO SALDO DO CABEÇALHO =====
@@ -3859,7 +3880,7 @@ function renderFilaRE(fila) {
 // Monitora novos pedidos em tempo real para adicionar à fila da rota especial
 function monitorarRotaEspecial() {
     if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); }
-    reRealtimeCh = sb.channel('rota-especial-orders')
+    reRealtimeCh = sb.channel('re_pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
             if (!rotaEspecialAtiva || !estaDentroDoHorarioRE()) return;
             const pedido = payload.new;
@@ -3878,10 +3899,9 @@ async function adicionarClienteFilaRE(pedido) {
 
     if (!cliente?.delivery_lat || !cliente?.delivery_lon) return; // sem endereço, ignora
 
-    // Verifica se já está na fila com status pendente
-    // (clientes com status 'em_rota' já foram despachados e podem pedir de novo)
+    // Verifica se já está na fila
     const fila = rotaEspecialConfig.clientes_fila || [];
-    if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
+    if (fila.find(x => x.phone === pedido.customer_phone)) return;
 
     const agora = agoraISO();
     const hora = agora.substring(11, 16);
