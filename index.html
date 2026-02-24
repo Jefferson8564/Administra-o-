@@ -1581,8 +1581,12 @@ async function loadOrders() {
     document.getElementById('rotaTabsBar').innerHTML = '';
     document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Carregando...</div>';
 
-    // Busca pedidos
-    const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
+    try {
+    // Busca todos os pedidos
+    const { data, error } = await sb.from("orders").select("*")
+        .order("created_at", { ascending: false }).limit(200);
+
+    if (error) throw error;
 
     // Busca rotas, rota especial e clientes com endereço cadastrado
     let todasRotas = [];
@@ -1594,7 +1598,7 @@ async function loadOrders() {
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
-        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Sem pedidos</div>';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Sem pedidos hoje</div>';
         return;
     }
 
@@ -1616,7 +1620,21 @@ async function loadOrders() {
     try {
         if (appCfgREValor) {
             const cfgRE = JSON.parse(appCfgREValor);
+            // Clientes já na fila
             (cfgRE.clientes_fila || []).forEach(x => { if (x.phone) phonesRotaEspecial.add(x.phone); });
+            // Fallback: pedido feito dentro do horário da rota especial
+            if (cfgRE.ativa && cfgRE.hora_inicio && cfgRE.hora_fim) {
+                (data || []).forEach(o => {
+                    if (!o.customer_phone || phonesRotaEspecial.has(o.customer_phone)) return;
+                    const brt = new Date(new Date(o.created_at).getTime()+(-3*60-new Date().getTimezoneOffset())*60000);
+                    const hora = brt.toISOString().substring(11,16);
+                    const dia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][brt.getDay()];
+                    const dentroDia = !cfgRE.dias?.length || cfgRE.dias.includes(dia);
+                    if (hora >= cfgRE.hora_inicio && hora <= cfgRE.hora_fim && dentroDia) {
+                        phonesRotaEspecial.add(o.customer_phone);
+                    }
+                });
+            }
         }
     } catch(e) {}
 
@@ -1683,6 +1701,12 @@ async function loadOrders() {
 
     // Configura swipe no carrossel
     _setupCarrosselSwipe();
+
+    } catch(e) {
+        console.error('loadOrders erro:', e);
+        document.getElementById('rotaTabsBar').innerHTML = '';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#e74c3c;">❌ Erro ao carregar pedidos.<br><small>' + e.message + '</small></div>';
+    }
 }
 
 function irParaAba(idx) {
