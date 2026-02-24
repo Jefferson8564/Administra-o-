@@ -1584,11 +1584,13 @@ async function loadOrders() {
     // Busca pedidos
     const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
 
-    // Busca rotas e rota especial com proteção individual
+    // Busca rotas, rota especial e clientes com endereço cadastrado
     let todasRotas = [];
     let appCfgREValor = null;
+    let phonesComEndereco = new Set();
     try { const { data: rd } = await sb.from("delivery_routes").select("id, nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
     try { const { data: cd } = await sb.from("app_config").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
+    try { const { data: ce } = await sb.from("clients").select("phone, delivery_lat, delivery_lon").not("delivery_lat", "is", null).not("delivery_lon", "is", null); (ce || []).forEach(c => phonesComEndereco.add(c.phone)); } catch(e) {}
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
@@ -1635,11 +1637,14 @@ async function loadOrders() {
             }
             const rotasDoCliente = phoneParaRotas[phone];
             if (rotasDoCliente && rotasDoCliente.length > 0) {
-                const key = rotasDoCliente[0].nome;
-                if (!grupos[key]) grupos[key] = [];
-                grupos[key].push(o);
-                primeirosPorCliente.add(phone);
-                return;
+                // Só conta na rota se o cliente tem endereço (igual ao entregador)
+                if (phonesComEndereco.has(phone)) {
+                    const key = rotasDoCliente[0].nome;
+                    if (!grupos[key]) grupos[key] = [];
+                    grupos[key].push(o);
+                    primeirosPorCliente.add(phone);
+                    return;
+                }
             }
         }
         geral.push(o);
@@ -3626,15 +3631,30 @@ async function gerarParadasAtivas(template) {
     const hoje = hojeStr();
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
-    const { data: pedidos } = await sb.from("orders")
-        .select("customer_phone")
-        .in("customer_phone", phones)
-        .gte("created_at", hoje + 'T00:00:00')
-        .lte("created_at", hoje + 'T23:59:59');
-    const phonesComPedido = new Set((pedidos || []).map(p => p.customer_phone));
+
+    // Busca pedidos E endereços dos clientes em paralelo
+    const [pedidosRes, clientesRes] = await Promise.all([
+        sb.from("orders")
+            .select("customer_phone")
+            .in("customer_phone", phones)
+            .gte("created_at", hoje + 'T00:00:00-03:00')
+            .lte("created_at", hoje + 'T23:59:59-03:00'),
+        sb.from("clients")
+            .select("phone, delivery_lat, delivery_lon")
+            .in("phone", phones)
+    ]);
+
+    const phonesComPedido = new Set((pedidosRes.data || []).map(p => p.customer_phone));
+    // Só conta quem tem endereço cadastrado (igual ao entregador)
+    const phonesComEndereco = new Set(
+        (clientesRes.data || [])
+            .filter(c => c.delivery_lat && c.delivery_lon)
+            .map(c => c.phone)
+    );
+
     let ordem = 0;
     return template
-        .filter(p => phonesComPedido.has(p.cliente_phone))
+        .filter(p => phonesComPedido.has(p.cliente_phone) && phonesComEndereco.has(p.cliente_phone))
         .map(p => ({
             ...p,
             status: 'pendente',
