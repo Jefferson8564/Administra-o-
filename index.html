@@ -42,6 +42,28 @@
         .back-btn { background: #f0f0f0; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #333; }
         .back-section-title { font-weight: 700; color: var(--primary); font-size: 16px; }
 
+        /* ROTA ESPECIAL */
+        .rota-especial-card { background: linear-gradient(135deg, #1a1a2e 0%, #0d2137 100%); border-radius: 18px; padding: 16px; margin-bottom: 15px; border: 1.5px solid rgba(255,165,0,0.3); box-shadow: 0 4px 20px rgba(255,140,0,0.15); }
+        .rota-especial-ativa { border-color: rgba(255,165,0,0.7); box-shadow: 0 4px 24px rgba(255,140,0,0.35); }
+        .re-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .re-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+        .re-horarios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .re-campo { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 12px; }
+        .re-campo label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+        .re-campo input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 800; width: 100%; outline: none; }
+        .re-dias { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 14px; }
+        .re-dia { text-align: center; padding: 7px 2px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); }
+        .re-dia.ativo { border-color: #f5a623; background: rgba(245,166,35,0.2); color: #f5a623; }
+        .re-status { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+        .re-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; flex-shrink: 0; }
+        .re-status-dot.ativa { background: #f5a623; box-shadow: 0 0 8px #f5a623; animation: rePulse 1.5s ease-in-out infinite; }
+        .re-status-dot.fora { background: #95a5a6; }
+        @keyframes rePulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        .re-clientes-fila { margin-top: 10px; }
+        .re-cliente-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+        .re-cliente-nome { font-size: 13px; font-weight: 700; color: #f0f0f8; flex: 1; }
+        .re-cliente-hora { font-size: 11px; color: rgba(255,255,255,0.4); }
+
         /* CARDS */
         .card-box { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
         .card-box h4 { color: var(--primary); margin-bottom: 12px; }
@@ -211,7 +233,7 @@
         <div class="back-area" style="justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
-                <span class="back-section-title" id="sectionTitle"></span>
+                <span class="back-section-title" id="sectionTitle" onclick="toggleAutoZerarBox()" style="cursor:pointer;user-select:none;-webkit-user-select:none;"></span>
             </div>
             <button id="btnInativos" onclick="verClientesInativos()" style="display:none; padding:7px 12px; background:#fff3e0; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">
                 ⏰ Inativos
@@ -305,93 +327,6 @@
                 <div id="summaryHoldBar" style="position:absolute; bottom:0; left:0; height:3px; width:0%; background:#f1c40f;"></div>
             </div>
 
-            <!-- PAINEL AUTO-ZERAR COM JANELA DE TEMPO -->
-            <div style="background:linear-gradient(135deg,#1a1a2e,#2c1a3e);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
-                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
-                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Define o período dos pedidos que serão apagados automaticamente em um horário específico.</div>
-
-                <!-- Janela 1 -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <div>
-                            <div style="font-weight:800;font-size:14px;">📅 Janela 1</div>
-                            <div id="zerarStatus1" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
-                        </div>
-                        <label class="switch"><input type="checkbox" id="zerarToggle1" onchange="toggleZerar(1,this.checked)"><span class="slider"></span></label>
-                    </div>
-                    <!-- Horário de execução -->
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
-                    <input type="time" id="zerarExec1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
-                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
-                    <!-- Período dos pedidos a apagar -->
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
-                            <input type="time" id="zerarDe1" class="input-text" value="12:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
-                            <input type="time" id="zerarAte1" class="input-text" value="11:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                    </div>
-                    <div id="zerarPreview1" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
-                    <button onclick="abrirModalProtegidos(1)"
-                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
-                        🛡️ Clientes protegidos: <span id="zerarProtegidos1Label">nenhum</span>
-                    </button>
-                </div>
-
-                <!-- Janela 2 -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <div>
-                            <div style="font-weight:800;font-size:14px;">📅 Janela 2</div>
-                            <div id="zerarStatus2" style="font-size:11px;opacity:0.65;margin-top:2px;">Desativado</div>
-                        </div>
-                        <label class="switch"><input type="checkbox" id="zerarToggle2" onchange="toggleZerar(2,this.checked)"><span class="slider"></span></label>
-                    </div>
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:4px;">⏰ Executar às</div>
-                    <input type="time" id="zerarExec2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
-                        style="margin-bottom:10px;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-size:15px;font-weight:700;">
-                    <div style="font-size:11px;font-weight:700;opacity:0.7;margin-bottom:6px;">🗓️ Apagar pedidos feitos entre</div>
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Dia anterior às</div>
-                            <input type="time" id="zerarDe2" class="input-text" value="12:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                        <div style="font-size:18px;opacity:0.4;padding-top:16px;">→</div>
-                        <div style="flex:1;">
-                            <div style="font-size:10px;opacity:0.55;margin-bottom:3px;">Hoje até às</div>
-                            <input type="time" id="zerarAte2" class="input-text" value="23:00" onchange="salvarConfigZerar()"
-                                style="margin-bottom:0;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;font-weight:700;">
-                        </div>
-                    </div>
-                    <div id="zerarPreview2" style="font-size:11px;opacity:0.6;background:rgba(255,255,255,0.06);border-radius:8px;padding:7px 10px;margin-bottom:10px;"></div>
-                    <button onclick="abrirModalProtegidos(2)"
-                        style="width:100%;padding:9px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">
-                        🛡️ Clientes protegidos: <span id="zerarProtegidos2Label">nenhum</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- MODAL PROTEGIDOS -->
-            <div id="modalProtegidos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-                <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:82vh;overflow-y:auto;padding:20px 18px 36px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                        <h3 id="modalProtegidosTitulo" style="color:#1a1a2e;font-size:17px;">🛡️ Clientes Protegidos</h3>
-                        <button onclick="fecharModalProtegidos()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
-                    </div>
-                    <p style="font-size:12px;color:#999;margin-bottom:14px;">Clientes marcados <strong>não terão os pedidos apagados</strong> nesta janela.</p>
-                    <div id="protegidosList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;"></div>
-                    <button onclick="salvarProtegidos()" style="margin-top:16px;width:100%;padding:13px;background:linear-gradient(135deg,#1a1a2e,#c75b24);color:white;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;">💾 Salvar</button>
-                </div>
-            </div>
-
             <!-- MODAL: clientes do período -->
             <div id="modalExcluirClientes" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
                 <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
@@ -405,11 +340,92 @@
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#333;">Últimos Pedidos</h3>
-                <button onclick="clearAllOrders()" class="btn btn-danger btn-sm">Zerar Tudo</button>
+            <!-- ABAS DE ROTAS -->
+            <div id="rotaTabsBar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+                <!-- preenchido dinamicamente pelo JS -->
             </div>
-            <div id="orderList"></div>
+
+            <!-- CARROSSEL DE PEDIDOS -->
+            <div id="orderCarousel" style="overflow:hidden;position:relative;">
+                <div id="orderSlides" style="display:flex;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform;">
+                    <!-- slides preenchidos dinamicamente -->
+                </div>
+            </div>
+
+            <!-- fallback antigo (escondido) -->
+            <div id="orderList" style="display:none;"></div>
+
+            <!-- AUTO-ZERAR PEDIDOS -->
+            <div id="autoZerarBox" style="display:none;background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
+                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
+                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Apaga pedidos criados antes do horário limite definido</div>
+
+                <!-- Slot 1 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);">⏰ Janela 1</div>
+                        <label class="switch">
+                            <input type="checkbox" id="zerarToggle1" onchange="salvarConfigZerar(1)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
+                            <input type="time" id="zerarAte1" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(1)">
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
+                            <input type="time" id="zerarExec1" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(1)">
+                        </div>
+                    </div>
+                    <div id="zerarPreview1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div id="zerarStatus1" style="font-size:11px;color:rgba(255,255,255,0.5);flex:1;"></div>
+                        <button onclick="abrirModalProtegidos(1)" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;cursor:pointer;">
+                            🛡️ Protegidos: <span id="zerarProtegidos1Label">nenhum</span>
+                        </button>
+                    </div>
+                    <button onclick="salvarConfigZerar(1)" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar Janela 1</button>
+                </div>
+
+                <!-- Slot 2 -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);">⏰ Janela 2</div>
+                        <label class="switch">
+                            <input type="checkbox" id="zerarToggle2" onchange="salvarConfigZerar(2)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
+                            <input type="time" id="zerarAte2" value="23:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(2)">
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
+                            <input type="time" id="zerarExec2" value="23:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela(2)">
+                        </div>
+                    </div>
+                    <div id="zerarPreview2" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div id="zerarStatus2" style="font-size:11px;color:rgba(255,255,255,0.5);flex:1;"></div>
+                        <button onclick="abrirModalProtegidos(2)" style="background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:5px 10px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;cursor:pointer;">
+                            🛡️ Protegidos: <span id="zerarProtegidos2Label">nenhum</span>
+                        </button>
+                    </div>
+                    <button onclick="salvarConfigZerar(2)" style="margin-top:10px;width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar Janela 2</button>
+                </div>
+            </div>
         </div>
 
         <div id="tab-msg" class="section">
@@ -486,7 +502,7 @@
             <div id="agendamentoBanner" style="background:linear-gradient(135deg,#1a1a2e,#4a235a);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático às 6h</div>
+                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático</div>
                         <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
                     </div>
                     <label class="switch" style="transform:scale(1.2);">
@@ -494,8 +510,17 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <!-- Editor de horário -->
+                <div style="margin-top:12px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+                    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🕐 Horário do disparo automático</div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <input type="time" id="autoRefazerHorario" value="03:00"
+                            style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:20px;font-weight:900;padding:8px 12px;outline:none;flex:1;">
+                        <button onclick="salvarHorarioRefazer()" style="padding:9px 14px;background:linear-gradient(135deg,#8e44ad,#6c3483);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💾 Salvar</button>
+                    </div>
+                </div>
                 <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;display:none;">
-                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente às <strong>06:00</strong> de amanhã.
+                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente no horário configurado.
                 </div>
                 <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
             </div>
@@ -585,6 +610,51 @@
 
         <!-- ABA PAINEL DE ROTAS -->
         <div id="tab-rotas" class="section">
+
+            <!-- ROTA ESPECIAL -->
+            <div class="rota-especial-card" id="rotaEspecialCard">
+                <div class="re-title">⚡ Rota Especial
+                    <span id="reStatusBadge" style="font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-weight:700;margin-left:auto;">Inativa</span>
+                </div>
+                <div class="re-sub">Clientes que pedirem no horário entram automaticamente</div>
+
+                <div class="re-horarios">
+                    <div class="re-campo">
+                        <label>⏰ Início</label>
+                        <input type="time" id="reHoraInicio" value="14:00">
+                    </div>
+                    <div class="re-campo">
+                        <label>🏁 Fim</label>
+                        <input type="time" id="reHoraFim" value="17:00">
+                    </div>
+                </div>
+
+                <div class="re-dias" id="reDias">
+                    <div class="re-dia" data-re-dia="Dom" onclick="toggleReDia(this)">Dom</div>
+                    <div class="re-dia" data-re-dia="Seg" onclick="toggleReDia(this)">Seg</div>
+                    <div class="re-dia" data-re-dia="Ter" onclick="toggleReDia(this)">Ter</div>
+                    <div class="re-dia" data-re-dia="Qua" onclick="toggleReDia(this)">Qua</div>
+                    <div class="re-dia" data-re-dia="Qui" onclick="toggleReDia(this)">Qui</div>
+                    <div class="re-dia" data-re-dia="Sex" onclick="toggleReDia(this)">Sex</div>
+                    <div class="re-dia" data-re-dia="Sáb" onclick="toggleReDia(this)">Sáb</div>
+                </div>
+
+                <div class="re-status">
+                    <div class="re-status-dot" id="reStatusDot"></div>
+                    <div style="flex:1;">
+                        <div id="reStatusTexto" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);">Configurar e ativar</div>
+                        <div id="reClientesFila" style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;"></div>
+                    </div>
+                    <div id="reContador" style="font-size:22px;font-weight:900;color:#f5a623;display:none;">0</div>
+                </div>
+
+                <div id="reClientesLista" class="re-clientes-fila" style="display:none;"></div>
+
+                <div style="display:flex;gap:8px;">
+                    <button onclick="salvarRotaEspecial()" style="flex:1;padding:12px;background:linear-gradient(135deg,#f5a623,#e67e22);color:#000;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
+                    <button onclick="toggleAtivarRotaEspecial()" id="btnAtivarRE" style="flex:1;padding:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">▶ Ativar</button>
+                </div>
+            </div>
 
             <!-- CRIAR NOVA ROTA -->
             <div class="card-box">
@@ -689,6 +759,26 @@ const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
+function agoraISO() {
+  const now = new Date();
+  const offset = -3 * 60;
+  const local = new Date(now.getTime() + (offset - now.getTimezoneOffset()) * 60000);
+  return local.toISOString().replace('Z', '-03:00');
+}
+function hojeStr() {
+  return agoraISO().split('T')[0];
+}
+function brasiliaDate(d) {
+  // Converte qualquer Date para o equivalente em Brasília
+  const offset = -3 * 60;
+  return new Date(d.getTime() + (offset - d.getTimezoneOffset()) * 60000);
+}
+function horasBRT(d) {
+  // Retorna o objeto Date ajustado para BRT, útil para .getHours()/.getMinutes()
+  return brasiliaDate(d || new Date());
+}
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
 let msgComprovante = "🧾 *COMPROVANTE DE PAGAMENTO*\n*O Rei da Coxinha* 🍗\n──────────────────\n👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}\n──────────────────\n✅ Obrigado pelo pagamento!";
@@ -703,8 +793,54 @@ async function initAdmin() {
     document.getElementById('homeScreen').style.display = 'block';
     await loadTemplates();
     await updateFiadoHeader();
-    // Inicia os timers de auto-zerar em background
-    setTimeout(() => carregarConfigZerar(), 500);
+    // Inicia os timers e verifica execucoes perdidas
+    setTimeout(async () => {
+        carregarConfigZerar();
+        await verificarExecucoesPerdidas();
+    }, 500);
+}
+
+// Verifica se algum disparo automatico deveria ter ocorrido hoje e foi perdido
+async function verificarExecucoesPerdidas() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+
+    // Auto-Refazer
+    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec') || '';
+        const jaExecutouHoje = ultimaExec.startsWith(hoje);
+        const horario = getHorarioRefazer();
+        const [hh, mm] = horario.split(':').map(Number);
+        const agora = new Date();
+        const hojeAlvo = new Date(agora);
+        hojeAlvo.setHours(hh, mm, 0, 0);
+        const passouHorario = agora >= hojeAlvo;
+
+        if (passouHorario && !jaExecutouHoje) {
+            console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
+            await executarAutoRefazer();
+        }
+        agendarAutoRefazer();
+    }
+
+    // Auto-Zerar slots 1 e 2
+    const cfg = getConfigZerar();
+    for (const slot of [1, 2]) {
+        if (!cfg['ativo' + slot]) continue;
+        const exec = cfg['exec' + slot] || '11:00';
+        const [hh, mm] = exec.split(':').map(Number);
+        const agora = new Date();
+        const hojeAlvo = new Date(agora);
+        hojeAlvo.setHours(hh, mm, 0, 0);
+        const passouHorario = agora >= hojeAlvo;
+
+        const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
+        const jaExecutouHoje = log.some(function(entry) { return entry.slot === slot && entry.ts && entry.ts.startsWith(hoje); });
+
+        if (passouHorario && !jaExecutouHoje) {
+            console.log('[AutoZerar slot ' + slot + '] Execucao perdida detectada, executando agora');
+            await executarZerarJanela(slot);
+        }
+    }
 }
 
 
@@ -743,6 +879,17 @@ function openSection(section) {
     // Mostra botão de inativos apenas na aba clientes
     document.getElementById('btnInativos').style.display = section === 'clientes' ? 'block' : 'none';
     s.fn();
+}
+
+function toggleAutoZerarBox() {
+    // Só abre se estiver na aba de pedidos
+    const box = document.getElementById('autoZerarBox');
+    if (!box) return;
+    const visivel = box.style.display !== 'none';
+    box.style.display = visivel ? 'none' : 'block';
+    // Feedback visual no título
+    const titulo = document.getElementById('sectionTitle');
+    if (titulo) titulo.style.opacity = visivel ? '1' : '0.7';
 }
 
 function goHome() {
@@ -1076,16 +1223,6 @@ function enviarComprovanteWpp() {
     _comprovanteTemp = { phone: null, texto: null };
 }
 
-function enviarComprovanteManual(phone, name, debt) {
-    const now = new Date();
-    const dataHora = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const extrato = msgExtrato
-        .replace('{nome}', name)
-        .replace('{data}', dataHora)
-        .replace('{saldo}', Number(debt).toFixed(2).replace('.', ','));
-    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(extrato)}`, '_blank');
-}
-
 async function deleteClient(phone) {
     if (phone === ADMIN_NUM) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Não é possível remover o administrador!' }); return; }
     showToast({
@@ -1215,22 +1352,26 @@ async function loadOrderSummary() {
     const grid = document.getElementById('orderSummaryGrid');
     if (!grid) return;
 
-    // Janela: das 12h de hoje até 5h do dia seguinte
-    const now = new Date();
-    const start = new Date(now);
-    start.setHours(12, 0, 0, 0);
-    // Se agora for antes das 12h, volta para 12h do dia anterior
-    if (now.getHours() < 12) {
-        start.setDate(start.getDate() - 1);
+    // Janela: das 12h BRT de hoje/ontem até agora
+    const agoraBRT = agoraISO(); // ex: "2025-02-23T23:05:00-03:00"
+    const horaBRT = parseInt(agoraBRT.substring(11, 13));
+    const dataBRT = agoraBRT.substring(0, 10); // "2025-02-23"
+
+    // Calcula data de início: 12h do dia atual BRT, ou 12h do dia anterior se agora < 12h
+    let dataInicio;
+    if (horaBRT < 12) {
+        // dia anterior em BRT
+        const d = new Date(dataBRT + 'T00:00:00-03:00');
+        d.setDate(d.getDate() - 1);
+        const dStr = d.toISOString().substring(0, 10);
+        dataInicio = dStr + 'T12:00:00-03:00';
+    } else {
+        dataInicio = dataBRT + 'T12:00:00-03:00';
     }
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    end.setHours(5, 0, 0, 0);
 
     const { data } = await sb.from("orders")
         .select("items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", dataInicio);
 
     const contagem = {};
     let totalGeral = 0;
@@ -1336,15 +1477,15 @@ async function abrirModalExcluir() {
     const now = new Date();
     const start = new Date(now);
     start.setHours(12, 0, 0, 0);
-    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
 
     const { data } = await sb.from("orders")
         .select("customer_name, customer_phone, items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", brasiliaDate(start).toISOString())
+        .lte("created_at", brasiliaDate(end).toISOString());
 
     _summaryOrders = data || [];
 
@@ -1396,15 +1537,15 @@ async function aplicarExclusoes() {
     const now = new Date();
     const start = new Date(now);
     start.setHours(12, 0, 0, 0);
-    if (now.getHours() < 12) start.setDate(start.getDate() - 1);
+    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
 
     const { data } = await sb.from("orders")
         .select("customer_phone, items")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString());
+        .gte("created_at", brasiliaDate(start).toISOString())
+        .lte("created_at", brasiliaDate(end).toISOString());
 
     const contagem = {};
     (data || []).forEach(o => {
@@ -1427,14 +1568,188 @@ async function aplicarExclusoes() {
     renderSummaryGrid(contagem);
 }
 
+// Controle do carrossel de abas de pedidos
+let _abaAtual = 0;
+let _totalAbas = 0;
+let _carrosselStartX = 0;
+let _carrosselDragging = false;
+
 async function loadOrders() {
     loadOrderSummary();
-    const list = document.getElementById('orderList');
-    list.innerHTML = '<div style="text-align:center;color:#888;">Carregando...</div>';
-    const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
-    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Sem pedidos</div>'; return; }
+
+    // Mostra "Carregando..." no carrossel
+    document.getElementById('rotaTabsBar').innerHTML = '';
+    document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Carregando...</div>';
+
+    try {
+    // Busca todos os pedidos
+    const { data, error } = await sb.from("orders").select("*")
+        .order("created_at", { ascending: false }).limit(200);
+
+    if (error) throw error;
+
+    // Busca rotas, rota especial e clientes com endereço cadastrado
+    let todasRotas = [];
+    let appCfgREValor = null;
+    let phonesComEndereco = new Set();
+    try { const { data: rd } = await sb.from("delivery_routes").select("id, nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
+    try { const { data: cd } = await sb.from("app_config").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
+    try { const { data: ce } = await sb.from("clients").select("phone, delivery_lat, delivery_lon").not("delivery_lat", "is", null).not("delivery_lon", "is", null); (ce || []).forEach(c => phonesComEndereco.add(c.phone)); } catch(e) {}
+
+    if (!data || data.length === 0) {
+        document.getElementById('rotaTabsBar').innerHTML = '';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Sem pedidos hoje</div>';
+        return;
+    }
+
     data.forEach(o => { ordersMap[o.id] = o; });
-    list.innerHTML = data.map(o => buildOrderCard(o)).join('');
+
+    // Monta mapa phone → rota que o cliente pertence
+    const phoneParaRotas = {};
+    (todasRotas || []).forEach(r => {
+        (r.paradas_template || r.paradas || []).forEach(p => {
+            const phone = p.cliente_phone;
+            if (!phone) return;
+            if (!phoneParaRotas[phone]) phoneParaRotas[phone] = [];
+            phoneParaRotas[phone].push({ id: r.id, nome: r.nome });
+        });
+    });
+
+    // Rota Especial
+    let phonesRotaEspecial = new Set();
+    try {
+        if (appCfgREValor) {
+            const cfgRE = JSON.parse(appCfgREValor);
+            // Clientes já na fila
+            (cfgRE.clientes_fila || []).forEach(x => { if (x.phone) phonesRotaEspecial.add(x.phone); });
+            // Fallback: pedido feito dentro do horário da rota especial
+            if (cfgRE.ativa && cfgRE.hora_inicio && cfgRE.hora_fim) {
+                (data || []).forEach(o => {
+                    if (!o.customer_phone || phonesRotaEspecial.has(o.customer_phone)) return;
+                    const brt = new Date(new Date(o.created_at).getTime()+(-3*60-new Date().getTimezoneOffset())*60000);
+                    const hora = brt.toISOString().substring(11,16);
+                    const dia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][brt.getDay()];
+                    const dentroDia = !cfgRE.dias?.length || cfgRE.dias.includes(dia);
+                    if (hora >= cfgRE.hora_inicio && hora <= cfgRE.hora_fim && dentroDia) {
+                        phonesRotaEspecial.add(o.customer_phone);
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+
+    // Separa pedidos: 1º pedido do cliente → rota, demais → Geral
+    const primeirosPorCliente = new Set();
+    const grupos = {};
+    const geral = [];
+
+    data.forEach(o => {
+        const phone = o.customer_phone;
+        if (!primeirosPorCliente.has(phone)) {
+            if (phonesRotaEspecial.has(phone)) {
+                const key = '⚡ Rota Especial';
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(o);
+                primeirosPorCliente.add(phone);
+                return;
+            }
+            const rotasDoCliente = phoneParaRotas[phone];
+            if (rotasDoCliente && rotasDoCliente.length > 0) {
+                // Só conta na rota se o cliente tem endereço (igual ao entregador)
+                if (phonesComEndereco.has(phone)) {
+                    const key = rotasDoCliente[0].nome;
+                    if (!grupos[key]) grupos[key] = [];
+                    grupos[key].push(o);
+                    primeirosPorCliente.add(phone);
+                    return;
+                }
+            }
+        }
+        geral.push(o);
+    });
+
+    // Monta lista de abas: Geral primeiro, depois rotas em ordem crescente (Rota 1, Rota 2...)
+    const abas = [];
+    abas.push({ label: '📋 Geral', orders: geral, cor: '#555' });
+    const rotasOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+    rotasOrdenadas.forEach(nome => {
+        const isEspecial = nome.toLowerCase().includes('especial');
+        abas.push({ label: (isEspecial ? '⚡ ' : '🗺️ ') + nome, orders: grupos[nome], cor: isEspecial ? '#c75b24' : '#1e8449' });
+    });
+
+    _totalAbas = abas.length;
+    _abaAtual = 0;
+
+    // Renderiza barra de abas
+    const tabsBar = document.getElementById('rotaTabsBar');
+    tabsBar.innerHTML = abas.map((a, i) => `
+        <button id="rotaTab_${i}" onclick="irParaAba(${i})" data-cor="${a.cor}"
+            style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;white-space:nowrap;
+            background:${i===0 ? a.cor : '#e8e8e8'};color:${i===0 ? 'white' : '#555'};">
+            ${a.label} <span style="opacity:0.8;font-size:11px;">${a.orders.length}</span>
+        </button>`).join('');
+
+    // Renderiza slides
+    const slides = document.getElementById('orderSlides');
+    slides.innerHTML = abas.map(a => `
+        <div style="min-width:100%;box-sizing:border-box;padding:0 2px;">
+            ${a.orders.length === 0
+                ? '<div style="text-align:center;color:#aaa;padding:40px 0;font-size:14px;">Nenhum pedido nesta aba</div>'
+                : a.orders.map(o => buildOrderCard(o)).join('')
+            }
+        </div>`).join('');
+
+    // Configura swipe no carrossel
+    _setupCarrosselSwipe();
+
+    } catch(e) {
+        console.error('loadOrders erro:', e);
+        document.getElementById('rotaTabsBar').innerHTML = '';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#e74c3c;">❌ Erro ao carregar pedidos.<br><small>' + e.message + '</small></div>';
+    }
+}
+
+function irParaAba(idx) {
+    _abaAtual = Math.max(0, Math.min(idx, _totalAbas - 1));
+    document.getElementById('orderSlides').style.transform = `translateX(-${_abaAtual * 100}%)`;
+    // Atualiza visual das abas
+    document.querySelectorAll('[id^="rotaTab_"]').forEach(btn => {
+        const aba = parseInt(btn.id.replace('rotaTab_', ''));
+        btn.style.background = aba === _abaAtual ? (btn.dataset.cor || '#555') : '#e8e8e8';
+        btn.style.color = aba === _abaAtual ? 'white' : '#555';
+    });
+    // Scroll a aba ativa para o centro
+    const tabEl = document.getElementById('rotaTab_' + _abaAtual);
+    if (tabEl) tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function _setupCarrosselSwipe() {
+    const slides = document.getElementById('orderSlides');
+    if (!slides || slides._swipeSetup) return;
+    slides._swipeSetup = true;
+    let startX = 0, startY = 0, isHoriz = null;
+
+    slides.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isHoriz = null;
+    }, { passive: true });
+
+    slides.addEventListener('touchmove', e => {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (isHoriz === null) isHoriz = Math.abs(dx) > Math.abs(dy);
+        if (isHoriz) e.preventDefault();
+    }, { passive: false });
+
+    slides.addEventListener('touchend', e => {
+        if (!isHoriz) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) {
+            if (dx < 0 && _abaAtual < _totalAbas - 1) irParaAba(_abaAtual + 1);
+            else if (dx > 0 && _abaAtual > 0) irParaAba(_abaAtual - 1);
+        }
+    }, { passive: true });
 }
 
 function buildOrderCard(o) {
@@ -1488,11 +1803,6 @@ function buildOrderCard(o) {
     </div>`;
 }
 
-async function deletarPedido(orderId) {
-    await sb.from("orders").delete().eq("id", orderId);
-    delete ordersMap[orderId];
-}
-
 function confirmarCancelamentoPedido(orderId) {
     const o = ordersMap[orderId];
     if (!o) return;
@@ -1513,36 +1823,45 @@ async function executarCancelamentoPedido(orderId) {
     const o = ordersMap[orderId];
     if (!o) return;
 
-    // Se era FIADO, reverte o débito do cliente
-    if (o.payment_method === 'FIADO' && o.customer_phone) {
-        const { data: c } = await sb.from("clients").select("debt").eq("phone", o.customer_phone).single();
+    const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
+
+    // Só reverte o saldo se o pedido era FIADO (pagar depois)
+    // Pagar na entrega: cliente ainda não pagou, não há nada a devolver
+    if (isFiado && o.customer_phone) {
+        const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
         if (c) {
-            const novaDiv = Math.max(0, (c.debt || 0) - Number(o.total));
+            const saldoAntes = c.debt || 0;
+            const novaDiv = saldoAntes - Number(o.total);
             await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+
+            // Registra estorno na tabela payments
+            await sb.from("payments").insert({
+                client_name: c.name || o.customer_name,
+                client_phone: o.customer_phone,
+                amount: Number(o.total),
+                saldo_anterior: saldoAntes,
+                saldo_posterior: novaDiv,
+                tipo: "reembolso"
+            });
         }
     }
 
-    // Marca pedido como cancelado
-    await sb.from("orders").update({ status: 'CANCELADO' }).eq("id", orderId);
-    ordersMap[orderId] = { ...o, status: 'CANCELADO' };
+    // Deleta o pedido do banco
+    await sb.from("orders").delete().eq("id", orderId);
+    delete ordersMap[orderId];
 
-    // Atualiza o card visualmente
+    // Remove o card visualmente
     const wrap = document.getElementById('wrap_' + orderId);
     if (wrap) {
-        const card = document.getElementById('order_' + orderId);
-        if (card) card.style.opacity = '0.6';
-        const btn = wrap.querySelector('button[onclick*="confirmarCancelamentoPedido"]');
-        if (btn) {
-            btn.removeAttribute('onclick');
-            btn.textContent = '❌ Pedido Cancelado';
-            btn.style.background = '#fafafa';
-            btn.style.borderColor = '#ccc';
-            btn.style.color = '#aaa';
-            btn.style.cursor = 'default';
-        }
+        wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
+        wrap.style.opacity = '0';
+        setTimeout(() => wrap.remove(), 300);
     }
 
-    showToast({ type: 'success', title: '✅ Cancelado!', body: `Pedido de ${o.customer_name} marcado como cancelado.`, duration: 3000 });
+    const msg = isFiado
+        ? `Pedido de ${o.customer_name} cancelado e débito revertido.`
+        : `Pedido de ${o.customer_name} cancelado. Nenhum valor foi cobrado.`;
+    showToast({ type: 'success', title: '✅ Cancelado!', body: msg, duration: 3000 });
 }
 
 function mudarParaFiado(orderId) {
@@ -1601,16 +1920,17 @@ function carregarConfigZerar() {
     try {
         const cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
         for (const slot of [1, 2]) {
-            const exec = cfg[`exec${slot}`] || (slot === 1 ? '11:00' : '23:00');
-            const de   = cfg[`de${slot}`]   || '12:00';
-            const ate  = cfg[`ate${slot}`]  || (slot === 1 ? '11:00' : '23:00');
-            const ativo = cfg[`ativo${slot}`] || false;
-            const protegidos = cfg[`protegidos${slot}`] || [];
+            const exec = cfg['exec' + slot] || (slot === 1 ? '12:00' : '23:00');
+            const ate  = cfg['ate'  + slot] || (slot === 1 ? '12:00' : '23:00');
+            const ativo = cfg['ativo' + slot] || false;
+            const protegidos = cfg['protegidos' + slot] || [];
 
-            document.getElementById(`zerarExec${slot}`).value = exec;
-            document.getElementById(`zerarDe${slot}`).value   = de;
-            document.getElementById(`zerarAte${slot}`).value  = ate;
-            document.getElementById(`zerarToggle${slot}`).checked = ativo;
+            const elExec = document.getElementById('zerarExec' + slot);
+            const elAte  = document.getElementById('zerarAte'  + slot);
+            const elTog  = document.getElementById('zerarToggle' + slot);
+            if (elExec) elExec.value = exec;
+            if (elAte)  elAte.value  = ate;
+            if (elTog)  elTog.checked = ativo;
 
             atualizarPreviewJanela(slot);
             atualizarLabelProtegidos(slot, protegidos);
@@ -1620,46 +1940,36 @@ function carregarConfigZerar() {
     } catch(e) { console.warn('carregarConfigZerar', e); }
 }
 
+function salvarConfigZerar(slot) {
+    const cfg = getConfigZerar();
+    const exec  = document.getElementById('zerarExec' + slot)?.value || '12:00';
+    const ate   = document.getElementById('zerarAte'  + slot)?.value || '12:00';
+    const ativo = document.getElementById('zerarToggle' + slot)?.checked || false;
+
+    cfg['exec' + slot]  = exec;
+    cfg['ate'  + slot]  = ate;
+    cfg['ativo'+ slot]  = ativo;
+
+    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
+    atualizarPreviewJanela(slot);
+    atualizarStatusZerar(slot, ativo, exec);
+    if (ativo) agendarZerar(slot);
+    else if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
+
+    showToast({ type:'success', title:'✅ Janela ' + slot + ' salva!', body: ativo ? 'Executará às ' + exec : 'Janela desativada.', duration: 3000 });
+}
+
 function getConfigZerar() {
     try { return JSON.parse(localStorage.getItem('autoZerar_config') || '{}'); } catch(e) { return {}; }
 }
 
-function salvarConfigZerar() {
-    const cfg = getConfigZerar();
-    for (const slot of [1, 2]) {
-        cfg[`exec${slot}`] = document.getElementById(`zerarExec${slot}`)?.value || cfg[`exec${slot}`];
-        cfg[`de${slot}`]   = document.getElementById(`zerarDe${slot}`)?.value   || cfg[`de${slot}`];
-        cfg[`ate${slot}`]  = document.getElementById(`zerarAte${slot}`)?.value  || cfg[`ate${slot}`];
-        atualizarPreviewJanela(slot);
-    }
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    // Reagenda os ativos
-    for (const slot of [1, 2]) {
-        if (cfg[`ativo${slot}`]) agendarZerar(slot);
-    }
-}
-
 // Mostra no painel o intervalo legível: "seg 12:00 → ter 11:00"
 function atualizarPreviewJanela(slot) {
-    const el = document.getElementById(`zerarPreview${slot}`);
+    const el = document.getElementById('zerarPreview' + slot);
     if (!el) return;
-    const de  = document.getElementById(`zerarDe${slot}`)?.value  || '--:--';
-    const ate = document.getElementById(`zerarAte${slot}`)?.value || '--:--';
-    const exec = document.getElementById(`zerarExec${slot}`)?.value || '--:--';
-    el.textContent = `🗑️ Pedidos de ontem ${de} até hoje ${ate} → executado às ${exec}`;
-}
-
-function toggleZerar(slot, ativo) {
-    const cfg = getConfigZerar();
-    cfg[`ativo${slot}`] = ativo;
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    const exec = document.getElementById(`zerarExec${slot}`)?.value || '11:00';
-    atualizarStatusZerar(slot, ativo, exec);
-    if (ativo) {
-        agendarZerar(slot);
-    } else {
-        if (zerarTimers[slot-1]) { clearTimeout(zerarTimers[slot-1]); zerarTimers[slot-1] = null; }
-    }
+    const ate  = document.getElementById('zerarAte' + slot)?.value  || '--:--';
+    const exec = document.getElementById('zerarExec' + slot)?.value || '--:--';
+    el.textContent = '🗑️ Apaga todos os pedidos anteriores a ' + ate + ' de hoje · disparo às ' + exec;
 }
 
 function atualizarStatusZerar(slot, ativo, execHora) {
@@ -1698,35 +2008,22 @@ function agendarZerar(slot) {
 
 async function executarZerarJanela(slot) {
     const cfg = getConfigZerar();
-    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
-    const deHora  = cfg[`de${slot}`]  || '12:00';
-    const ateHora = cfg[`ate${slot}`] || '11:00';
+    const protegidos = new Set(cfg['protegidos' + slot] || []);
+    const ateHora = cfg['ate' + slot] || '12:00';
 
-    // Monta o intervalo: de = ontem no horário "de", ate = hoje no horário "ate"
+    // Apaga TODOS os pedidos criados antes do horário limite de hoje
     const agora = new Date();
-    const ontem = new Date(agora);
-    ontem.setDate(ontem.getDate() - 1);
-
-    const [deH, deM] = deHora.split(':').map(Number);
     const [ateH, ateM] = ateHora.split(':').map(Number);
+    const limite = new Date(agora);
+    limite.setHours(ateH, ateM, 59, 999);
+    const limiteISO = brasiliaDate(limite).toISOString();
 
-    const inicio = new Date(ontem);
-    inicio.setHours(deH, deM, 0, 0);
-
-    const fim = new Date(agora);
-    fim.setHours(ateH, ateM, 59, 999);
-
-    const inicioISO = inicio.toISOString();
-    const fimISO    = fim.toISOString();
-
-    // Busca pedidos no período
     const { data: pedidos } = await sb.from("orders")
         .select("id,customer_phone,customer_name")
-        .gte("created_at", inicioISO)
-        .lte("created_at", fimISO);
+        .lte("created_at", limiteISO);
 
     if (!pedidos || pedidos.length === 0) {
-        showToast({ type:'success', title:`📅 Janela ${slot} executada`, body:'Nenhum pedido encontrado no período.', duration:4000 });
+        showToast({ type:'success', title:'📅 Janela ' + slot + ' executada', body:'Nenhum pedido encontrado.', duration:4000 });
         return;
     }
 
@@ -1735,11 +2032,10 @@ async function executarZerarJanela(slot) {
         await sb.from("orders").delete().eq("id", p.id);
     }
 
-    // Log
     const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
     log.unshift({
         slot,
-        periodo: `${ontem.toLocaleDateString('pt-BR')} ${deHora} → ${agora.toLocaleDateString('pt-BR')} ${ateHora}`,
+        periodo: 'Tudo anterior a ' + ateHora + ' de ' + agora.toLocaleDateString('pt-BR'),
         ts: new Date().toLocaleString('pt-BR'),
         apagados: parasApagar.length,
         protegidos: protegidos.size
@@ -1749,93 +2045,15 @@ async function executarZerarJanela(slot) {
 
     showToast({
         type: 'success',
-        title: `🗑️ Janela ${slot} executada!`,
-        body: `${parasApagar.length} pedido(s) apagados do período.
-${protegidos.size} cliente(s) protegido(s).`,
+        title: '🗑️ Janela ' + slot + ' executada!',
+        body: parasApagar.length + ' pedido(s) apagados.\n' + protegidos.size + ' cliente(s) protegido(s).',
         duration: 5000
     });
     loadOrders();
 }
 
-// ===== MODAL PROTEGIDOS =====
-async function abrirModalProtegidos(slot) {
-    zerarModalSlot = slot;
-    document.getElementById('modalProtegidosTitulo').textContent = `🛡️ Protegidos — Janela ${slot}`;
-    document.getElementById('modalProtegidos').style.display = 'flex';
-
-    const cfg = getConfigZerar();
-    const protegidos = new Set(cfg[`protegidos${slot}`] || []);
-    const deHora  = document.getElementById(`zerarDe${slot}`)?.value  || cfg[`de${slot}`]  || '12:00';
-    const ateHora = document.getElementById(`zerarAte${slot}`)?.value || cfg[`ate${slot}`] || '11:00';
-
-    // Busca clientes e os pedidos do período configurado
-    const agora = new Date();
-    const ontem = new Date(agora); ontem.setDate(ontem.getDate() - 1);
-    const [deH, deM] = deHora.split(':').map(Number);
-    const [ateH, ateM] = ateHora.split(':').map(Number);
-    const inicio = new Date(ontem); inicio.setHours(deH, deM, 0, 0);
-    const fim = new Date(agora);    fim.setHours(ateH, ateM, 59, 999);
-
-    const [{ data: clientes }, { data: pedidosPeriodo }] = await Promise.all([
-        sb.from("clients").select("phone,name").order("name"),
-        sb.from("orders")
-            .select("customer_phone,total")
-            .gte("created_at", inicio.toISOString())
-            .lte("created_at", fim.toISOString())
-    ]);
-
-    // Agrega total por cliente no período
-    const totalPorPhone = {};
-    (pedidosPeriodo || []).forEach(p => {
-        totalPorPhone[p.customer_phone] = (totalPorPhone[p.customer_phone] || 0) + Number(p.total);
-    });
-
-    const todos = clientes || [];
-    const comPedido = todos.filter(c => totalPorPhone[c.phone]);
-    const semPedido = todos.filter(c => !totalPorPhone[c.phone]);
-
-    const renderItem = (c, temPedido) => {
-        const checked = protegidos.has(c.phone) ? 'checked' : '';
-        const badge = temPedido
-            ? `<span style="font-size:10px;background:#fff3cd;color:#e67e22;padding:2px 8px;border-radius:20px;font-weight:700;">🗑️ Seria apagado · R$ ${totalPorPhone[c.phone].toFixed(2).replace('.',',')}</span>`
-            : `<span style="font-size:10px;background:#f5f5f5;color:#aaa;padding:2px 8px;border-radius:20px;">Sem pedido no período</span>`;
-        return `<label style="display:flex;align-items:center;gap:12px;background:${temPedido?'#fffbf0':'#fafafa'};border:1.5px solid ${temPedido?'#f0c040':'#eee'};border-radius:14px;padding:12px 14px;cursor:pointer;">
-            <input type="checkbox" data-phone="${c.phone}" ${checked}
-                style="width:20px;height:20px;accent-color:#c75b24;cursor:pointer;flex-shrink:0;">
-            <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;font-size:14px;color:#222;">${c.name}</div>
-                <div style="margin-top:4px;">${badge}</div>
-            </div>
-        </label>`;
-    };
-
-    let html = '';
-    if (comPedido.length > 0) {
-        html += `<div style="font-size:11px;font-weight:700;color:#e67e22;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">🗑️ Seriam apagados nesta janela</div>`;
-        html += comPedido.map(c => renderItem(c, true)).join('');
-        if (semPedido.length > 0) html += `<div style="margin:10px 0;border-top:1px solid #eee;"></div>`;
-    }
-    if (semPedido.length > 0) {
-        html += `<div style="font-size:11px;font-weight:700;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">— Sem pedido neste período</div>`;
-        html += semPedido.map(c => renderItem(c, false)).join('');
-    }
-    document.getElementById('protegidosList').innerHTML = html || '<div style="text-align:center;color:#aaa;padding:20px;">Nenhum cliente cadastrado</div>';
-}
-
 function fecharModalProtegidos() {
     document.getElementById('modalProtegidos').style.display = 'none';
-}
-
-function salvarProtegidos() {
-    const checks = document.querySelectorAll('#protegidosList input[type=checkbox]');
-    const protegidos = [];
-    checks.forEach(c => { if (c.checked) protegidos.push(c.dataset.phone); });
-    const cfg = getConfigZerar();
-    cfg[`protegidos${zerarModalSlot}`] = protegidos;
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    atualizarLabelProtegidos(zerarModalSlot, protegidos);
-    fecharModalProtegidos();
-    showToast({ type:'success', title:'🛡️ Protegidos salvos!', body:`${protegidos.length} cliente(s) não serão apagados na Janela ${zerarModalSlot}.`, duration:3000 });
 }
 
 function atualizarLabelProtegidos(slot, protegidos) {
@@ -1913,6 +2131,22 @@ function carregarSelecoes() {
     try { return JSON.parse(localStorage.getItem('refazer_selecionados') || '{}'); } catch(e) { return {}; }
 }
 
+function salvarHorarioRefazer() {
+    const horario = document.getElementById('autoRefazerHorario')?.value || '03:00';
+    localStorage.setItem('autoRefazer_horario', horario);
+    // Re-agenda se estiver ativo
+    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+        if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
+        agendarAutoRefazer();
+    }
+    atualizarBannerAgendamento();
+    showToast({ type:'success', title:'✅ Horário salvo!', body:`Pedidos automáticos às ${horario}`, duration:3000 });
+}
+
+function getHorarioRefazer() {
+    return localStorage.getItem('autoRefazer_horario') || '03:00';
+}
+
 // ---- Toggle automático ----
 function toggleAutoRefazer(ativo) {
     localStorage.setItem('autoRefazer_ativo', ativo ? '1' : '0');
@@ -1926,11 +2160,14 @@ function toggleAutoRefazer(ativo) {
 
 function atualizarBannerAgendamento() {
     const ativo = localStorage.getItem('autoRefazer_ativo') === '1';
+    const horario = getHorarioRefazer();
     const toggle = document.getElementById('autoRefazerToggle');
     const status = document.getElementById('agendamentoStatus');
     const info = document.getElementById('agendamentoInfo');
     const ultimo = document.getElementById('agendamentoUltimo');
+    const horarioInput = document.getElementById('autoRefazerHorario');
     if (toggle) toggle.checked = ativo;
+    if (horarioInput) horarioInput.value = horario;
     const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
     const temHistorico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]').length > 0;
     if (ultimaExec) {
@@ -1941,35 +2178,65 @@ function atualizarBannerAgendamento() {
         ultimo.style.display = 'block';
     }
     if (ativo) {
+        const [hh, mm] = horario.split(':').map(Number);
         const agora = new Date();
-        const proximo6h = new Date(agora);
-        proximo6h.setHours(6, 0, 0, 0);
-        if (agora >= proximo6h) proximo6h.setDate(proximo6h.getDate() + 1);
-        const diff = proximo6h - agora;
+        const proximo = new Date(agora);
+        proximo.setHours(hh, mm, 0, 0);
+        if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
+        const diff = proximo - agora;
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
-        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min`;
+        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min (às ${horario})`;
         info.style.display = 'block';
     } else {
-        status.textContent = '⏸️ Desativado · Ative para lançar pedidos automaticamente às 6h';
+        status.textContent = `⏸️ Desativado · Ative para lançar pedidos automaticamente às ${horario}`;
         info.style.display = 'none';
     }
 }
 
 function agendarAutoRefazer() {
     if (autoRefazerTimer) clearTimeout(autoRefazerTimer);
+    const horario = getHorarioRefazer();
+    const [hh, mm] = horario.split(':').map(Number);
     const agora = new Date();
-    const proximo4h = new Date(agora);
-    proximo4h.setHours(6, 0, 0, 0);
-    if (agora >= proximo4h) proximo4h.setDate(proximo4h.getDate() + 1);
-    const msAte4h = proximo4h - agora;
+    const hojeAlvo = new Date(agora);
+    hojeAlvo.setHours(hh, mm, 0, 0);
+    const hojeAlvoFim = new Date(agora);
+    hojeAlvoFim.setHours(hh + 2, mm, 0, 0); // janela de 2h após o horário
+
+    // Se está dentro da janela (horário até horário+2h), verifica se já executou hoje
+    if (agora >= hojeAlvo && agora < hojeAlvoFim) {
+        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
+        let jaExecutouHoje = false;
+        if (ultimaExec) {
+            try {
+                const partes = ultimaExec.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                if (partes) {
+                    const dataExec = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T${horario}:00`);
+                    jaExecutouHoje = dataExec >= hojeAlvo;
+                }
+            } catch(e) {}
+        }
+        if (!jaExecutouHoje) {
+            setTimeout(async () => {
+                await executarAutoRefazer();
+                if (localStorage.getItem('autoRefazer_ativo') === '1') agendarAutoRefazer();
+            }, 1000);
+            return;
+        }
+    }
+
+    // Agenda para o próximo disparo
+    const proximo = new Date(agora);
+    proximo.setHours(hh, mm, 0, 0);
+    if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
+    const msAte = proximo - agora;
     autoRefazerTimer = setTimeout(async () => {
         await executarAutoRefazer();
-        // Reagenda para o próximo dia
         if (localStorage.getItem('autoRefazer_ativo') === '1') {
             agendarAutoRefazer();
         }
-    }, msAte4h);
+    }, msAte);
 }
 
 async function executarAutoRefazer() {
@@ -1997,7 +2264,7 @@ async function executarAutoRefazer() {
         const { data: pedidoRecente } = await sb.from("orders")
             .select("id")
             .eq("customer_phone", s.phone)
-            .gte("created_at", ontem12h.toISOString())
+            .gte("created_at", brasiliaDate(ontem12h).toISOString())
             .limit(1);
 
         if (pedidoRecente && pedidoRecente.length > 0) {
@@ -2017,7 +2284,17 @@ async function executarAutoRefazer() {
         }
 
         const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
-        await sb.from("clients").update({ debt: (c.debt || 0) + totalParaUsar }).eq("phone", s.phone);
+        const saldoAntes = c.debt || 0;
+        const novoSaldo = saldoAntes + totalParaUsar;
+        await sb.from("clients").update({ debt: novoSaldo }).eq("phone", s.phone);
+        await sb.from("payments").insert({
+            client_name: s.name,
+            client_phone: s.phone,
+            amount: totalParaUsar,
+            saldo_anterior: saldoAntes,
+            saldo_posterior: novoSaldo,
+            tipo: "fiado"
+        });
         const { data: novoPedido } = await sb.from("orders").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -2056,19 +2333,14 @@ async function executarAutoRefazer() {
 
     showToast({
         type: 'success',
-        title: `🤖 Automático executado às 06:00`,
+        title: `🤖 Automático executado às ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`,
         body: body.trim(),
         duration: 12000
     });
     atualizarBannerAgendamento();
 }
 
-// Inicializa o scheduler ao carregar a página
-(function initAutoRefazer() {
-    if (localStorage.getItem('autoRefazer_ativo') === '1') {
-        agendarAutoRefazer();
-    }
-})();
+
 
 async function loadRefazerPedidos() {
     atualizarBannerAgendamento();
@@ -2270,25 +2542,6 @@ function atualizarResumoRefazer() {
         `<strong>${sel.length} cliente(s) selecionado(s)</strong> · Total: <strong style="color:#8e44ad;">R$ ${totalGeral.toFixed(2).replace('.', ',')}</strong><br>` +
         sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.', ',')}`).join('<br>');
     resumo.style.display = 'block';
-}
-
-async function confirmarTodosRefazer() {
-    const sel = Object.values(refazerSelecionados);
-    if (sel.length === 0) return;
-
-    const totalGeral = sel.reduce((s, x) => s + Number(x.total), 0).toFixed(2).replace('.', ',');
-    const nomes = sel.map(x => `• ${x.show_name === false ? '🔒 Anônimo' : x.name}: R$ ${Number(x.total).toFixed(2).replace('.',',')}`).join('\n');
-
-    showToast({
-        type: 'confirm',
-        title: `🔁 Lançar Pagar Depois para ${sel.length} cliente(s)?`,
-        body: `${nomes}\n\nTotal geral: R$ ${totalGeral}`,
-        actions: [
-            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
-            { label: '✅ Confirmar', bg: 'var(--success)', color: 'white', fn: 'executarTodosRefazer()' }
-        ],
-        duration: 8000
-    });
 }
 
 async function executarTodosRefazer() {
@@ -2858,9 +3111,7 @@ function calcDistM(lat1, lon1, lat2, lon2) {
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function diaHoje() { return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()]; }
-function horaAtual() { return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
-
+function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("clients").select("*").order("name");
     clientesCache = clients || [];
@@ -2868,11 +3119,54 @@ async function loadRotasPanel() {
     await calcularMediaEta();
     await carregarRotasHoje();
     await carregarRotasSalvas();
+    await loadRotaEspecial();
+    // Inicia monitoramento independente de pedidos (funciona mesmo sem entregador aberto)
+    iniciarMonitorPedidosADM();
+}
+
+function iniciarMonitorPedidosADM() {
+    if (reRealtimeCh) return; // já está monitorando
+    reRealtimeCh = sb.channel('re_pedidos_adm')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+            // Recarrega config do banco para pegar versão mais recente (pode ter sido atualizada pelo entregador)
+            const { data } = await sb.from('app_config').select('valor').eq('chave','rota_especial').single().catch(()=>({data:null}));
+            if (!data) return;
+            let cfg; try { cfg = JSON.parse(data.valor); } catch(e) { return; }
+            if (!cfg?.ativa) return;
+            // Verifica horário
+            const agora = agoraISO();
+            const hora = agora.substring(11,16);
+            const diaAtual = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()];
+            if (cfg.dias?.length && !cfg.dias.includes(diaAtual)) return;
+            if (hora < cfg.hora_inicio || hora > cfg.hora_fim) return;
+            // Verifica se cliente já está na fila
+            const fila = cfg.clientes_fila || [];
+            const pedido = payload.new;
+            if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
+            // Busca dados do cliente
+            const { data: cli } = await sb.from('clients').select('name,phone,delivery_lat,delivery_lon,delivery_address').eq('phone', pedido.customer_phone).maybeSingle();
+            if (!cli?.delivery_lat || !cli?.delivery_lon) return;
+            fila.push({
+                id: Date.now().toString(),
+                phone: cli.phone,
+                nome: cli.name || pedido.customer_name,
+                endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
+                coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
+                hora_pedido: agora.substring(11,16),
+                status: 'pendente'
+            });
+            cfg.clientes_fila = fila;
+            await sb.from('app_config').upsert({ chave:'rota_especial', valor: JSON.stringify(cfg) }, { onConflict:'chave' });
+            rotaEspecialConfig = cfg;
+            atualizarStatusRE();
+            showToast({type:'success', title:'⚡ Cliente na fila!', body:`${cli.name} entrou na rota especial.`, duration:3000});
+        })
+        .subscribe();
 }
 
 async function preencherClientesComPedido() {
     // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = hojeStr();
     const { data: pedidosHoje } = await sb.from("orders")
         .select("customer_phone, customer_name")
         .gte("created_at", hoje + 'T00:00:00')
@@ -2917,7 +3211,7 @@ async function preencherClientesComPedido() {
 
 async function carregarRotasHoje() {
     const dia = diaHoje();
-    const hoje = new Date().toISOString().split('T')[0]; // "2025-02-21"
+    const hoje = hojeStr(); // "2025-02-21"
     const { data: todasRotas } = await sb.from("delivery_routes").select("*").order("hora_saida",{ascending:true});
 
     // Filtra rotas que têm o dia atual marcado
@@ -3077,7 +3371,7 @@ function fecharAddParada() {
 
 async function calcularMediaEta() {
     const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
-    const ontemStr = ontem.toISOString().split('T')[0];
+    const ontemStr = brasiliaDate(ontem).toISOString().split('T')[0];
     const {data:hist} = await sb.from("delivery_routes").select("paradas,saida_em,fim_em")
         .gte("created_at",ontemStr+'T00:00:00').lte("created_at",ontemStr+'T23:59:59')
         .eq("status","concluido").limit(5);
@@ -3358,18 +3652,33 @@ async function adicionarParada() {
 
 // Gera lista de paradas ativas do dia: só clientes do template que fizeram pedido hoje
 async function gerarParadasAtivas(template) {
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = hojeStr();
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
-    const { data: pedidos } = await sb.from("orders")
-        .select("customer_phone")
-        .in("customer_phone", phones)
-        .gte("created_at", hoje + 'T00:00:00')
-        .lte("created_at", hoje + 'T23:59:59');
-    const phonesComPedido = new Set((pedidos || []).map(p => p.customer_phone));
+
+    // Busca pedidos E endereços dos clientes em paralelo
+    const [pedidosRes, clientesRes] = await Promise.all([
+        sb.from("orders")
+            .select("customer_phone")
+            .in("customer_phone", phones)
+            .gte("created_at", hoje + 'T00:00:00-03:00')
+            .lte("created_at", hoje + 'T23:59:59-03:00'),
+        sb.from("clients")
+            .select("phone, delivery_lat, delivery_lon")
+            .in("phone", phones)
+    ]);
+
+    const phonesComPedido = new Set((pedidosRes.data || []).map(p => p.customer_phone));
+    // Só conta quem tem endereço cadastrado (igual ao entregador)
+    const phonesComEndereco = new Set(
+        (clientesRes.data || [])
+            .filter(c => c.delivery_lat && c.delivery_lon)
+            .map(c => c.phone)
+    );
+
     let ordem = 0;
     return template
-        .filter(p => phonesComPedido.has(p.cliente_phone))
+        .filter(p => phonesComPedido.has(p.cliente_phone) && phonesComEndereco.has(p.cliente_phone))
         .map(p => ({
             ...p,
             status: 'pendente',
@@ -3413,13 +3722,6 @@ function renderParadasAtivasList(paradas) {
         </div>`).join('');
 }
 
-async function marcarEntregue(paradaId) {
-    const p = rotaParadas.find(x=>x.id===paradaId);
-    if (p) p.status='entregue';
-    await sb.from("delivery_routes").update({paradas:rotaParadas}).eq("id",rotaAtualId);
-    renderParadasList();
-}
-
 async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
     rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
@@ -3444,26 +3746,64 @@ async function carregarRotasSalvas() {
     if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
-    list.innerHTML = rotas.map(r=>{
-        const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
-        const total=(r.paradas_template||r.paradas||[]).length;
-        const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
-        const cor=corS[r.status]||'#ccc';
-        return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div style="flex:1;">
-                    <div style="font-weight:700;font-size:13px;">${r.nome}</div>
-                    <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
-                    <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
-                </div>
-                <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
-                <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}\')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
-            </div>
-        </div>`;
-    }).join('');
+
+    // Separa rotas especiais das normais
+    const rotasEspeciais = rotas.filter(r => r.tipo === 'especial');
+    const rotasNormais   = rotas.filter(r => r.tipo !== 'especial');
+
+    // Bloco de rotas especiais (histórico)
+    let htmlEspeciais = '';
+    if (rotasEspeciais.length > 0) {
+        htmlEspeciais = `<div style="margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:700;color:#e67e22;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⚡ Rotas Especiais</div>` +
+            rotasEspeciais.map(r => {
+                const entregues=(r.paradas||[]).filter(p=>p.status==='entregue').length;
+                const total=(r.paradas||[]).length;
+                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const cor=corS[r.status]||'#ccc';
+                const dataHora = r.saida_em ? new Date(r.saida_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
+                return `<div style="background:linear-gradient(135deg,#fff8ee,#fff3e0);border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid #e67e22;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:13px;">⚡ ${r.nome}</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:2px;">🕐 ${dataHora} · ⏱️ ${dur}</div>
+                            <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${entregues}/${total} entregas</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
+                    </div>
+                    <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="width:100%;margin-top:8px;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                </div>`;
+            }).join('') +
+        `</div>`;
+    }
+
+    // Bloco de rotas normais
+    let htmlNormais = '';
+    if (rotasNormais.length > 0) {
+        htmlNormais = `<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🗺️ Rotas Normais</div>` +
+            rotasNormais.map(r=>{
+                const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
+                const total=(r.paradas_template||r.paradas||[]).length;
+                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const cor=corS[r.status]||'#ccc';
+                return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:13px;">${r.nome}</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                            <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
+                        <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                    </div>
+                </div>`;
+            }).join('');
+    }
+
+    list.innerHTML = htmlEspeciais + htmlNormais || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
 }
 
 // ===== LONG PRESS NO SALDO DO CABEÇALHO =====
@@ -3611,6 +3951,195 @@ async function salvarEdicaoRota() {
     await carregarRotasHoje();
     await carregarRotasSalvas();
     showToast({type:'success',title:'✅ Rota atualizada!',body:`"${nome}" — ${dias.join(', ')} às ${hora}`,duration:3000});
+}
+
+
+
+// ===== ROTA ESPECIAL =====
+let rotaEspecialConfig = null; // config salva no supabase (tabela app_config)
+let rotaEspecialAtiva = false;
+let reRealtimeCh = null;
+
+async function loadRotaEspecial() {
+    // Busca config da rota especial no supabase
+    const { data } = await sb.from('app_config').select('*').eq('chave', 'rota_especial').single();
+    if (data) {
+        try { rotaEspecialConfig = JSON.parse(data.valor); } catch(e) { rotaEspecialConfig = null; }
+    }
+    if (rotaEspecialConfig) {
+        document.getElementById('reHoraInicio').value = rotaEspecialConfig.hora_inicio || '14:00';
+        document.getElementById('reHoraFim').value    = rotaEspecialConfig.hora_fim    || '17:00';
+        // Marca dias
+        const dias = rotaEspecialConfig.dias || [];
+        document.querySelectorAll('[data-re-dia]').forEach(el => {
+            if (dias.includes(el.dataset.reDia)) el.classList.add('ativo');
+        });
+        rotaEspecialAtiva = rotaEspecialConfig.ativa || false;
+    }
+    atualizarStatusRE();
+    if (rotaEspecialAtiva) monitorarRotaEspecial();
+}
+
+function toggleReDia(el) {
+    el.classList.toggle('ativo');
+}
+
+function getDiasRE() {
+    return [...document.querySelectorAll('[data-re-dia].ativo')].map(el => el.dataset.reDia);
+}
+
+async function salvarRotaEspecial() {
+    const inicio = document.getElementById('reHoraInicio').value;
+    const fim    = document.getElementById('reHoraFim').value;
+    const dias   = getDiasRE();
+    if (!inicio || !fim) return showToast({type:'confirm',title:'⚠️',body:'Defina o horário de início e fim.',duration:2500});
+    if (dias.length === 0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
+
+    rotaEspecialConfig = { hora_inicio: inicio, hora_fim: fim, dias, ativa: rotaEspecialAtiva, clientes_fila: rotaEspecialConfig?.clientes_fila || [] };
+
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    showToast({type:'success',title:'✅ Rota Especial salva!',body:`${inicio} → ${fim} · ${dias.join(', ')}`,duration:3000});
+    atualizarStatusRE();
+}
+
+async function toggleAtivarRotaEspecial() {
+    if (!rotaEspecialConfig) return showToast({type:'confirm',title:'⚠️',body:'Salve a configuração primeiro.',duration:2500});
+    rotaEspecialAtiva = !rotaEspecialAtiva;
+    rotaEspecialConfig.ativa = rotaEspecialAtiva;
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    atualizarStatusRE();
+    if (rotaEspecialAtiva) {
+        monitorarRotaEspecial();
+        showToast({type:'success',title:'⚡ Rota Especial ativada!',body:'Novos pedidos no horário entrarão automaticamente.',duration:3000});
+    } else {
+        if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); reRealtimeCh = null; }
+        showToast({type:'confirm',title:'⏹ Rota Especial desativada',body:'',duration:2000});
+    }
+}
+
+function horaAtualMinutos() {
+    const d = new Date();
+    const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000);
+    return b.getHours() * 60 + b.getMinutes();
+}
+
+function estaDentroDoHorarioRE() {
+    if (!rotaEspecialConfig) return false;
+    const diaAtual = diaHoje();
+    if (!(rotaEspecialConfig.dias||[]).includes(diaAtual)) return false;
+    const agora = horaAtualMinutos();
+    const [hI, mI] = rotaEspecialConfig.hora_inicio.split(':').map(Number);
+    const [hF, mF] = rotaEspecialConfig.hora_fim.split(':').map(Number);
+    return agora >= hI*60+mI && agora <= hF*60+mF;
+}
+
+function atualizarStatusRE() {
+    const dot  = document.getElementById('reStatusDot');
+    const txt  = document.getElementById('reStatusTexto');
+    const badge = document.getElementById('reStatusBadge');
+    const btn  = document.getElementById('btnAtivarRE');
+    const card = document.getElementById('rotaEspecialCard');
+    const cont = document.getElementById('reContador');
+    const filaTxt = document.getElementById('reClientesFila');
+    const fila = rotaEspecialConfig?.clientes_fila || [];
+
+    if (!rotaEspecialAtiva) {
+        dot.className = 're-status-dot';
+        txt.textContent = 'Inativa — clique em Ativar para iniciar';
+        badge.textContent = 'Inativa';
+        badge.style.background = 'rgba(255,255,255,0.08)';
+        badge.style.color = 'rgba(255,255,255,0.35)';
+        btn.textContent = '▶ Ativar';
+        btn.style.background = 'rgba(255,255,255,0.08)';
+        btn.style.color = 'rgba(255,255,255,0.6)';
+        card.classList.remove('rota-especial-ativa');
+        cont.style.display = 'none';
+        filaTxt.textContent = '';
+    } else if (estaDentroDoHorarioRE()) {
+        dot.className = 're-status-dot ativa';
+        txt.textContent = `Ativa · ${rotaEspecialConfig.hora_inicio} → ${rotaEspecialConfig.hora_fim}`;
+        badge.textContent = '⚡ Ativa';
+        badge.style.background = 'rgba(245,166,35,0.2)';
+        badge.style.color = '#f5a623';
+        btn.textContent = '⏹ Desativar';
+        btn.style.background = 'rgba(231,76,60,0.15)';
+        btn.style.color = '#e74c3c';
+        card.classList.add('rota-especial-ativa');
+        cont.style.display = fila.length > 0 ? 'block' : 'none';
+        cont.textContent = fila.length;
+        filaTxt.textContent = fila.length > 0 ? `${fila.length} cliente(s) aguardando na fila` : 'Aguardando novos pedidos...';
+        renderFilaRE(fila);
+    } else {
+        dot.className = 're-status-dot fora';
+        const config = rotaEspecialConfig;
+        txt.textContent = `Fora do horário · ${config?.hora_inicio||'--'} → ${config?.hora_fim||'--'}`;
+        badge.textContent = '⏰ Fora do horário';
+        badge.style.background = 'rgba(149,165,166,0.15)';
+        badge.style.color = '#95a5a6';
+        btn.textContent = '⏹ Desativar';
+        btn.style.background = 'rgba(231,76,60,0.15)';
+        btn.style.color = '#e74c3c';
+        card.classList.remove('rota-especial-ativa');
+        cont.style.display = 'none';
+        filaTxt.textContent = `Próxima janela: ${config?.hora_inicio||'--'}`;
+    }
+}
+
+function renderFilaRE(fila) {
+    const el = document.getElementById('reClientesLista');
+    if (!fila || fila.length === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.innerHTML = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">👥 Na fila</div>` +
+        fila.map(c => `
+        <div class="re-cliente-item">
+            <div class="re-cliente-nome">👤 ${c.nome}</div>
+            <div class="re-cliente-hora">${c.hora_pedido || ''}</div>
+        </div>`).join('');
+}
+
+// Monitora novos pedidos em tempo real para adicionar à fila da rota especial
+function monitorarRotaEspecial() {
+    if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); }
+    reRealtimeCh = sb.channel('re_pedidos')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+            if (!rotaEspecialAtiva || !estaDentroDoHorarioRE()) return;
+            const pedido = payload.new;
+            await adicionarClienteFilaRE(pedido);
+        })
+        .subscribe();
+    // Atualiza status a cada minuto (para checar se entrou/saiu do horário)
+    setInterval(atualizarStatusRE, 60000);
+}
+
+async function adicionarClienteFilaRE(pedido) {
+    // Busca dados do cliente
+    const { data: cliente } = await sb.from('clients')
+        .select('name, phone, delivery_lat, delivery_lon, delivery_address')
+        .eq('phone', pedido.customer_phone).single();
+
+    if (!cliente?.delivery_lat || !cliente?.delivery_lon) return; // sem endereço, ignora
+
+    // Verifica se já está na fila
+    const fila = rotaEspecialConfig.clientes_fila || [];
+    if (fila.find(x => x.phone === pedido.customer_phone)) return;
+
+    const agora = agoraISO();
+    const hora = agora.substring(11, 16);
+
+    fila.push({
+        id: Date.now().toString(),
+        phone: pedido.customer_phone,
+        nome: cliente.name || pedido.customer_name,
+        endereco: cliente.delivery_address || `${cliente.delivery_lat}, ${cliente.delivery_lon}`,
+        coords: [parseFloat(cliente.delivery_lat), parseFloat(cliente.delivery_lon)],
+        hora_pedido: hora,
+        status: 'pendente'
+    });
+
+    rotaEspecialConfig.clientes_fila = fila;
+    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    atualizarStatusRE();
+    showToast({type:'success',title:'⚡ Cliente na fila!',body:`${cliente.name} entrou na rota especial.`,duration:3000});
 }
 
 </script>
