@@ -444,45 +444,97 @@
                 <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {data}, {valor}, {saldo}</p>
                 <textarea id="editComprovanteTemplate" class="input-text" style="height:150px; text-align:left; font-family:monospace;"></textarea>
             </div>
-            <div class="card-box">
-                <h4>📊 Extrato do Pagar Depois</h4>
-                <p style="font-size:12px; color:#666; margin-bottom:8px;">Use {nome}, {data}, {saldo}</p>
-                <textarea id="editExtratoTemplate" class="input-text" style="height:140px; text-align:left; font-family:monospace;"></textarea>
-            </div>
             <button onclick="saveMsgTemplates()" class="btn btn-success btn-block">Salvar Templates</button>
         </div>
         <!-- ABA COMPRA NO NOME -->
         <div id="tab-compra" class="section">
-            <div class="card-box">
-                <h4>👤 Selecionar Cliente</h4>
-                <select id="compraCliente" class="input-text" onchange="onCompraClienteChange()">
-                    <option value="">-- Escolha o cliente --</option>
-                </select>
-                <div id="compraClienteInfo" style="display:none; background:#f8f8f8; border-radius:12px; padding:10px; margin-bottom:10px; font-size:13px; color:#555;"></div>
-            </div>
-            <div class="card-box">
-                <h4>📦 Produtos</h4>
-                <div id="compraProdList"></div>
-            </div>
-            <div style="background:#fff3cd; border-radius:14px; padding:14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:14px; color:#555; font-weight:600;">Total</span>
-                <span id="compraTotalLabel" style="font-size:24px; font-weight:900; color:var(--primary);">R$ 0,00</span>
-            </div>
-            <!-- Forma de pagamento -->
-            <div style="margin-bottom:14px;">
-                <div style="font-size:13px; font-weight:700; color:#555; margin-bottom:8px;">💳 Forma de pagamento</div>
-                <div style="display:flex; gap:8px;">
-                    <div id="cpopt-FIADO" onclick="selecionarPagamentoCompra('FIADO')"
-                        style="flex:1; padding:11px; text-align:center; border-radius:12px; border:2px solid var(--success); background:#e8f5e9; color:var(--success); font-weight:700; font-size:14px; cursor:pointer;">
-                        ⏳ Pagar Depois
+
+            <!-- Modal do pedido salvo -->
+            <div id="modalPedidoSalvoCliente" style="display:none;position:fixed;inset:0;background:rgba(10,10,20,0.75);backdrop-filter:blur(4px);z-index:4000;align-items:flex-end;justify-content:center;">
+                <div style="background:white;width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px 20px;animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <h3 style="font-size:17px;font-weight:800;">⭐ Pedido Salvo</h3>
+                        <button onclick="fecharModalPedidoSalvo()" style="background:#f0f0f0;border:none;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-size:16px;">✕</button>
                     </div>
-                    <div id="cpopt-PAGA-NA-ENTREGA" onclick="selecionarPagamentoCompra('PAGA NA ENTREGA')"
-                        style="flex:1; padding:11px; text-align:center; border-radius:12px; border:2px solid #eee; background:white; color:#333; font-weight:700; font-size:14px; cursor:pointer;">
-                        🤝 Pagar na Entrega
+                    <div id="modalPedidoSalvoNome" style="font-size:13px;color:#888;margin-bottom:10px;"></div>
+                    <div id="compraPedidoSalvoTexto" style="background:#f8f8f8;border-radius:14px;padding:14px;font-size:14px;color:#333;white-space:pre-line;margin-bottom:12px;line-height:1.7;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                        <div id="compraPedidoSalvoTotal" style="font-weight:900;color:var(--primary);font-size:20px;"></div>
+                        <button onclick="limparPedidoSalvoCliente()" style="background:#fee2e2;border:none;color:#e74c3c;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Remover</button>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="usarPedidoSalvo()" style="flex:1;background:#f0f0f0;border:none;color:#333;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;">🛒 Add ao Carrinho</button>
+                        <button onclick="comprarPedidoSalvoDireto()" style="flex:1;background:linear-gradient(135deg,#25d366,#1aad52);border:none;color:white;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;">✅ Fazer Compra</button>
                     </div>
                 </div>
             </div>
-            <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px; font-size:16px; margin-bottom:20px;">✅ Confirmar Compra</button>
+
+            <!-- ===== ETAPA 1: SELECIONAR CLIENTE ===== -->
+            <div id="compraEtapa1">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;">Etapa 1 de 2</div>
+                        <div style="font-size:18px;font-weight:900;color:#1a1a2e;">👤 Selecionar Cliente</div>
+                    </div>
+                    <button onclick="reiniciarListaClientes()" id="btnReiniciarClientes" style="display:none;background:linear-gradient(135deg,#3498db,#2980b9);border:none;color:white;border-radius:10px;padding:7px 13px;font-weight:800;font-size:12px;cursor:pointer;">↺ Reiniciar</button>
+                </div>
+                <div id="compraClienteListaBox" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+            </div>
+
+            <!-- ===== ETAPA 2: CARDÁPIO ===== -->
+            <div id="compraEtapa2" style="display:none;">
+
+                <!-- Cliente selecionado + voltar -->
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <button onclick="voltarEtapa1Compra()" style="background:#f0f0f0;border:none;border-radius:12px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;color:#333;">← Voltar</button>
+                    <div style="flex:1;background:linear-gradient(135deg,#25d366,#1aad52);border-radius:14px;padding:10px 14px;">
+                        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">Etapa 2 de 2 · Cliente</div>
+                        <div id="compraClienteInfo" style="font-size:15px;font-weight:800;color:white;margin-top:1px;"></div>
+                    </div>
+                </div>
+
+                <!-- Botão ⭐ aparece quando cliente tem pedido salvo -->
+                <div id="compraPedidoSalvoBox" style="display:none;margin-bottom:14px;">
+                    <button onclick="abrirModalPedidoSalvo()" style="width:100%;background:linear-gradient(135deg,#f1c40f,#e67e22);border:none;color:white;border-radius:16px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(241,196,15,0.45);display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <span style="font-size:20px;">⭐</span> Ver Pedido Salvo
+                    </button>
+                </div>
+
+                <!-- Produtos -->
+                <div class="card-box">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <h4 style="margin:0;">📦 Produtos</h4>
+                    </div>
+                    <div id="compraProdList"></div>
+                </div>
+
+                <!-- Total -->
+                <div style="background:#fff3cd;border-radius:14px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:14px;color:#555;font-weight:600;">Total</span>
+                    <span id="compraTotalLabel" style="font-size:24px;font-weight:900;color:var(--primary);">R$ 0,00</span>
+                </div>
+
+                <!-- Forma de pagamento -->
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <div style="font-size:13px;font-weight:700;color:#555;">💳 Forma de pagamento</div>
+                        <button onclick="salvarPedidoParaCliente()" id="btnSalvarPedidoCliente" style="display:none;background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:white;border-radius:8px;padding:5px 10px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(142,68,173,0.35);">⭐ Salvar pedido</button>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <div id="cpopt-FIADO" onclick="selecionarPagamentoCompra('FIADO')"
+                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid var(--success);background:#e8f5e9;color:var(--success);font-weight:700;font-size:14px;cursor:pointer;">
+                            ⏳ Pagar Depois
+                        </div>
+                        <div id="cpopt-PAGA-NA-ENTREGA" onclick="selecionarPagamentoCompra('PAGA NA ENTREGA')"
+                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid #eee;background:white;color:#333;font-weight:700;font-size:14px;cursor:pointer;">
+                            🤝 Pagar na Entrega
+                        </div>
+                    </div>
+                </div>
+                <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px;font-size:16px;margin-bottom:20px;">✅ Confirmar Compra</button>
+
+            </div>
+
         </div>
 
         <!-- Modal Histórico Execuções -->
@@ -864,7 +916,6 @@ function openSection(section) {
             document.getElementById('editTemplate').value = msgTemplate;
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
             document.getElementById('editComprovanteTemplate').value = msgComprovante;
-            document.getElementById('editExtratoTemplate').value = msgExtrato;
         }},
         refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: loadRefazerPedidos },
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
@@ -1758,9 +1809,9 @@ function buildOrderCard(o) {
     const badgeClass = isFiado ? 'badge-fiado' : 'badge-pago';
     const badgeLabel = isFiado ? '⏳ PAGAR DEPOIS' : '🤝 PAGAR NA ENTREGA';
 
-    // Format time: "hoje às 19:04" or date
-    const dt = new Date(o.created_at);
-    const now = new Date();
+    // Format time: "hoje às 19:04" or date (convertido para BRT GMT-3)
+    const dt = brasiliaDate(new Date(o.created_at));
+    const now = brasiliaDate(new Date());
     const isToday = dt.toDateString() === now.toDateString();
     const timeStr = isToday
         ? 'hoje às ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -2011,12 +2062,16 @@ async function executarZerarJanela(slot) {
     const protegidos = new Set(cfg['protegidos' + slot] || []);
     const ateHora = cfg['ate' + slot] || '12:00';
 
-    // Apaga TODOS os pedidos criados antes do horário limite de hoje
+    // Apaga TODOS os pedidos criados antes do horário limite de hoje (BRT GMT-3)
     const agora = new Date();
     const [ateH, ateM] = ateHora.split(':').map(Number);
-    const limite = new Date(agora);
-    limite.setHours(ateH, ateM, 59, 999);
-    const limiteISO = brasiliaDate(limite).toISOString();
+    // Monta o horário limite no fuso de Brasília (GMT-3) e converte para UTC
+    const agoraBRT = brasiliaDate(agora);
+    const limiteBRT = new Date(agoraBRT);
+    limiteBRT.setHours(ateH, ateM, 59, 999);
+    // Converte de volta para UTC subtraindo 3 horas
+    const limiteUTC = new Date(limiteBRT.getTime() + (agora.getTimezoneOffset() - (-3 * 60)) * 60000);
+    const limiteISO = limiteUTC.toISOString();
 
     const { data: pedidos } = await sb.from("pedidos")
         .select("id,customer_phone,customer_name")
@@ -2096,15 +2151,22 @@ async function loadTemplates() {
     }
 }
 
+async function salvarConfig(key, value) {
+    const { data: existing } = await sb.from("configuracoes").select("id").eq("key", key).maybeSingle();
+    if (existing) {
+        await sb.from("configuracoes").update({ value }).eq("key", key);
+    } else {
+        await sb.from("configuracoes").insert({ key, value });
+    }
+}
+
 async function saveMsgTemplates() {
     msgTemplate = document.getElementById('editTemplate').value;
     msgCobranca = document.getElementById('editCobrancaTemplate').value;
     msgComprovante = document.getElementById('editComprovanteTemplate').value;
-    msgExtrato = document.getElementById('editExtratoTemplate').value;
-    await sb.from("configuracoes").upsert({ key: "msg_template", value: msgTemplate });
-    await sb.from("configuracoes").upsert({ key: "msg_cobranca", value: msgCobranca });
-    await sb.from("configuracoes").upsert({ key: "msg_comprovante", value: msgComprovante });
-    await sb.from("configuracoes").upsert({ key: "msg_extrato", value: msgExtrato });
+    await salvarConfig("msg_template", msgTemplate);
+    await salvarConfig("msg_cobranca", msgCobranca);
+    await salvarConfig("msg_comprovante", msgComprovante);
     showToast({ type: 'success', title: '✅ Templates salvos!', body: 'Os templates foram atualizados com sucesso.', duration: 5000 });
 }
 // ===== REFAZER PEDIDOS =====
@@ -2579,49 +2641,228 @@ let compraCart = {};
 let compraPagamento = 'FIADO';
 let compraClienteAtual = null;
 let compraProdutos = [];
+let todosClientesCompra = [];
+let clientesOcultosCompra = [];
 
 async function loadCompraTab() {
     compraCart = {};
     compraPagamento = 'FIADO';
     compraClienteAtual = null;
-    document.getElementById('compraClienteInfo').style.display = 'none';
+    document.getElementById('compraClienteInfo').textContent = '';
     document.getElementById('compraTotalLabel').textContent = 'R$ 0,00';
 
-    // Load clients into select
+    // Começa na etapa 1
+    document.getElementById('compraEtapa1').style.display = 'block';
+    document.getElementById('compraEtapa2').style.display = 'none';
+
+    // Load clients
     const { data: clients } = await sb.from("cadastros").select("*").order("name");
-    const sel = document.getElementById('compraCliente');
-    sel.innerHTML = '<option value="">-- Escolha o cliente --</option>' +
-        (clients || []).map(c => `<option value="${c.phone}" data-name="${c.name}" data-debt="${c.debt}" data-fiado="${c.fiado}">${c.name}</option>`).join('');
+    todosClientesCompra = clients || [];
+    clientesOcultosCompra = JSON.parse(localStorage.getItem('compra_ocultos') || '[]');
+    renderListaClientesCompra();
 
     // Load products
     const { data: prods } = await sb.from("cardapio").select("*").eq("available", true).order("created_at", { ascending: true });
     compraProdutos = prods || [];
+}
+
+function renderListaClientesCompra() {
+    const box = document.getElementById('compraClienteListaBox');
+    const visiveis = todosClientesCompra.filter(c => !clientesOcultosCompra.includes(c.phone));
+    const temOcultos = clientesOcultosCompra.length > 0;
+    document.getElementById('btnReiniciarClientes').style.display = temOcultos ? 'block' : 'none';
+
+    box.innerHTML = visiveis.map(c => {
+        const debt = Number(c.debt || 0);
+        const debtStr = debt > 0
+            ? `<div style="color:#ffb3b3;font-size:10px;font-weight:700;">Débito R$ ${debt.toFixed(2)}</div>`
+            : debt < 0
+            ? `<div style="color:#a8d8ff;font-size:10px;font-weight:700;">Crédito R$ ${Math.abs(debt).toFixed(2)}</div>`
+            : `<div style="color:#a8ffcc;font-size:10px;font-weight:700;">Em dia ✅</div>`;
+        const temPedidoSalvo = c.saved_order && c.saved_order.trim();
+        return `<div onclick="selecionarClienteCompra('${c.phone}')" id="clienteCard_${c.phone}"
+            style="position:relative;padding:12px 10px 10px;border-radius:14px;cursor:pointer;transition:0.2s;
+            background:linear-gradient(135deg,#8b5cf6,#7c3aed);
+            border:2px solid transparent;
+            box-shadow:0 4px 14px rgba(124,58,237,0.35);">
+            <button onclick="event.stopPropagation();ocultarClienteCompra('${c.phone}')"
+                style="position:absolute;top:5px;right:5px;background:rgba(255,255,255,0.2);border:none;color:white;border-radius:6px;width:22px;height:22px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+            <div style="font-weight:800;font-size:13px;color:white;padding-right:20px;line-height:1.3;">${c.name}</div>
+            <div style="margin-top:4px;">${debtStr}</div>
+            ${temPedidoSalvo ? `<div style="margin-top:6px;background:rgba(255,255,255,0.15);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#ffe;display:inline-block;">⭐ Tem pedido salvo</div>` : ''}
+        </div>`;
+    }).join('');
+
+    if (visiveis.length === 0) {
+        box.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhum cliente disponível.<br>Toque em ↺ Reiniciar para restaurar.</div>';
+    }
+}
+
+function ocultarClienteCompra(phone) {
+    if (!clientesOcultosCompra.includes(phone)) {
+        clientesOcultosCompra.push(phone);
+        localStorage.setItem('compra_ocultos', JSON.stringify(clientesOcultosCompra));
+    }
+    if (compraClienteAtual?.phone === phone) {
+        voltarEtapa1Compra();
+    }
+    renderListaClientesCompra();
+}
+
+function reiniciarListaClientes() {
+    clientesOcultosCompra = [];
+    localStorage.removeItem('compra_ocultos');
+    renderListaClientesCompra();
+}
+
+async function selecionarClienteCompra(phone) {
+    const c = todosClientesCompra.find(x => x.phone === phone);
+    if (!c) return;
+    // Desmarca todos e marca o selecionado
+    todosClientesCompra.forEach(x => {
+        const card = document.getElementById('clienteCard_' + x.phone);
+        if (card) { card.style.background = 'linear-gradient(135deg,#8b5cf6,#7c3aed)'; card.style.borderColor = 'transparent'; }
+    });
+    const card = document.getElementById('clienteCard_' + phone);
+    if (card) { card.style.background = 'linear-gradient(135deg,#25d366,#1aad52)'; card.style.borderColor = '#fff'; }
+
+    onCompraClienteChange(c);
+}
+
+function voltarEtapa1Compra() {
+    compraCart = {};
+    compraClienteAtual = null;
+    document.getElementById('compraEtapa1').style.display = 'block';
+    document.getElementById('compraEtapa2').style.display = 'none';
+    document.getElementById('compraTotalLabel').textContent = 'R$ 0,00';
+    document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
+    document.getElementById('compraPedidoSalvoBox').style.display = 'none';
+}
+
+async function onCompraClienteChange(c) {
+    document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
+    if (!c) { compraClienteAtual = null; return; }
+    compraClienteAtual = { phone: c.phone, name: c.name, debt: parseFloat(c.debt), fiado: c.fiado };
+    document.getElementById('compraClienteInfo').textContent = `👤 ${c.name}`;
+    document.getElementById('btnSalvarPedidoCliente').style.display = 'inline-block';
+
+    // Buscar pedido salvo do cliente
+    const { data: clienteSalvo } = await sb.from("cadastros").select("saved_order, saved_order_total").eq("phone", c.phone).maybeSingle();
+    compraClienteAtual.saved_order = clienteSalvo?.saved_order || null;
+    compraClienteAtual.saved_order_total = clienteSalvo?.saved_order_total || 0;
+    if (clienteSalvo?.saved_order && clienteSalvo.saved_order.trim()) {
+        const linhas = clienteSalvo.saved_order.replace(/✅ /g, '').trim();
+        document.getElementById('compraPedidoSalvoTexto').textContent = linhas;
+        document.getElementById('compraPedidoSalvoTotal').textContent = 'R$ ' + Number(clienteSalvo.saved_order_total || 0).toFixed(2).replace('.', ',');
+        document.getElementById('modalPedidoSalvoNome').textContent = '👤 ' + compraClienteAtual.name;
+        document.getElementById('compraPedidoSalvoBox').style.display = 'block';
+    } else {
+        document.getElementById('compraPedidoSalvoBox').style.display = 'none';
+    }
+
+    // Vai para etapa 2
+    document.getElementById('compraEtapa1').style.display = 'none';
+    document.getElementById('compraEtapa2').style.display = 'block';
     renderCompraProdList();
 }
 
-function onCompraClienteChange() {
-    const sel = document.getElementById('compraCliente');
-    const opt = sel.options[sel.selectedIndex];
-    if (!opt.value) { compraClienteAtual = null; document.getElementById('compraClienteInfo').style.display = 'none'; return; }
-    compraClienteAtual = { phone: opt.value, name: opt.dataset.name, debt: parseFloat(opt.dataset.debt), fiado: opt.dataset.fiado === 'true' };
-    const infoEl = document.getElementById('compraClienteInfo');
-    const debt = compraClienteAtual.debt;
-    infoEl.innerHTML = `📞 ${opt.value} &nbsp;|&nbsp; ${debt > 0 ? '<span style="color:#e74c3c;">Débito: R$ ' + debt.toFixed(2) + '</span>' : debt < 0 ? '<span style="color:#3498db;">Crédito: R$ ' + Math.abs(debt).toFixed(2) + '</span>' : '<span style="color:#27ae60;">Em dia ✅</span>'} &nbsp;|&nbsp; Pagar Depois: ${compraClienteAtual.fiado ? '✅' : '❌'}`;
-    infoEl.style.display = 'block';
+function abrirModalPedidoSalvo() {
+    const modal = document.getElementById('modalPedidoSalvoCliente');
+    modal.style.display = 'flex';
+}
+
+function fecharModalPedidoSalvo() {
+    document.getElementById('modalPedidoSalvoCliente').style.display = 'none';
+}
+
+async function comprarPedidoSalvoDireto() {
+    fecharModalPedidoSalvo();
+    usarPedidoSalvo();
+    await confirmarCompra();
+}
+
+function usarPedidoSalvo() {
+    if (!compraClienteAtual?.saved_order) return;
+    fecharModalPedidoSalvo();
+    // Zera carrinho atual
+    compraCart = {};
+    // Parseia as linhas do pedido salvo: "3x Cox. Frango" ou "✅ 3x Cox. Frango"
+    const linhas = compraClienteAtual.saved_order.replace(/✅ /g, '').trim().split('\n').filter(Boolean);
+    linhas.forEach(linha => {
+        const match = linha.match(/^(\d+)x (.+)$/);
+        if (!match) return;
+        const qty = parseInt(match[1]);
+        const nome = match[2].trim();
+        const prod = compraProdutos.find(p => p.name.trim() === nome);
+        if (prod) compraCart[prod.id] = qty;
+    });
+    renderCompraProdList();
+    showToast({ type: 'success', title: '⭐ Pedido carregado!', body: 'Pedido salvo do cliente aplicado.', duration: 3000 });
+}
+
+async function salvarPedidoParaCliente() {
+    if (!compraClienteAtual) return;
+    if (Object.keys(compraCart).length === 0) {
+        showToast({ type: 'confirm', title: '⚠️ Atenção', body: 'Monte um pedido antes de salvar!' });
+        return;
+    }
+    let pedidoTexto = '';
+    let total = 0;
+    for (let id in compraCart) {
+        const p = compraProdutos.find(x => x.id == id);
+        if (p) {
+            pedidoTexto += `${compraCart[id]}x ${p.name}\n`;
+            total += p.price * compraCart[id];
+        }
+    }
+    await sb.from("cadastros").update({
+        saved_order: pedidoTexto.trim(),
+        saved_order_total: total
+    }).eq("phone", compraClienteAtual.phone);
+
+    compraClienteAtual.saved_order = pedidoTexto.trim();
+    compraClienteAtual.saved_order_total = total;
+    const linhasSalvas = pedidoTexto.trim();
+    document.getElementById('compraPedidoSalvoTexto').textContent = linhasSalvas;
+    document.getElementById('compraPedidoSalvoTotal').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    document.getElementById('modalPedidoSalvoNome').textContent = '👤 ' + compraClienteAtual.name;
+
+    showToast({ type: 'success', title: '⭐ Pedido salvo!', body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 4000 });
+}
+
+async function limparPedidoSalvoCliente() {
+    if (!compraClienteAtual) return;
+    await sb.from("cadastros").update({ saved_order: null, saved_order_total: 0 }).eq("phone", compraClienteAtual.phone);
+    compraClienteAtual.saved_order = null;
+    // Atualiza o cliente na lista local também
+    const c = todosClientesCompra.find(x => x.phone === compraClienteAtual.phone);
+    if (c) c.saved_order = null;
+    fecharModalPedidoSalvo();
+    showToast({ type: 'success', title: '🗑️ Removido!', body: 'Pedido salvo do cliente removido.', duration: 3000 });
 }
 
 function renderCompraProdList() {
     const list = document.getElementById('compraProdList');
+    list.style.display = 'grid';
+    list.style.gridTemplateColumns = '1fr 1fr';
+    list.style.gap = '13px';
+    list.style.padding = '4px 0 8px';
     list.innerHTML = compraProdutos.map(p => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
-            <div style="display:flex;align-items:center;gap:10px;flex:1;">
-                ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">` : '<div style="width:40px;height:40px;border-radius:10px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:20px;">🥟</div>'}
-                <div><div style="font-weight:700;font-size:14px;">${p.name}</div><div style="color:var(--primary);font-size:13px;">R$ ${Number(p.price).toFixed(2)}</div></div>
+        <div style="background:white;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);display:flex;flex-direction:column;transition:transform 0.2s;">
+            <div style="height:110px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;">
+                ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;">` : '🥟'}
             </div>
-            <div style="display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:20px;padding:4px 10px;">
-                <button onclick="qtyCompra('${p.id}',-1)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--danger);color:white;font-size:16px;font-weight:bold;cursor:pointer;">−</button>
-                <span id="cqty_${p.id}" style="min-width:22px;text-align:center;font-weight:bold;font-size:15px;">${compraCart[p.id] || 0}</span>
-                <button onclick="qtyCompra('${p.id}',1)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--success);color:white;font-size:16px;font-weight:bold;cursor:pointer;">+</button>
+            <div style="padding:10px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                <div>
+                    <div style="font-weight:700;font-size:13px;line-height:1.3;">${p.name}</div>
+                    <div style="color:var(--primary);font-weight:800;font-size:13px;margin-top:2px;">R$ ${Number(p.price).toFixed(2).replace('.',',')}</div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f1f2f6;border-radius:20px;padding:4px;margin-top:8px;">
+                    <button onclick="qtyCompra('${p.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--danger);color:white;font-size:18px;font-weight:bold;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                    <input type="number" id="cqty_${p.id}" value="${compraCart[p.id] || 0}" onchange="setQtyCompra('${p.id}', this.value)"
+                        style="width:38px;border:none;background:transparent;text-align:center;font-weight:800;font-size:16px;color:#222;-moz-appearance:textfield;outline:none;">
+                    <button onclick="qtyCompra('${p.id}',1)" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--success);color:white;font-size:18px;font-weight:bold;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+                </div>
             </div>
         </div>`).join('');
     atualizarTotalCompra();
@@ -2631,7 +2872,14 @@ function qtyCompra(id, d) {
     compraCart[id] = (compraCart[id] || 0) + d;
     if (compraCart[id] <= 0) delete compraCart[id];
     const el = document.getElementById('cqty_' + id);
-    if (el) el.textContent = compraCart[id] || 0;
+    if (el) el.value = compraCart[id] || 0;
+    atualizarTotalCompra();
+}
+
+function setQtyCompra(id, val) {
+    const n = parseInt(val);
+    if (isNaN(n) || n <= 0) delete compraCart[id];
+    else compraCart[id] = n;
     atualizarTotalCompra();
 }
 
@@ -2769,8 +3017,14 @@ async function executarCompra(total, pedidoTexto) {
 
     compraCart = {};
     renderCompraProdList();
-    document.getElementById('compraCliente').value = '';
     document.getElementById('compraClienteInfo').style.display = 'none';
+    document.getElementById('compraPedidoSalvoBox').style.display = 'none';
+    document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
+    // Desmarca o cliente selecionado na lista
+    if (compraClienteAtual) {
+        const card = document.getElementById('clienteCard_' + compraClienteAtual.phone);
+        if (card) { card.style.background = 'linear-gradient(135deg,#8b5cf6,#7c3aed)'; card.style.borderColor = 'transparent'; }
+    }
     compraClienteAtual = null;
     updateFiadoHeader();
 }
@@ -2802,7 +3056,7 @@ async function loadHistoricoPagamentos() {
     totalEl.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
 
     list.innerHTML = data.map(function(p) {
-        const date = new Date(p.created_at);
+        const date = brasiliaDate(new Date(p.created_at));
         const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
         const saldoAntes = Number(p.saldo_anterior || 0).toFixed(2).replace('.', ',');
@@ -2938,7 +3192,7 @@ function renderHistorico(append = false) {
     loadMoreBtn.style.display = ate < total ? 'block' : 'none';
 
     const html = paginados.map((o) => {
-        const date = new Date(o.created_at);
+        const date = brasiliaDate(new Date(o.created_at));
         const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
         const items = (o.items || '').trim().replace(/✅ /g, '').split('\n').filter(Boolean);
