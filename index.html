@@ -22,7 +22,7 @@
 
         /* HOME */
         #homeScreen { display: none; padding: 20px 15px; max-width: 600px; margin: 0 auto; }
-        .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .home-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
         .home-card { background: white; border-radius: 24px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none; width: 100%; }
         .home-card:active { transform: scale(0.96); }
         .home-card-icon { font-size: 42px; margin-bottom: 10px; display: block; }
@@ -32,6 +32,15 @@
         .home-card.card-blue { border-top: 4px solid var(--blue); }
         .home-card.card-red { border-top: 4px solid var(--danger); }
         .home-card.card-green { border-top: 4px solid var(--success); }
+        
+        /* HOME GRID 2 COLUNAS (para lado a lado) */
+        .home-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        
+        /* DIVISOR CONFIGURAÇÕES */
+        .config-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 15px 0; }
+        .config-divider-line { flex: 1; height: 3px; background: linear-gradient(90deg, transparent, #8b5cf6, transparent); border-radius: 2px; }
+        .config-divider-text { color: #8b5cf6; font-weight: 700; font-size: 14px; }
+        
         .home-store-btn { margin-top: 20px; display: block; text-align: center; text-decoration: none; background: linear-gradient(135deg, #1a1a2e, #c75b24); color: white; padding: 14px; border-radius: 18px; font-weight: 700; font-size: 15px; }
 
         /* INNER */
@@ -177,53 +186,75 @@
     <!-- HOME: cards de navegação -->
     <div id="homeScreen">
         <div style="padding: 18px 0 12px; text-align:center; color:#666; font-size:14px; font-weight:600;">Selecione uma opção</div>
+        
+        <!-- 1º LUGAR: Histórico de Pedidos/Vendas (fullwidth) -->
         <div class="home-grid">
-            <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
-                <span class="home-card-icon">🤖</span>
-                <div class="home-card-label">Refazer Pedidos</div>
-                <div class="home-card-sub">Repetir no pagar depois</div>
+            <button class="home-card card-red" onclick="openSection('pedidos')">
+                <span class="home-card-icon">📋</span>
+                <div class="home-card-label">Histórico de Pedidos/Vendas</div>
+                <div class="home-card-sub">Histórico & vendas</div>
             </button>
+        </div>
+        
+        <!-- 2º LUGAR: Clientes e Compra no Nome (lado a lado) -->
+        <div class="home-grid-2col">
             <button class="home-card card-blue" onclick="openSection('clientes')">
                 <span class="home-card-icon">👥</span>
                 <div class="home-card-label">Clientes</div>
                 <div class="home-card-sub">Pagar depois & cadastros</div>
-            </button>
-            <button class="home-card card-red" onclick="openSection('pedidos')">
-                <span class="home-card-icon">📋</span>
-                <div class="home-card-label">Pedidos</div>
-                <div class="home-card-sub">Histórico & vendas</div>
-            </button>
-            <button class="home-card card-green" onclick="openSection('mensagens')">
-                <span class="home-card-icon">⚙️</span>
-                <div class="home-card-label">Configurações</div>
-                <div class="home-card-sub">Templates WhatsApp</div>
-            </button>
-            <button class="home-card card-orange" onclick="openSection('salgados')">
-                <span class="home-card-icon">🍕</span>
-                <div class="home-card-label">Salgados</div>
-                <div class="home-card-sub">Gerenciar produtos</div>
             </button>
             <button class="home-card" style="border-top:4px solid #e67e22;" onclick="openSection('compra')">
                 <span class="home-card-icon">🛒</span>
                 <div class="home-card-label">Compra no Nome</div>
                 <div class="home-card-sub">Pedido pelo admin</div>
             </button>
-            <button class="home-card" style="border-top:4px solid #2980b9; grid-column: span 2;" onclick="openSection('pagamentos')">
+        </div>
+        
+        <!-- 3º LUGAR: Histórico de Pagamento e Salgados (lado a lado) -->
+        <div class="home-grid-2col">
+            <button class="home-card" style="border-top:4px solid #2980b9;" onclick="openSection('pagamentos')">
                 <span class="home-card-icon">💳</span>
                 <div class="home-card-label">Histórico de Pagamentos</div>
                 <div class="home-card-sub">Abatimentos registrados</div>
             </button>
-            <button class="home-card" style="border-top:4px solid #27ae60; grid-column: span 2;" onclick="openSection('rotas')">
+            <button class="home-card card-orange" onclick="openSection('salgados')">
+                <span class="home-card-icon">🍕</span>
+                <div class="home-card-label">Salgados</div>
+                <div class="home-card-sub">Gerenciar produtos</div>
+            </button>
+        </div>
+        
+        <!-- DIVISOR CONFIGURAÇÕES -->
+        <div class="config-divider">
+            <div class="config-divider-line"></div>
+            <div class="config-divider-text">⚙️ CONFIGURAÇÕES</div>
+            <div class="config-divider-line"></div>
+        </div>
+        
+        <!-- ABAIXO DO DIVISOR: Resto dos items -->
+        <div class="home-grid">
+            <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
+                <span class="home-card-icon">🤖</span>
+                <div class="home-card-label">Refazer Pedidos</div>
+                <div class="home-card-sub">Repetir no pagar depois</div>
+            </button>
+            <button class="home-card card-green" onclick="openSection('mensagens')">
+                <span class="home-card-icon">💬</span>
+                <div class="home-card-label">Mensagens</div>
+                <div class="home-card-sub">Templates WhatsApp</div>
+            </button>
+            <button class="home-card" style="border-top:4px solid #27ae60;" onclick="openSection('rotas')">
                 <span class="home-card-icon">🗺️</span>
                 <div class="home-card-label">Painel de Rotas</div>
                 <div class="home-card-sub">Gerenciar rotas de entrega</div>
             </button>
-            <button class="home-card" style="border-top:4px solid #e67e22; grid-column: span 2;" onclick="openSection('enderecos')">
+            <button class="home-card" style="border-top:4px solid #e67e22;" onclick="openSection('enderecos')">
                 <span class="home-card-icon">📍</span>
                 <div class="home-card-label">Endereços dos Clientes</div>
                 <div class="home-card-sub">Cadastrar localização de cada cliente</div>
             </button>
         </div>
+        
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
         <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
     </div>
