@@ -845,7 +845,7 @@ async function verificarExecucoesPerdidas() {
 
 
 async function updateFiadoHeader() {
-    const { data } = await sb.from("clients").select("debt");
+    const { data } = await sb.from("cadastros").select("debt");
     const total = (data || []).filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
     const el = document.getElementById('headerFiadoValor');
     el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
@@ -906,7 +906,7 @@ async function verClientesInativos() {
     list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
 
     // Busca todos os clientes
-    const { data: clients } = await sb.from("clients").select("*").order("name");
+    const { data: clients } = await sb.from("cadastros").select("*").order("name");
     if (!clients || clients.length === 0) {
         list.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">Nenhum cliente cadastrado.</div>';
         return;
@@ -917,7 +917,7 @@ async function verClientesInativos() {
 
     // Para cada cliente, busca o último pedido
     const resultados = await Promise.all(clients.map(async c => {
-        const { data: orders } = await sb.from("orders")
+        const { data: orders } = await sb.from("pedidos")
             .select("created_at")
             .eq("customer_phone", c.phone)
             .order("created_at", { ascending: false })
@@ -968,7 +968,7 @@ function cobrarClienteInativo(phone, name, debt) {
 
 // PRODUTOS
 async function loadAdminProducts() {
-    const { data } = await sb.from("products").select("*").order("created_at", { ascending: true });
+    const { data } = await sb.from("cardapio").select("*").order("created_at", { ascending: true });
     const list = document.getElementById('adminProductList');
     if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum produto</div>'; return; }
     list.innerHTML = data.map(p => `
@@ -993,7 +993,7 @@ async function loadAdminProducts() {
 }
 
 async function editProduct(id) {
-    const { data: p } = await sb.from("products").select("*").eq("id", id).single();
+    const { data: p } = await sb.from("cardapio").select("*").eq("id", id).single();
     document.getElementById('editProductId').value = p.id;
     document.getElementById('newPName').value = p.name;
     document.getElementById('newPPrice').value = p.price;
@@ -1034,9 +1034,9 @@ async function saveProduct() {
     if (id) {
         const updates = { name, price, available };
         if (imageUrl) updates.image_url = imageUrl;
-        await sb.from("products").update(updates).eq("id", id);
+        await sb.from("cardapio").update(updates).eq("id", id);
     } else {
-        await sb.from("products").insert({ name, price, available, image_url: imageUrl });
+        await sb.from("cardapio").insert({ name, price, available, image_url: imageUrl });
     }
     resetProdForm(); loadAdminProducts();
     btn.disabled = false; btn.textContent = "Salvar Produto";
@@ -1056,19 +1056,19 @@ async function removeProduct(id) {
 }
 async function executarRemoveProduct(id) {
     closeToast();
-    await sb.from("products").delete().eq("id", id);
+    await sb.from("cardapio").delete().eq("id", id);
     loadAdminProducts();
     showToast({ type: 'success', title: '✅ Produto removido!', body: 'O produto foi excluído do catálogo.', duration: 4000 });
 }
 
 async function toggleAvailable(id, value) {
-    await sb.from("products").update({ available: value }).eq("id", id);
+    await sb.from("cardapio").update({ available: value }).eq("id", id);
     loadAdminProducts();
 }
 
 // CLIENTES
 async function loadAdminClients() {
-    const { data: rawData } = await sb.from("clients").select("*").order("name");
+    const { data: rawData } = await sb.from("cadastros").select("*").order("name");
     const data = (rawData || []).sort((a, b) => {
         if (b.debt > 0 && a.debt <= 0) return 1;
         if (a.debt > 0 && b.debt <= 0) return -1;
@@ -1130,14 +1130,14 @@ async function adminAddClient() {
     const partial = document.getElementById('newCPhone').value.replace(/\D/g,'');
     if (!name || partial.length < 8) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha o nome e o número completo (819 + 8 dígitos).' }); return; }
     const phone = "819" + partial;
-    await sb.from("clients").upsert({ name, phone, fiado: true, debt: 0 });
+    await sb.from("cadastros").upsert({ name, phone, fiado: true, debt: 0 });
     document.getElementById('newCName').value = '';
     document.getElementById('newCPhone').value = '';
     loadAdminClients();
 }
 
 async function toggleFiado(phone, value) {
-    await sb.from("clients").update({ fiado: value }).eq("phone", phone);
+    await sb.from("cadastros").update({ fiado: value }).eq("phone", phone);
 }
 
 // Variável global temporária para guardar o comprovante pendente de envio
@@ -1146,7 +1146,7 @@ let _comprovanteTemp = { phone: null, texto: null };
 async function payDebt(phone) {
     const input = document.getElementById('pay_' + phone);
     const digitado = parseFloat(input.value);
-    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
+    const { data: c } = await sb.from("cadastros").select("debt, name").eq("phone", phone).single();
     if (!digitado) {
         // Campo vazio: confirmar quitação total
         if (!c.debt || c.debt <= 0) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Não há valor de débito para abater.' }); return; }
@@ -1168,12 +1168,12 @@ async function payDebt(phone) {
 async function executarPayDebt(phone, val) {
     closeToast();
     const input = document.getElementById('pay_' + phone);
-    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", phone).single();
+    const { data: c } = await sb.from("cadastros").select("debt, name").eq("phone", phone).single();
     const novoSaldo = c.debt - val;
-    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
+    await sb.from("cadastros").update({ debt: novoSaldo }).eq("phone", phone);
 
     // Registra o pagamento na tabela payments do Supabase
-    await sb.from("payments").insert({
+    await sb.from("pagamentos_reembolsos").insert({
         client_name: c.name,
         client_phone: phone,
         amount: val,
@@ -1238,7 +1238,7 @@ async function deleteClient(phone) {
 }
 async function executarDeleteClient(phone) {
     closeToast();
-    await sb.from("clients").delete().eq("phone", phone);
+    await sb.from("cadastros").delete().eq("phone", phone);
     loadAdminClients();
     showToast({ type: 'success', title: '✅ Cliente removido!', body: 'O cliente foi removido com sucesso.', duration: 4000 });
 }
@@ -1260,7 +1260,7 @@ function cobrarCliente(phone, name, debt) {
 })();
 
 async function abrirModalDevolucao() {
-    const { data } = await sb.from("clients").select("*").order("name");
+    const { data } = await sb.from("cadastros").select("*").order("name");
     const clientes = (data || []).filter(c => c.debt > 0);
     const list = document.getElementById('devolucaoList');
     if (!clientes.length) {
@@ -1297,8 +1297,8 @@ async function executarDevolucao(phone, name, debtAtual) {
         return;
     }
     const novoSaldo = debtAtual - val;
-    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", phone);
-    await sb.from("payments").insert({
+    await sb.from("cadastros").update({ debt: novoSaldo }).eq("phone", phone);
+    await sb.from("pagamentos_reembolsos").insert({
         client_name: name,
         client_phone: phone,
         amount: val,
@@ -1369,7 +1369,7 @@ async function loadOrderSummary() {
         dataInicio = dataBRT + 'T12:00:00-03:00';
     }
 
-    const { data } = await sb.from("orders")
+    const { data } = await sb.from("pedidos")
         .select("items")
         .gte("created_at", dataInicio);
 
@@ -1482,7 +1482,7 @@ async function abrirModalExcluir() {
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
 
-    const { data } = await sb.from("orders")
+    const { data } = await sb.from("pedidos")
         .select("customer_name, customer_phone, items")
         .gte("created_at", brasiliaDate(start).toISOString())
         .lte("created_at", brasiliaDate(end).toISOString());
@@ -1542,7 +1542,7 @@ async function aplicarExclusoes() {
     end.setDate(end.getDate() + 1);
     end.setHours(5, 0, 0, 0);
 
-    const { data } = await sb.from("orders")
+    const { data } = await sb.from("pedidos")
         .select("customer_phone, items")
         .gte("created_at", brasiliaDate(start).toISOString())
         .lte("created_at", brasiliaDate(end).toISOString());
@@ -1583,7 +1583,7 @@ async function loadOrders() {
 
     try {
     // Busca todos os pedidos
-    const { data, error } = await sb.from("orders").select("*")
+    const { data, error } = await sb.from("pedidos").select("*")
         .order("created_at", { ascending: false }).limit(200);
 
     if (error) throw error;
@@ -1592,9 +1592,9 @@ async function loadOrders() {
     let todasRotas = [];
     let appCfgREValor = null;
     let phonesComEndereco = new Set();
-    try { const { data: rd } = await sb.from("delivery_routes").select("id, nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
-    try { const { data: cd } = await sb.from("app_config").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
-    try { const { data: ce } = await sb.from("clients").select("phone, delivery_lat, delivery_lon").not("delivery_lat", "is", null).not("delivery_lon", "is", null); (ce || []).forEach(c => phonesComEndereco.add(c.phone)); } catch(e) {}
+    try { const { data: rd } = await sb.from("rotas").select("id, \"Rotas\" as nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
+    try { const { data: cd } = await sb.from("rota_especial_gps").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
+    try { const { data: ce } = await sb.from("cadastros").select("phone, delivery_lat, delivery_lon").not("delivery_lat", "is", null).not("delivery_lon", "is", null); (ce || []).forEach(c => phonesComEndereco.add(c.phone)); } catch(e) {}
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
@@ -1828,14 +1828,14 @@ async function executarCancelamentoPedido(orderId) {
     // Só reverte o saldo se o pedido era FIADO (pagar depois)
     // Pagar na entrega: cliente ainda não pagou, não há nada a devolver
     if (isFiado && o.customer_phone) {
-        const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+        const { data: c } = await sb.from("cadastros").select("debt, name").eq("phone", o.customer_phone).single();
         if (c) {
             const saldoAntes = c.debt || 0;
             const novaDiv = saldoAntes - Number(o.total);
-            await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+            await sb.from("cadastros").update({ debt: novaDiv }).eq("phone", o.customer_phone);
 
             // Registra estorno na tabela payments
-            await sb.from("payments").insert({
+            await sb.from("pagamentos_reembolsos").insert({
                 client_name: c.name || o.customer_name,
                 client_phone: o.customer_phone,
                 amount: Number(o.total),
@@ -1847,7 +1847,7 @@ async function executarCancelamentoPedido(orderId) {
     }
 
     // Deleta o pedido do banco
-    await sb.from("orders").delete().eq("id", orderId);
+    await sb.from("pedidos").delete().eq("id", orderId);
     delete ordersMap[orderId];
 
     // Remove o card visualmente
@@ -1885,13 +1885,13 @@ async function executarMudarParaFiado(orderId) {
     if (!o) return;
 
     // Atualiza o pedido para FIADO
-    await sb.from("orders").update({ payment_method: 'FIADO' }).eq("id", orderId);
+    await sb.from("pedidos").update({ payment_method: 'FIADO' }).eq("id", orderId);
 
     // Lança o valor no fiado do cliente
-    const { data: c } = await sb.from("clients").select("debt").eq("phone", o.customer_phone).single();
+    const { data: c } = await sb.from("cadastros").select("debt").eq("phone", o.customer_phone).single();
     if (c) {
         const novaDiv = (c.debt || 0) + Number(o.total);
-        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+        await sb.from("cadastros").update({ debt: novaDiv }).eq("phone", o.customer_phone);
     }
 
     // Atualiza o mapa local
@@ -2018,7 +2018,7 @@ async function executarZerarJanela(slot) {
     limite.setHours(ateH, ateM, 59, 999);
     const limiteISO = brasiliaDate(limite).toISOString();
 
-    const { data: pedidos } = await sb.from("orders")
+    const { data: pedidos } = await sb.from("pedidos")
         .select("id,customer_phone,customer_name")
         .lte("created_at", limiteISO);
 
@@ -2029,7 +2029,7 @@ async function executarZerarJanela(slot) {
 
     const parasApagar = pedidos.filter(p => !protegidos.has(p.customer_phone));
     for (const p of parasApagar) {
-        await sb.from("orders").delete().eq("id", p.id);
+        await sb.from("pedidos").delete().eq("id", p.id);
     }
 
     const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
@@ -2076,14 +2076,14 @@ async function clearAllOrders() {
 }
 async function executarClearOrders() {
     closeToast();
-    await sb.from("orders").delete().gte("id", "00000000-0000-0000-0000-000000000000");
+    await sb.from("pedidos").delete().gte("id", "00000000-0000-0000-0000-000000000000");
     loadOrders();
     showToast({ type: 'success', title: '✅ Pedidos apagados!', body: 'Todos os pedidos foram removidos.', duration: 4000 });
 }
 
 // MENSAGENS
 async function loadTemplates() {
-    const { data } = await sb.from("config").select("*");
+    const { data } = await sb.from("configuracoes").select("*");
     if (data) {
         const msgCfg = data.find(x => x.key === "msg_template");
         const cobrCfg = data.find(x => x.key === "msg_cobranca");
@@ -2101,10 +2101,10 @@ async function saveMsgTemplates() {
     msgCobranca = document.getElementById('editCobrancaTemplate').value;
     msgComprovante = document.getElementById('editComprovanteTemplate').value;
     msgExtrato = document.getElementById('editExtratoTemplate').value;
-    await sb.from("config").upsert({ key: "msg_template", value: msgTemplate });
-    await sb.from("config").upsert({ key: "msg_cobranca", value: msgCobranca });
-    await sb.from("config").upsert({ key: "msg_comprovante", value: msgComprovante });
-    await sb.from("config").upsert({ key: "msg_extrato", value: msgExtrato });
+    await sb.from("configuracoes").upsert({ key: "msg_template", value: msgTemplate });
+    await sb.from("configuracoes").upsert({ key: "msg_cobranca", value: msgCobranca });
+    await sb.from("configuracoes").upsert({ key: "msg_comprovante", value: msgComprovante });
+    await sb.from("configuracoes").upsert({ key: "msg_extrato", value: msgExtrato });
     showToast({ type: 'success', title: '✅ Templates salvos!', body: 'Os templates foram atualizados com sucesso.', duration: 5000 });
 }
 // ===== REFAZER PEDIDOS =====
@@ -2261,7 +2261,7 @@ async function executarAutoRefazer() {
             continue;
         }
 
-        const { data: pedidoRecente } = await sb.from("orders")
+        const { data: pedidoRecente } = await sb.from("pedidos")
             .select("id")
             .eq("customer_phone", s.phone)
             .gte("created_at", brasiliaDate(ontem12h).toISOString())
@@ -2273,7 +2273,7 @@ async function executarAutoRefazer() {
         }
 
         // Busca o pedido SALVO (⭐) do cliente direto do Supabase
-        const { data: c } = await sb.from("clients")
+        const { data: c } = await sb.from("cadastros")
             .select("debt, saved_order, saved_order_total")
             .eq("phone", s.phone).single();
         if (!c) continue;
@@ -2286,8 +2286,8 @@ async function executarAutoRefazer() {
         const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
         const saldoAntes = c.debt || 0;
         const novoSaldo = saldoAntes + totalParaUsar;
-        await sb.from("clients").update({ debt: novoSaldo }).eq("phone", s.phone);
-        await sb.from("payments").insert({
+        await sb.from("cadastros").update({ debt: novoSaldo }).eq("phone", s.phone);
+        await sb.from("pagamentos_reembolsos").insert({
             client_name: s.name,
             client_phone: s.phone,
             amount: totalParaUsar,
@@ -2295,7 +2295,7 @@ async function executarAutoRefazer() {
             saldo_posterior: novoSaldo,
             tipo: "fiado"
         });
-        const { data: novoPedido } = await sb.from("orders").insert({
+        const { data: novoPedido } = await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
             total: totalParaUsar,
@@ -2350,7 +2350,7 @@ async function loadRefazerPedidos() {
     atualizarResumoRefazer();
 
     // Busca todos os clientes
-    const { data: clients } = await sb.from("clients").select("*").order("name");
+    const { data: clients } = await sb.from("cadastros").select("*").order("name");
     if (!clients || clients.length === 0) {
         list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum cliente</div>';
         return;
@@ -2489,12 +2489,12 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
     closeToast();
 
     // Remove o pedido
-    await sb.from("orders").delete().eq("id", orderId);
+    await sb.from("pedidos").delete().eq("id", orderId);
 
     // Estorna do fiado
-    const { data: c } = await sb.from("clients").select("debt").eq("phone", phone).single();
+    const { data: c } = await sb.from("cadastros").select("debt").eq("phone", phone).single();
     if (c) {
-        await sb.from("clients").update({ debt: (c.debt || 0) - Number(total) }).eq("phone", phone);
+        await sb.from("cadastros").update({ debt: (c.debt || 0) - Number(total) }).eq("phone", phone);
     }
 
     // Remove do histórico local
@@ -2551,14 +2551,14 @@ async function executarTodosRefazer() {
 
     for (const s of sel) {
         // Sempre busca o saved_order atualizado do Supabase na hora de lançar
-        const { data: c } = await sb.from("clients")
+        const { data: c } = await sb.from("cadastros")
             .select("debt, saved_order, saved_order_total")
             .eq("phone", s.phone).single();
         if (!c) continue;
         const itemsFinais = (c.saved_order && c.saved_order.trim()) ? c.saved_order : s.items.replace(/\\n/g, '\n');
         const totalFinal = (c.saved_order_total && c.saved_order_total > 0) ? Number(c.saved_order_total) : Number(s.total);
-        await sb.from("clients").update({ debt: (c.debt || 0) + totalFinal }).eq("phone", s.phone);
-        await sb.from("orders").insert({
+        await sb.from("cadastros").update({ debt: (c.debt || 0) + totalFinal }).eq("phone", s.phone);
+        await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
             total: totalFinal,
@@ -2588,13 +2588,13 @@ async function loadCompraTab() {
     document.getElementById('compraTotalLabel').textContent = 'R$ 0,00';
 
     // Load clients into select
-    const { data: clients } = await sb.from("clients").select("*").order("name");
+    const { data: clients } = await sb.from("cadastros").select("*").order("name");
     const sel = document.getElementById('compraCliente');
     sel.innerHTML = '<option value="">-- Escolha o cliente --</option>' +
         (clients || []).map(c => `<option value="${c.phone}" data-name="${c.name}" data-debt="${c.debt}" data-fiado="${c.fiado}">${c.name}</option>`).join('');
 
     // Load products
-    const { data: prods } = await sb.from("products").select("*").eq("available", true).order("created_at", { ascending: true });
+    const { data: prods } = await sb.from("cardapio").select("*").eq("available", true).order("created_at", { ascending: true });
     compraProdutos = prods || [];
     renderCompraProdList();
 }
@@ -2752,7 +2752,7 @@ async function confirmarCompra() {
 async function executarCompra(total, pedidoTexto) {
     closeToast();
 
-    await sb.from("orders").insert({
+    await sb.from("pedidos").insert({
         customer_name: compraClienteAtual.name,
         customer_phone: compraClienteAtual.phone,
         total: total,
@@ -2761,8 +2761,8 @@ async function executarCompra(total, pedidoTexto) {
     });
 
     if (compraPagamento === 'FIADO') {
-        const { data: c } = await sb.from("clients").select("debt").eq("phone", compraClienteAtual.phone).single();
-        await sb.from("clients").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
+        const { data: c } = await sb.from("cadastros").select("debt").eq("phone", compraClienteAtual.phone).single();
+        await sb.from("cadastros").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
     }
 
     showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 8000 });
@@ -2785,7 +2785,7 @@ async function loadHistoricoPagamentos() {
     list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
 
     const { data, error } = await sb
-        .from("payments")
+        .from("pagamentos_reembolsos")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
@@ -2843,7 +2843,7 @@ async function loadHistoricoFiado() {
 
     // Busca as últimas 50 compras do Supabase
     const { data: allData, error } = await sb
-        .from("orders")
+        .from("pedidos")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
@@ -3002,13 +3002,13 @@ async function executarNaoPagou(orderId) {
     if (!o) return;
 
     // Atualiza o pedido para FIADO
-    await sb.from("orders").update({ payment_method: 'FIADO' }).eq("id", orderId);
+    await sb.from("pedidos").update({ payment_method: 'FIADO' }).eq("id", orderId);
 
     // Adiciona a dívida ao cliente
-    const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+    const { data: c } = await sb.from("cadastros").select("debt, name").eq("phone", o.customer_phone).single();
     if (c) {
         const novaDiv = (c.debt || 0) + Number(o.total);
-        await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+        await sb.from("cadastros").update({ debt: novaDiv }).eq("phone", o.customer_phone);
     }
 
     // Atualiza localmente
@@ -3045,20 +3045,20 @@ async function executarCancelamento(orderId) {
     if (!o) return;
 
     // Remove o pedido
-    await sb.from("orders").delete().eq("id", orderId);
+    await sb.from("pedidos").delete().eq("id", orderId);
 
     const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
 
     // Só estorna o fiado se o pedido era fiado
     if (isFiado) {
-        const { data: c } = await sb.from("clients").select("debt, name").eq("phone", o.customer_phone).single();
+        const { data: c } = await sb.from("cadastros").select("debt, name").eq("phone", o.customer_phone).single();
         if (c) {
             const saldoAntes = c.debt || 0;
             const novaDiv = saldoAntes - Number(o.total);
-            await sb.from("clients").update({ debt: novaDiv }).eq("phone", o.customer_phone);
+            await sb.from("cadastros").update({ debt: novaDiv }).eq("phone", o.customer_phone);
 
             // Registra o reembolso na tabela payments
-            await sb.from("payments").insert({
+            await sb.from("pagamentos_reembolsos").insert({
                 client_name: c.name || o.customer_name,
                 client_phone: o.customer_phone,
                 amount: Number(o.total),
@@ -3113,7 +3113,7 @@ function calcDistM(lat1, lon1, lat2, lon2) {
 
 function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
 async function loadRotasPanel() {
-    const { data: clients } = await sb.from("clients").select("*").order("name");
+    const { data: clients } = await sb.from("cadastros").select("*").order("name");
     clientesCache = clients || [];
     await preencherClientesComPedido();
     await calcularMediaEta();
@@ -3127,9 +3127,9 @@ async function loadRotasPanel() {
 function iniciarMonitorPedidosADM() {
     if (reRealtimeCh) return; // já está monitorando
     reRealtimeCh = sb.channel('re_pedidos_adm')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
             // Recarrega config do banco para pegar versão mais recente (pode ter sido atualizada pelo entregador)
-            const { data } = await sb.from('app_config').select('valor').eq('chave','rota_especial').single().catch(()=>({data:null}));
+            const { data } = await sb.from('rota_especial_gps').select('valor').eq('chave','rota_especial').single().catch(()=>({data:null}));
             if (!data) return;
             let cfg; try { cfg = JSON.parse(data.valor); } catch(e) { return; }
             if (!cfg?.ativa) return;
@@ -3144,7 +3144,7 @@ function iniciarMonitorPedidosADM() {
             const pedido = payload.new;
             if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
             // Busca dados do cliente
-            const { data: cli } = await sb.from('clients').select('name,phone,delivery_lat,delivery_lon,delivery_address').eq('phone', pedido.customer_phone).maybeSingle();
+            const { data: cli } = await sb.from('cadastros').select('name,phone,delivery_lat,delivery_lon,delivery_address').eq('phone', pedido.customer_phone).maybeSingle();
             if (!cli?.delivery_lat || !cli?.delivery_lon) return;
             fila.push({
                 id: Date.now().toString(),
@@ -3156,7 +3156,7 @@ function iniciarMonitorPedidosADM() {
                 status: 'pendente'
             });
             cfg.clientes_fila = fila;
-            await sb.from('app_config').upsert({ chave:'rota_especial', valor: JSON.stringify(cfg) }, { onConflict:'chave' });
+            await sb.from('rota_especial_gps').upsert({ chave:'rota_especial', valor: JSON.stringify(cfg) }, { onConflict:'chave' });
             rotaEspecialConfig = cfg;
             atualizarStatusRE();
             showToast({type:'success', title:'⚡ Cliente na fila!', body:`${cli.name} entrou na rota especial.`, duration:3000});
@@ -3167,7 +3167,7 @@ function iniciarMonitorPedidosADM() {
 async function preencherClientesComPedido() {
     // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
     const hoje = hojeStr();
-    const { data: pedidosHoje } = await sb.from("orders")
+    const { data: pedidosHoje } = await sb.from("pedidos")
         .select("customer_phone, customer_name")
         .gte("created_at", hoje + 'T00:00:00')
         .lte("created_at", hoje + 'T23:59:59');
@@ -3212,7 +3212,7 @@ async function preencherClientesComPedido() {
 async function carregarRotasHoje() {
     const dia = diaHoje();
     const hoje = hojeStr(); // "2025-02-21"
-    const { data: todasRotas } = await sb.from("delivery_routes").select("*").order("hora_saida",{ascending:true});
+    const { data: todasRotas } = await sb.from("rotas").select('*, "Rotas" as nome').order("hora_saida",{ascending:true});
 
     // Filtra rotas que têm o dia atual marcado
     const rotasDoDia = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
@@ -3233,7 +3233,7 @@ async function carregarRotasHoje() {
             const template = r.paradas_template || r.paradas || [];
             if (template.length > 0) {
                 const ativas = await gerarParadasAtivas(template);
-                await sb.from("delivery_routes").update({ paradas: ativas }).eq("id", r.id);
+                await sb.from("rotas").update({ paradas: ativas }).eq("id", r.id);
                 r.paradas = ativas;
             }
         }
@@ -3317,8 +3317,8 @@ async function criarRota() {
     const dias = getDiasSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    const {data:nova,error} = await sb.from("delivery_routes").insert({
-        nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
+    const {data:nova,error} = await sb.from("rotas").insert({
+        "Rotas": nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
         status:'criada', paradas:[], paradas_template:[]
     }).select().single();
     if (error||!nova) return showToast({type:'confirm',title:'❌ Erro',body:'Verifique se rodou o SQL: ALTER TABLE delivery_routes ADD COLUMN IF NOT EXISTS raio_fabrica int DEFAULT 20;',duration:4000});
@@ -3334,7 +3334,7 @@ async function criarRota() {
 }
 
 async function abrirParadasRota(rotaId) {
-    const {data:r} = await sb.from("delivery_routes").select("*").eq("id",rotaId).single();
+    const {data:r} = await sb.from("rotas").select('*, "Rotas" as nome').eq("id",rotaId).single();
     if (!r) return;
     rotaAtualId = rotaId;
     // Template = clientes fixos da rota (permanentes)
@@ -3372,7 +3372,7 @@ function fecharAddParada() {
 async function calcularMediaEta() {
     const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
     const ontemStr = brasiliaDate(ontem).toISOString().split('T')[0];
-    const {data:hist} = await sb.from("delivery_routes").select("paradas,saida_em,fim_em")
+    const {data:hist} = await sb.from("rotas").select("paradas,saida_em,fim_em")
         .gte("created_at",ontemStr+'T00:00:00').lte("created_at",ontemStr+'T23:59:59')
         .eq("status","concluido").limit(5);
     if (hist && hist.length>0) {
@@ -3415,13 +3415,13 @@ async function loadEnderecos() {
     el.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
 
     // Tenta buscar com colunas de endereço
-    const { data, error } = await sb.from('clients')
+    const { data, error } = await sb.from('cadastros')
         .select('phone,name,delivery_address,delivery_lat,delivery_lon')
         .order('name');
 
     if (error) {
         // Colunas de endereço não existem ainda — faz fallback buscando só phone e name
-        const { data: dataFallback, error: errFallback } = await sb.from('clients')
+        const { data: dataFallback, error: errFallback } = await sb.from('cadastros')
             .select('phone,name')
             .order('name');
 
@@ -3580,7 +3580,7 @@ async function salvarEndereco() {
         return showToast({ type: 'confirm', title: '⚠️ Coordenadas inválidas', body: 'Use o formato: -8,2181191, -34,9332629', duration: 3000 });
     }
     const { lat, lon } = parsed;
-    await sb.from('clients').update({
+    await sb.from('cadastros').update({
         delivery_address: endereco || null,
         delivery_lat: lat,
         delivery_lon: lon
@@ -3637,7 +3637,7 @@ async function adicionarParada() {
     // Gera paradas ativas: apenas quem tem pedido hoje
     const paradasAtivas = await gerarParadasAtivas(rotaParadas);
 
-    await sb.from("delivery_routes").update({
+    await sb.from("rotas").update({
         paradas_template: rotaParadas,
         paradas: paradasAtivas
     }).eq("id", rotaAtualId);
@@ -3658,12 +3658,12 @@ async function gerarParadasAtivas(template) {
 
     // Busca pedidos E endereços dos clientes em paralelo
     const [pedidosRes, clientesRes] = await Promise.all([
-        sb.from("orders")
+        sb.from("pedidos")
             .select("customer_phone")
             .in("customer_phone", phones)
             .gte("created_at", hoje + 'T00:00:00-03:00')
             .lte("created_at", hoje + 'T23:59:59-03:00'),
-        sb.from("clients")
+        sb.from("cadastros")
             .select("phone, delivery_lat, delivery_lon")
             .in("phone", phones)
     ]);
@@ -3726,7 +3726,7 @@ async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
     rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
     const paradasAtivas = await gerarParadasAtivas(rotaParadas);
-    await sb.from("delivery_routes").update({
+    await sb.from("rotas").update({
         paradas_template: rotaParadas,
         paradas: paradasAtivas
     }).eq("id", rotaAtualId);
@@ -3741,7 +3741,7 @@ async function excluirRota(rotaId) {
 }
 
 async function carregarRotasSalvas() {
-    const {data:rotas} = await sb.from("delivery_routes").select("*").order("created_at",{ascending:false}).limit(50);
+    const {data:rotas} = await sb.from("rotas").select('*, "Rotas" as nome').order("created_at",{ascending:false}).limit(50);
     const list = document.getElementById('rotasSalvasList');
     if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
@@ -3830,7 +3830,7 @@ function cancelarLongPress() {
 
 async function abrirModalEditarSaldoCliente() {
     // Carrega clientes para o select
-    const { data } = await sb.from("clients").select("phone,name,debt").order("name");
+    const { data } = await sb.from("cadastros").select("phone,name,debt").order("name");
     const select = document.getElementById('editarSaldoSelect');
     select.innerHTML = '<option value="">— Selecione o cliente —</option>' +
         (data || []).map(c => `<option value="${c.phone}" data-debt="${c.debt}">${c.name} (${c.debt > 0 ? 'Débito: R$ ' + c.debt.toFixed(2) : c.debt < 0 ? 'Crédito: R$ ' + Math.abs(c.debt).toFixed(2) : 'Zerado'})</option>`).join('');
@@ -3875,7 +3875,7 @@ async function salvarEditarSaldo() {
     if (isNaN(novoSaldo)) {
         return showToast({ type:'confirm', title:'⚠️ Valor inválido', body:'Digite um número válido.', duration:2500 });
     }
-    await sb.from("clients").update({ debt: novoSaldo }).eq("phone", editarSaldoPhone);
+    await sb.from("cadastros").update({ debt: novoSaldo }).eq("phone", editarSaldoPhone);
     fecharEditarSaldo();
     await loadAdminClients();
     showToast({ type:'success', title:'✅ Saldo atualizado!',
@@ -3902,14 +3902,14 @@ function confirmarExcluirRota(rotaId, nome) {
 
 async function executarExcluirRota(rotaId) {
     closeToast();
-    await sb.from("delivery_routes").delete().eq("id", rotaId);
+    await sb.from("rotas").delete().eq("id", rotaId);
     await carregarRotasHoje();
     await carregarRotasSalvas();
     showToast({type:'success', title:'✅ Rota excluída!', body:'A rota foi removida permanentemente.', duration:3000});
 }
 
 async function abrirEditarRota(rotaId) {
-    const {data:r} = await sb.from("delivery_routes").select("*").eq("id",rotaId).single();
+    const {data:r} = await sb.from("rotas").select('*, "Rotas" as nome').eq("id",rotaId).single();
     if (!r) return;
     rotaEditandoId = rotaId;
     document.getElementById('editRotaNome').value = r.nome || '';
@@ -3945,7 +3945,7 @@ async function salvarEdicaoRota() {
     const dias = getDiasEditSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    await sb.from("delivery_routes").update({nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
+    await sb.from("rotas").update({"Rotas": nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
     document.getElementById('modalEditarRota').style.display = 'none';
     rotaEditandoId = null;
     await carregarRotasHoje();
@@ -3962,7 +3962,7 @@ let reRealtimeCh = null;
 
 async function loadRotaEspecial() {
     // Busca config da rota especial no supabase
-    const { data } = await sb.from('app_config').select('*').eq('chave', 'rota_especial').single();
+    const { data } = await sb.from('rota_especial_gps').select('*').eq('chave', 'rota_especial').single();
     if (data) {
         try { rotaEspecialConfig = JSON.parse(data.valor); } catch(e) { rotaEspecialConfig = null; }
     }
@@ -3997,7 +3997,7 @@ async function salvarRotaEspecial() {
 
     rotaEspecialConfig = { hora_inicio: inicio, hora_fim: fim, dias, ativa: rotaEspecialAtiva, clientes_fila: rotaEspecialConfig?.clientes_fila || [] };
 
-    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
     showToast({type:'success',title:'✅ Rota Especial salva!',body:`${inicio} → ${fim} · ${dias.join(', ')}`,duration:3000});
     atualizarStatusRE();
 }
@@ -4006,7 +4006,7 @@ async function toggleAtivarRotaEspecial() {
     if (!rotaEspecialConfig) return showToast({type:'confirm',title:'⚠️',body:'Salve a configuração primeiro.',duration:2500});
     rotaEspecialAtiva = !rotaEspecialAtiva;
     rotaEspecialConfig.ativa = rotaEspecialAtiva;
-    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
     atualizarStatusRE();
     if (rotaEspecialAtiva) {
         monitorarRotaEspecial();
@@ -4101,7 +4101,7 @@ function renderFilaRE(fila) {
 function monitorarRotaEspecial() {
     if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); }
     reRealtimeCh = sb.channel('re_pedidos')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
             if (!rotaEspecialAtiva || !estaDentroDoHorarioRE()) return;
             const pedido = payload.new;
             await adicionarClienteFilaRE(pedido);
@@ -4113,7 +4113,7 @@ function monitorarRotaEspecial() {
 
 async function adicionarClienteFilaRE(pedido) {
     // Busca dados do cliente
-    const { data: cliente } = await sb.from('clients')
+    const { data: cliente } = await sb.from('cadastros')
         .select('name, phone, delivery_lat, delivery_lon, delivery_address')
         .eq('phone', pedido.customer_phone).single();
 
@@ -4137,7 +4137,7 @@ async function adicionarClienteFilaRE(pedido) {
     });
 
     rotaEspecialConfig.clientes_fila = fila;
-    await sb.from('app_config').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
+    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
     atualizarStatusRE();
     showToast({type:'success',title:'⚡ Cliente na fila!',body:`${cliente.name} entrou na rota especial.`,duration:3000});
 }
