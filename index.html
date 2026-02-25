@@ -3606,7 +3606,7 @@ async function criarRota() {
         "Rotas": nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
         status:'criada', paradas:[], paradas_template:[]
     }).select().single();
-    if (error||!nova) return showToast({type:'confirm',title:'❌ Erro',body:'Verifique se rodou o SQL: ALTER TABLE delivery_routes ADD COLUMN IF NOT EXISTS raio_fabrica int DEFAULT 20;',duration:4000});
+    if (error||!nova) return showToast({type:'confirm',title:'❌ Erro ao criar rota',body:'Verifique sua conexão com o Supabase e tente novamente.',duration:4000});
     document.getElementById('novaRotaForm').style.display = 'none';
     document.getElementById('rotaNome').value = '';
     document.querySelectorAll('[data-dia]').forEach(el => {
@@ -3723,9 +3723,9 @@ async function loadEnderecos() {
         el.innerHTML = `<div style="background:#fff3cd;border:1px solid #f0c040;border-radius:14px;padding:16px;margin-bottom:14px;color:#856404;font-size:13px;line-height:1.6;">
             ⚠️ <strong>Execute este SQL no Supabase para habilitar endereços:</strong><br><br>
             <code style="display:block;background:#1a1a2e;color:#2ecc71;padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;word-break:break-all;">
-                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_address text;<br>
-                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_lat float8;<br>
-                ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_lon float8;
+                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_address text;<br>
+                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_lat float8;<br>
+                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_lon float8;
             </code>
         </div>`;
         renderEnderecos(todosClientesEnderecos);
