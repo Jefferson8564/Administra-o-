@@ -51,28 +51,6 @@
         .back-btn { background: #f0f0f0; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #333; }
         .back-section-title { font-weight: 700; color: var(--primary); font-size: 16px; }
 
-        /* ROTA ESPECIAL */
-        .rota-especial-card { background: linear-gradient(135deg, #1a1a2e 0%, #0d2137 100%); border-radius: 18px; padding: 16px; margin-bottom: 15px; border: 1.5px solid rgba(255,165,0,0.3); box-shadow: 0 4px 20px rgba(255,140,0,0.15); }
-        .rota-especial-ativa { border-color: rgba(255,165,0,0.7); box-shadow: 0 4px 24px rgba(255,140,0,0.35); }
-        .re-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        .re-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
-        .re-horarios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-        .re-campo { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 12px; }
-        .re-campo label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
-        .re-campo input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 800; width: 100%; outline: none; }
-        .re-dias { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 14px; }
-        .re-dia { text-align: center; padding: 7px 2px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); }
-        .re-dia.ativo { border-color: #f5a623; background: rgba(245,166,35,0.2); color: #f5a623; }
-        .re-status { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
-        .re-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; flex-shrink: 0; }
-        .re-status-dot.ativa { background: #f5a623; box-shadow: 0 0 8px #f5a623; animation: rePulse 1.5s ease-in-out infinite; }
-        .re-status-dot.fora { background: #95a5a6; }
-        @keyframes rePulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-        .re-clientes-fila { margin-top: 10px; }
-        .re-cliente-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
-        .re-cliente-nome { font-size: 13px; font-weight: 700; color: #f0f0f8; flex: 1; }
-        .re-cliente-hora { font-size: 11px; color: rgba(255,255,255,0.4); }
-
         /* CARDS */
         .card-box { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
         .card-box h4 { color: var(--primary); margin-bottom: 12px; }
@@ -160,6 +138,9 @@
         .toast-btn:active { opacity: 0.8; }
         .toast.success .toast-progress { color: #25d366; }
         .toast.confirm .toast-progress { color: #c75b24; }
+        @keyframes roPulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(155,89,182,0.5);} 50%{opacity:0.7;box-shadow:0 0 0 6px rgba(155,89,182,0);} }
+        .ra-dot-ativa { background: #9b59b6 !important; animation: roPulse 1.5s ease-in-out infinite; }
+        .ra-dot-fora   { background: #95a5a6 !important; }
     </style>
 </head>
 <body>
@@ -248,6 +229,11 @@
                 <div class="home-card-label">Painel de Rotas</div>
                 <div class="home-card-sub">Gerenciar rotas de entrega</div>
             </button>
+            <button class="home-card" style="border-top:4px solid #9b59b6;" onclick="openSection('rota-aleatoria')">
+                <span class="home-card-icon">🎲</span>
+                <div class="home-card-label">Rota Aleatória</div>
+                <div class="home-card-sub" id="homeRotaAleatoriaStatus">Verificando...</div>
+            </button>
             <button class="home-card" style="border-top:4px solid #e67e22;" onclick="openSection('enderecos')">
                 <span class="home-card-icon">📍</span>
                 <div class="home-card-label">Endereços dos Clientes</div>
@@ -257,7 +243,7 @@
         
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
         <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
-    </div>
+    </div></div>
 
     <!-- SEÇÕES INTERNAS -->
     <div id="innerApp">
@@ -694,51 +680,6 @@
         <!-- ABA PAINEL DE ROTAS -->
         <div id="tab-rotas" class="section">
 
-            <!-- ROTA ESPECIAL -->
-            <div class="rota-especial-card" id="rotaEspecialCard">
-                <div class="re-title">⚡ Rota Especial
-                    <span id="reStatusBadge" style="font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-weight:700;margin-left:auto;">Inativa</span>
-                </div>
-                <div class="re-sub">Clientes que pedirem no horário entram automaticamente</div>
-
-                <div class="re-horarios">
-                    <div class="re-campo">
-                        <label>⏰ Início</label>
-                        <input type="time" id="reHoraInicio" value="14:00">
-                    </div>
-                    <div class="re-campo">
-                        <label>🏁 Fim</label>
-                        <input type="time" id="reHoraFim" value="17:00">
-                    </div>
-                </div>
-
-                <div class="re-dias" id="reDias">
-                    <div class="re-dia" data-re-dia="Dom" onclick="toggleReDia(this)">Dom</div>
-                    <div class="re-dia" data-re-dia="Seg" onclick="toggleReDia(this)">Seg</div>
-                    <div class="re-dia" data-re-dia="Ter" onclick="toggleReDia(this)">Ter</div>
-                    <div class="re-dia" data-re-dia="Qua" onclick="toggleReDia(this)">Qua</div>
-                    <div class="re-dia" data-re-dia="Qui" onclick="toggleReDia(this)">Qui</div>
-                    <div class="re-dia" data-re-dia="Sex" onclick="toggleReDia(this)">Sex</div>
-                    <div class="re-dia" data-re-dia="Sáb" onclick="toggleReDia(this)">Sáb</div>
-                </div>
-
-                <div class="re-status">
-                    <div class="re-status-dot" id="reStatusDot"></div>
-                    <div style="flex:1;">
-                        <div id="reStatusTexto" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);">Configurar e ativar</div>
-                        <div id="reClientesFila" style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;"></div>
-                    </div>
-                    <div id="reContador" style="font-size:22px;font-weight:900;color:#f5a623;display:none;">0</div>
-                </div>
-
-                <div id="reClientesLista" class="re-clientes-fila" style="display:none;"></div>
-
-                <div style="display:flex;gap:8px;">
-                    <button onclick="salvarRotaEspecial()" style="flex:1;padding:12px;background:linear-gradient(135deg,#f5a623,#e67e22);color:#000;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
-                    <button onclick="toggleAtivarRotaEspecial()" id="btnAtivarRE" style="flex:1;padding:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">▶ Ativar</button>
-                </div>
-            </div>
-
             <!-- CRIAR NOVA ROTA -->
             <div class="card-box">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -835,6 +776,109 @@
                 <div id="rotasSalvasList" style="color:#888;font-size:13px;text-align:center;padding:20px;">Carregando...</div>
             </div>
         </div>
+
+        <!-- ABA ROTA ALEATÓRIA -->
+        <div id="tab-rota-aleatoria" class="section">
+
+            <!-- CARD STATUS PRINCIPAL -->
+            <div id="raCardPrincipal" style="border-radius:20px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg,#1a1a2e 0%,#2c1654 100%);border:2px solid rgba(155,89,182,0.3);box-shadow:0 4px 24px rgba(155,89,182,0.15);">
+
+                <!-- Cabeçalho -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:18px;font-weight:900;color:white;display:flex;align-items:center;gap:8px;">
+                            🎲 Rota Aleatória
+                            <span id="raBadgeStatus" style="font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);font-weight:700;">Inativa</span>
+                        </div>
+                        <div id="raSubtitulo" style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">Configure e ative para começar</div>
+                    </div>
+                    <!-- Toggle liga/desliga -->
+                    <div onclick="toggleRotaAleatoria()" id="raToggleBtn"
+                        style="width:56px;height:30px;border-radius:30px;background:#333;cursor:pointer;position:relative;transition:background 0.3s;flex-shrink:0;">
+                        <div id="raToggleCircle" style="width:24px;height:24px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
+                    </div>
+                </div>
+
+                <!-- Dot de status animado -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px;">
+                    <div id="raDot" style="width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0;transition:background 0.3s;"></div>
+                    <div style="flex:1;">
+                        <div id="raStatusTexto" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);">Desligada</div>
+                        <div id="raHoraTexto" style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px;"></div>
+                    </div>
+                    <div id="raContadorClientes" style="display:none;text-align:right;">
+                        <div style="font-size:22px;font-weight:900;color:#9b59b6;" id="raNumClientes">0</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.4);">clientes</div>
+                    </div>
+                </div>
+
+                <!-- Lista de clientes na fila (quando ativa e dentro do horário) -->
+                <div id="raClientesFilaBox" style="display:none;margin-bottom:14px;">
+                    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">👥 Na fila agora</div>
+                    <div id="raClientesFilaList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+                </div>
+
+            </div>
+
+            <!-- CARD CONFIGURAÇÕES -->
+            <div class="card-box" style="border-top:4px solid #9b59b6;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h4 style="margin:0;color:#9b59b6;">⚙️ Configurações</h4>
+                    <button onclick="salvarConfigRotaAleatoria()" style="padding:7px 16px;background:linear-gradient(135deg,#9b59b6,#8e44ad);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">💾 Salvar</button>
+                </div>
+
+                <!-- Horário início e fim -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">⏰ Horário de início</div>
+                        <input type="time" id="raHoraInicio" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="07:00">
+                    </div>
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">🏁 Horário de fim</div>
+                        <input type="time" id="raHoraFim" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="11:00">
+                    </div>
+                </div>
+
+                <!-- Raio da fábrica -->
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📍 Raio de saída da fábrica (metros)</div>
+                    <div style="position:relative;display:flex;align-items:center;">
+                        <input type="number" id="raRaioFabrica" class="input-text" style="margin-bottom:0;padding-right:50px;" value="100" min="10" max="1000">
+                        <span style="position:absolute;right:14px;font-size:13px;font-weight:700;color:#aaa;">m</span>
+                    </div>
+                    <div style="font-size:11px;color:#aaa;margin-top:4px;">O entregador precisa ultrapassar esse raio para confirmar a saída</div>
+                </div>
+
+                <!-- Dias da semana -->
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;">📅 Dias de operação</div>
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+                        <button onclick="toggleDiaRA(this,'seg')" data-dia="seg" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Seg</button>
+                        <button onclick="toggleDiaRA(this,'ter')" data-dia="ter" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Ter</button>
+                        <button onclick="toggleDiaRA(this,'qua')" data-dia="qua" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Qua</button>
+                        <button onclick="toggleDiaRA(this,'qui')" data-dia="qui" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Qui</button>
+                        <button onclick="toggleDiaRA(this,'sex')" data-dia="sex" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Sex</button>
+                        <button onclick="toggleDiaRA(this,'sab')" data-dia="sab" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Sab</button>
+                        <button onclick="toggleDiaRA(this,'dom')" data-dia="dom" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Dom</button>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div id="raPreviewHorario" style="background:#f8f0ff;border:1px solid #d7bfef;border-radius:12px;padding:10px 14px;font-size:12px;color:#6c3483;font-weight:600;display:none;">
+                    📅 Funcionando <span id="raPreviewDias">segunda a domingo</span> das <span id="raPreviewTexto">--:-- às --:--</span>
+                </div>
+            </div>
+
+            <!-- CARD CLIENTES AGUARDANDO PRÓXIMA -->
+            <div id="raRemovidosBox" class="card-box" style="display:none;border-top:4px solid #e67e22;">
+                <h4 style="color:#e67e22;margin-bottom:6px;">⏭️ Aguardando próxima rota</h4>
+                <div style="font-size:12px;color:#888;margin-bottom:10px;">Removidos pelo entregador — ficam para a próxima saída.</div>
+                <div id="raRemovidosList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <button onclick="limparRemovidosRA()" style="margin-top:10px;width:100%;padding:9px;background:#fff3e0;border:1.5px solid #e67e22;color:#e67e22;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Limpar lista</button>
+            </div>
+
+        </div>
+
     </div>
 
 <script>
@@ -876,7 +920,7 @@ async function initAdmin() {
     document.getElementById('homeScreen').style.display = 'block';
     await loadTemplates();
     await updateFiadoHeader();
-    // Inicia os timers e verifica execucoes perdidas
+    atualizarStatusHomeRA();
     setTimeout(async () => {
         carregarConfigZerar();
         await verificarExecucoesPerdidas();
@@ -953,7 +997,8 @@ function openSection(section) {
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
         rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
-        enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos }
+        enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos },
+        'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria }
     };
     const s = map[section];
     document.getElementById(s.id).classList.add('active');
@@ -1664,19 +1709,17 @@ async function loadOrders() {
     document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Carregando...</div>';
 
     try {
-    // Busca todos os pedidos
-    const { data, error } = await sb.from("pedidos").select("*")
-        .order("created_at", { ascending: false }).limit(200);
+    // Busca pedidos + rotas + clientes em paralelo
+    const [{ data, error }, { data: rotasRaw }, { data: clientes }] = await Promise.all([
+        sb.from("pedidos").select("*").order("created_at", { ascending: true }).limit(200),
+        sb.from("rotas").select("id,Rotas,hora_saida,paradas_template,paradas").order("hora_saida", { ascending: true }),
+        sb.from("cadastros").select("phone,delivery_lat,delivery_lon").not("delivery_lat","is",null).not("delivery_lon","is",null)
+    ]);
 
     if (error) throw error;
 
-    // Busca rotas, rota especial e clientes com endereço cadastrado
-    let todasRotas = [];
-    let appCfgREValor = null;
-    let phonesComEndereco = new Set();
-    try { const { data: rd } = await sb.from("rotas").select("id, \"Rotas\" as nome, paradas_template, paradas"); todasRotas = rd || []; } catch(e) {}
-    try { const { data: cd } = await sb.from("rota_especial_gps").select("valor").eq("chave", "rota_especial").maybeSingle(); appCfgREValor = cd?.valor || null; } catch(e) {}
-    try { const { data: ce } = await sb.from("cadastros").select("phone, delivery_lat, delivery_lon").not("delivery_lat", "is", null).not("delivery_lon", "is", null); (ce || []).forEach(c => phonesComEndereco.add(c.phone)); } catch(e) {}
+    (clientes || []).forEach(c => phonesComEndereco.add(c.phone));
+    const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r["Rotas"] || r.nome || "Sem nome" }));
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
@@ -1686,81 +1729,61 @@ async function loadOrders() {
 
     data.forEach(o => { ordersMap[o.id] = o; });
 
-    // Monta mapa phone → rota que o cliente pertence
-    const phoneParaRotas = {};
-    (todasRotas || []).forEach(r => {
-        (r.paradas_template || r.paradas || []).forEach(p => {
-            const phone = p.cliente_phone;
-            if (!phone) return;
-            if (!phoneParaRotas[phone]) phoneParaRotas[phone] = [];
-            phoneParaRotas[phone].push({ id: r.id, nome: r.nome });
+    // Monta mapa phone → { rotaNome, posicao } usando paradas_template (ordem real na rota)
+    const phoneParaRota = {}; // phone → { nome, posicao }
+    todasRotas.forEach(r => {
+        const paradas = r.paradas_template || r.paradas || [];
+        paradas.forEach((p, idx) => {
+            if (!p.cliente_phone) return;
+            if (!phoneParaRota[p.cliente_phone]) {
+                phoneParaRota[p.cliente_phone] = { nome: r.nome, posicao: idx };
+            }
         });
     });
 
-    // Rota Especial
-    let phonesRotaEspecial = new Set();
-    try {
-        if (appCfgREValor) {
-            const cfgRE = JSON.parse(appCfgREValor);
-            // Clientes já na fila
-            (cfgRE.clientes_fila || []).forEach(x => { if (x.phone) phonesRotaEspecial.add(x.phone); });
-            // Fallback: pedido feito dentro do horário da rota especial
-            if (cfgRE.ativa && cfgRE.hora_inicio && cfgRE.hora_fim) {
-                (data || []).forEach(o => {
-                    if (!o.customer_phone || phonesRotaEspecial.has(o.customer_phone)) return;
-                    const brt = new Date(new Date(o.created_at).getTime()+(-3*60-new Date().getTimezoneOffset())*60000);
-                    const hora = brt.toISOString().substring(11,16);
-                    const dia = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][brt.getDay()];
-                    const dentroDia = !cfgRE.dias?.length || cfgRE.dias.includes(dia);
-                    if (hora >= cfgRE.hora_inicio && hora <= cfgRE.hora_fim && dentroDia) {
-                        phonesRotaEspecial.add(o.customer_phone);
-                    }
-                });
-            }
-        }
-    } catch(e) {}
-
-    // Separa pedidos: 1º pedido do cliente → rota, demais → Geral
-    const primeirosPorCliente = new Set();
-    const grupos = {};
+    // Separa pedidos por rota (só 1 por cliente, na posição correta)
+    const phoneVisto = new Set();
+    const grupos = {}; // rotaNome → [ {order, posicao} ]
     const geral = [];
 
     data.forEach(o => {
         const phone = o.customer_phone;
-        if (!primeirosPorCliente.has(phone)) {
-            if (phonesRotaEspecial.has(phone)) {
-                const key = '⚡ Rota Especial';
-                if (!grupos[key]) grupos[key] = [];
-                grupos[key].push(o);
-                primeirosPorCliente.add(phone);
-                return;
-            }
-            const rotasDoCliente = phoneParaRotas[phone];
-            if (rotasDoCliente && rotasDoCliente.length > 0) {
-                // Só conta na rota se o cliente tem endereço (igual ao entregador)
-                if (phonesComEndereco.has(phone)) {
-                    const key = rotasDoCliente[0].nome;
-                    if (!grupos[key]) grupos[key] = [];
-                    grupos[key].push(o);
-                    primeirosPorCliente.add(phone);
-                    return;
-                }
-            }
+        const rotaInfo = phoneParaRota[phone];
+        if (!phoneVisto.has(phone) && rotaInfo && phonesComEndereco.has(phone)) {
+            phoneVisto.add(phone);
+            if (!grupos[rotaInfo.nome]) grupos[rotaInfo.nome] = [];
+            grupos[rotaInfo.nome].push({ order: o, posicao: rotaInfo.posicao });
+        } else {
+            geral.push(o);
         }
-        geral.push(o);
     });
 
-    // Monta lista de abas: Geral primeiro, depois rotas em ordem crescente (Rota 1, Rota 2...)
+    // Ordena pedidos dentro de cada rota pela posição (1º ao último)
+    Object.keys(grupos).forEach(nome => {
+        grupos[nome].sort((a, b) => a.posicao - b.posicao);
+        grupos[nome] = grupos[nome].map((x, i) => ({ ...x.order, _posRota: i + 1 }));
+    });
+
+    // Monta abas: Geral primeiro, depois rotas em ordem de hora_saida
     const abas = [];
     abas.push({ label: '📋 Geral', orders: geral, cor: '#555' });
-    const rotasOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+    const rotasOrdenadas = Object.keys(grupos).sort((a, b) => {
+        const rA = todasRotas.find(r => r.nome === a);
+        const rB = todasRotas.find(r => r.nome === b);
+        return (rA?.hora_saida || '').localeCompare(rB?.hora_saida || '');
+    });
     rotasOrdenadas.forEach(nome => {
-        const isEspecial = nome.toLowerCase().includes('especial');
-        abas.push({ label: (isEspecial ? '⚡ ' : '🗺️ ') + nome, orders: grupos[nome], cor: isEspecial ? '#c75b24' : '#1e8449' });
+        abas.push({ label: '🗺️ ' + nome, orders: grupos[nome], cor: '#1e8449' });
     });
 
     _totalAbas = abas.length;
     _abaAtual = 0;
+
+    // Botão restart no topo (mostra pedidos ocultos)
+    const restartBtn = `<button onclick="restartPedidos()" title="Mostrar todos os pedidos ocultos"
+        style="flex-shrink:0;padding:8px 12px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:#e8e8e8;color:#555;transition:0.2s;">
+        🔄
+    </button>`;
 
     // Renderiza barra de abas
     const tabsBar = document.getElementById('rotaTabsBar');
@@ -1769,7 +1792,7 @@ async function loadOrders() {
             style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;white-space:nowrap;
             background:${i===0 ? a.cor : '#e8e8e8'};color:${i===0 ? 'white' : '#555'};">
             ${a.label} <span style="opacity:0.8;font-size:11px;">${a.orders.length}</span>
-        </button>`).join('');
+        </button>`).join('') + restartBtn;
 
     // Renderiza slides
     const slides = document.getElementById('orderSlides');
@@ -1866,9 +1889,12 @@ function buildOrderCard(o) {
     <div class="order-wrap" id="wrap_${o.id}">
         <div id="order_${o.id}" class="order-card" style="${isCancelado ? 'opacity:0.6;' : ''}">
             <div class="order-card-header">
-                <div>
-                    <div class="order-card-name">${o.customer_name}</div>
-                    <div class="order-card-phone">${o.customer_phone || ''}</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    ${o._posRota ? `<div style="min-width:26px;height:26px;border-radius:50%;background:#1e8449;color:white;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${o._posRota}</div>` : ''}
+                    <div>
+                        <div class="order-card-name">${o.customer_name}</div>
+                        <div class="order-card-phone">${o.customer_phone || ''}</div>
+                    </div>
                 </div>
                 <div style="text-align:right;">
                     <div class="order-card-time">${timeStr}</div>
@@ -1878,11 +1904,43 @@ function buildOrderCard(o) {
             <div class="order-card-items">${itemsHTML}</div>
             <div class="order-card-footer">
                 <span class="order-card-valor" style="color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</span>
+                <button onclick="ocultarPedido('${o.id}')" title="Marcar como visto"
+                    style="padding:4px 12px;border-radius:20px;border:1.5px solid #27ae60;background:#f0fff4;color:#27ae60;font-size:12px;font-weight:800;cursor:pointer;">✓ OK</button>
             </div>
             ${btnFiado}
             ${cancelBtn}
         </div>
     </div>`;
+}
+
+
+// ===== OCULTAR / RESTART PEDIDOS =====
+const _pedidosOcultos = new Set();
+
+function ocultarPedido(orderId) {
+    const wrap = document.getElementById("wrap_" + orderId);
+    if (!wrap) return;
+    wrap.style.transition = "opacity 0.25s, max-height 0.3s, margin 0.3s";
+    wrap.style.opacity = "0";
+    wrap.style.maxHeight = "0";
+    wrap.style.marginBottom = "0";
+    wrap.style.overflow = "hidden";
+    setTimeout(() => { wrap.style.display = "none"; }, 320);
+    _pedidosOcultos.add(orderId);
+}
+
+function restartPedidos() {
+    _pedidosOcultos.forEach(id => {
+        const wrap = document.getElementById("wrap_" + id);
+        if (!wrap) return;
+        wrap.style.display = "";
+        wrap.style.maxHeight = "";
+        wrap.style.marginBottom = "";
+        wrap.style.overflow = "";
+        requestAnimationFrame(() => { wrap.style.opacity = "1"; });
+    });
+    _pedidosOcultos.clear();
+    showToast({ type: "success", title: "🔄 Pedidos restaurados!", body: "Todos os pedidos estão visíveis novamente.", duration: 2000 });
 }
 
 function confirmarCancelamentoPedido(orderId) {
@@ -2773,7 +2831,15 @@ function voltarEtapa1Compra() {
 async function onCompraClienteChange(c) {
     document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
     if (!c) { compraClienteAtual = null; return; }
-    compraClienteAtual = { phone: c.phone, name: c.name, debt: parseFloat(c.debt), fiado: c.fiado };
+    compraClienteAtual = {
+        phone: c.phone,
+        name: c.name,
+        debt: parseFloat(c.debt),
+        fiado: c.fiado,
+        delivery_lat: c.delivery_lat || null,
+        delivery_lon: c.delivery_lon || null,
+        delivery_address: c.delivery_address || null
+    };
     document.getElementById('compraClienteInfo').textContent = `👤 ${c.name}`;
     document.getElementById('btnSalvarPedidoCliente').style.display = 'inline-block';
 
@@ -3043,6 +3109,54 @@ async function executarCompra(total, pedidoTexto) {
         const { data: c } = await sb.from("cadastros").select("debt").eq("phone", compraClienteAtual.phone).single();
         await sb.from("cadastros").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
     }
+
+    // ===== ROTA ALEATÓRIA: mesmo comportamento do cardápio =====
+    try {
+        const { data: raData } = await sb.from('rota_especial_gps')
+            .select('valor').eq('chave', RA_CHAVE).maybeSingle();
+        if (raData?.valor) {
+            let raConfig = JSON.parse(raData.valor);
+            if (raConfig.ativa) {
+                const agora = new Date();
+                const offset = -3 * 60 - agora.getTimezoneOffset();
+                const brt = new Date(agora.getTime() + offset * 60000);
+                const hAtual = brt.getHours() * 60 + brt.getMinutes();
+                const [hI, mI] = (raConfig.hora_inicio || '07:00').split(':').map(Number);
+                const [hF, mF] = (raConfig.hora_fim || '11:00').split(':').map(Number);
+                const emHorario = hAtual >= hI * 60 + mI && hAtual <= hF * 60 + mF;
+                const dias = ['dom','seg','ter','qua','qui','sex','sab'];
+                const nesteDia = (raConfig.dias_operacao || []).includes(dias[brt.getDay()]);
+
+                if (emHorario && nesteDia) {
+                    const cli = compraClienteAtual;
+                    if (cli.delivery_lat && cli.delivery_lon) {
+                        const fila = raConfig.clientes_fila || [];
+                        const jaEstaNaFila = fila.find(x =>
+                            x.phone === cli.phone &&
+                            (x.status === 'pendente' || x.status === 'em_rota')
+                        );
+                        if (!jaEstaNaFila) {
+                            fila.push({
+                                id: 'admin_' + Date.now(),
+                                phone: cli.phone,
+                                nome: cli.name,
+                                endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
+                                coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
+                                hora_pedido: brt.toISOString().substring(11, 16),
+                                status: 'pendente'
+                            });
+                            raConfig.clientes_fila = fila;
+                            await sb.from('rota_especial_gps').upsert(
+                                { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
+                                { onConflict: 'chave' }
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    } catch(e) { console.warn('RA compra admin:', e); }
+    // ===== FIM ROTA ALEATÓRIA =====
 
     showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 8000 });
 
@@ -3404,50 +3518,8 @@ async function loadRotasPanel() {
     await calcularMediaEta();
     await carregarRotasHoje();
     await carregarRotasSalvas();
-    await loadRotaEspecial();
-    // Inicia monitoramento independente de pedidos (funciona mesmo sem entregador aberto)
-    iniciarMonitorPedidosADM();
 }
 
-function iniciarMonitorPedidosADM() {
-    if (reRealtimeCh) return; // já está monitorando
-    reRealtimeCh = sb.channel('re_pedidos_adm')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
-            // Recarrega config do banco para pegar versão mais recente (pode ter sido atualizada pelo entregador)
-            const { data } = await sb.from('rota_especial_gps').select('valor').eq('chave','rota_especial').single().catch(()=>({data:null}));
-            if (!data) return;
-            let cfg; try { cfg = JSON.parse(data.valor); } catch(e) { return; }
-            if (!cfg?.ativa) return;
-            // Verifica horário
-            const agora = agoraISO();
-            const hora = agora.substring(11,16);
-            const diaAtual = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date().getDay()];
-            if (cfg.dias?.length && !cfg.dias.includes(diaAtual)) return;
-            if (hora < cfg.hora_inicio || hora > cfg.hora_fim) return;
-            // Verifica se cliente já está na fila
-            const fila = cfg.clientes_fila || [];
-            const pedido = payload.new;
-            if (fila.find(x => x.phone === pedido.customer_phone && x.status === 'pendente')) return;
-            // Busca dados do cliente
-            const { data: cli } = await sb.from('cadastros').select('name,phone,delivery_lat,delivery_lon,delivery_address').eq('phone', pedido.customer_phone).maybeSingle();
-            if (!cli?.delivery_lat || !cli?.delivery_lon) return;
-            fila.push({
-                id: Date.now().toString(),
-                phone: cli.phone,
-                nome: cli.name || pedido.customer_name,
-                endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
-                coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
-                hora_pedido: agora.substring(11,16),
-                status: 'pendente'
-            });
-            cfg.clientes_fila = fila;
-            await sb.from('rota_especial_gps').upsert({ chave:'rota_especial', valor: JSON.stringify(cfg) }, { onConflict:'chave' });
-            rotaEspecialConfig = cfg;
-            atualizarStatusRE();
-            showToast({type:'success', title:'⚡ Cliente na fila!', body:`${cli.name} entrou na rota especial.`, duration:3000});
-        })
-        .subscribe();
-}
 
 async function preencherClientesComPedido() {
     // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
@@ -3466,9 +3538,12 @@ async function preencherClientesComPedido() {
 
     sel.innerHTML = '<option value="">-- Selecionar cliente --</option>';
 
-    // Mostra todos os clientes com endereço cadastrado (qualquer um pode ser adicionado à rota)
-    const comEndereco = clientesCache.filter(c => c.delivery_lat && c.delivery_lon);
-    const semEndereco = clientesCache.filter(c => !c.delivery_lat || !c.delivery_lon);
+    // Filtra clientes que JÁ estão cadastrados na rota atual
+    const phonesNaRota = new Set((rotaParadas || []).map(p => p.cliente_phone));
+
+    // Mostra apenas clientes que NÃO estão na rota ainda
+    const comEndereco = clientesCache.filter(c => c.delivery_lat && c.delivery_lon && !phonesNaRota.has(c.phone));
+    const semEndereco = clientesCache.filter(c => (!c.delivery_lat || !c.delivery_lon) && !phonesNaRota.has(c.phone));
 
     if (comEndereco.length > 0) {
         const grpEnd = document.createElement('optgroup');
@@ -3492,14 +3567,22 @@ async function preencherClientesComPedido() {
         });
         sel.appendChild(grpSem);
     }
+
+    if (comEndereco.length === 0 && semEndereco.length === 0 && phonesNaRota.size > 0) {
+        const o = document.createElement('option');
+        o.disabled = true;
+        o.textContent = '✅ Todos os clientes já estão nesta rota';
+        sel.appendChild(o);
+    }
 }
 
 async function carregarRotasHoje() {
     const dia = diaHoje();
     const hoje = hojeStr(); // "2025-02-21"
-    const { data: todasRotas } = await sb.from("rotas").select('*, "Rotas" as nome').order("hora_saida",{ascending:true});
+    const { data: todasRotasRaw } = await sb.from("rotas").select('*').order("hora_saida",{ascending:true});
+    const todasRotas = (todasRotasRaw||[]).map(r => ({ ...r, nome: r['Rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
 
-    // Filtra rotas que têm o dia atual marcado
+    // Filtra rotas que têm o dia atual marcado (todas as rotas na tabela são normais)
     const rotasDoDia = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
 
     // Calcula o status efetivo de cada rota baseado em se a ação foi HOJE
@@ -3606,7 +3689,7 @@ async function criarRota() {
         "Rotas": nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
         status:'criada', paradas:[], paradas_template:[]
     }).select().single();
-    if (error||!nova) return showToast({type:'confirm',title:'❌ Erro ao criar rota',body:'Verifique sua conexão com o Supabase e tente novamente.',duration:4000});
+    if (error||!nova) return showToast({type:'confirm',title:'❌ Erro ao criar rota',body: error?.message || 'Verifique sua conexão com o Supabase e tente novamente.',duration:6000});
     document.getElementById('novaRotaForm').style.display = 'none';
     document.getElementById('rotaNome').value = '';
     document.querySelectorAll('[data-dia]').forEach(el => {
@@ -3619,8 +3702,9 @@ async function criarRota() {
 }
 
 async function abrirParadasRota(rotaId) {
-    const {data:r} = await sb.from("rotas").select('*, "Rotas" as nome').eq("id",rotaId).single();
-    if (!r) return;
+    const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
+    if (!rRaw) return;
+    const r = { ...rRaw, nome: rRaw['Rotas'] || rRaw['nome'] || rRaw['name'] || 'Sem nome' };
     rotaAtualId = rotaId;
     // Template = clientes fixos da rota (permanentes)
     rotaParadas = r.paradas_template || r.paradas || [];
@@ -3639,6 +3723,8 @@ async function abrirParadasRota(rotaId) {
     }
 
     renderParadasList();
+    // Atualiza o select para não mostrar clientes já na rota
+    preencherClientesComPedido();
     window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3932,6 +4018,8 @@ async function adicionarParada() {
     document.getElementById('paradaSemEndereco').style.display = 'none';
     document.getElementById('paradaEtaPreview').style.display = 'none';
     renderParadasList();
+    // Atualiza o select de clientes para refletir quem já está na rota
+    preencherClientesComPedido();
     showToast({type:'success',title:'✅ Cliente adicionado à rota!',body:`${entrada.nome} faz parte desta rota. Aparecerá nas entregas quando fizer pedido.`,duration:3000});
 }
 
@@ -3978,7 +4066,9 @@ function renderParadasList() {
         return;
     }
     list.innerHTML = rotaParadas.map((p, i) => `
-        <div style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid #3498db;">
+        <div draggable="true" data-parada-id="${p.id}" data-parada-idx="${i}"
+            style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid #3498db;cursor:grab;transition:opacity 0.2s,transform 0.2s;">
+            <div style="color:#bbb;font-size:18px;flex-shrink:0;touch-action:none;user-select:none;">☰</div>
             <div style="width:28px;height:28px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:13px;flex-shrink:0;">${i+1}</div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:700;font-size:13px;">👤 ${p.nome}</div>
@@ -3988,6 +4078,153 @@ function renderParadasList() {
         </div>`).join('');
     document.getElementById('rotaResumoEta').style.display = 'block';
     document.getElementById('rotaResumoTexto').textContent = `${rotaParadas.length} cliente(s) cadastrado(s) nesta rota`;
+    initParadasDragDrop();
+}
+
+let _dragParadaIdx = null;
+let _dragOverParadaIdx = null;
+let _dragReady = false; // só permite arrastar após segurar 1s
+
+function initParadasDragDrop() {
+    const list = document.getElementById('rotaParadasList');
+    const items = list.querySelectorAll('[data-parada-id]');
+    items.forEach(item => {
+        // Bloqueia dragstart até que o long-press ative _dragReady
+        item.setAttribute('draggable', 'false');
+
+        // Mouse: long press para ativar drag
+        let mouseHoldTimer = null;
+        item.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            mouseHoldTimer = setTimeout(() => {
+                _dragReady = true;
+                item.setAttribute('draggable', 'true');
+                item.style.cursor = 'grabbing';
+                item.style.boxShadow = '0 6px 24px rgba(52,152,219,0.35)';
+                item.style.transform = 'scale(1.02)';
+            }, 800);
+        });
+        item.addEventListener('mouseup', () => {
+            clearTimeout(mouseHoldTimer);
+            if (!_dragReady) { item.setAttribute('draggable', 'false'); }
+        });
+        item.addEventListener('mouseleave', () => {
+            clearTimeout(mouseHoldTimer);
+        });
+
+        item.addEventListener('dragstart', e => {
+            if (!_dragReady) { e.preventDefault(); return; }
+            _dragParadaIdx = parseInt(item.dataset.paradaIdx);
+            item.style.opacity = '0.4';
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        item.addEventListener('dragend', e => {
+            _dragReady = false;
+            item.setAttribute('draggable', 'false');
+            item.style.opacity = '1';
+            item.style.cursor = 'grab';
+            item.style.boxShadow = '';
+            item.style.transform = '';
+            list.querySelectorAll('[data-parada-id]').forEach(el => el.style.transform = '');
+            if (_dragParadaIdx !== null && _dragOverParadaIdx !== null && _dragParadaIdx !== _dragOverParadaIdx) {
+                reordenarParada(_dragParadaIdx, _dragOverParadaIdx);
+            }
+            _dragParadaIdx = null; _dragOverParadaIdx = null;
+        });
+        item.addEventListener('dragover', e => {
+            e.preventDefault();
+            const overIdx = parseInt(item.dataset.paradaIdx);
+            if (overIdx !== _dragParadaIdx) {
+                _dragOverParadaIdx = overIdx;
+                list.querySelectorAll('[data-parada-id]').forEach(el => el.style.transform = '');
+                if (_dragParadaIdx !== null) {
+                    item.style.transform = _dragParadaIdx < overIdx ? 'translateY(4px)' : 'translateY(-4px)';
+                }
+            }
+        });
+
+        // Touch: long press de 800ms para ativar arrastar
+        let touchHoldTimer = null;
+        let touchActive = false;
+        let touchStartY = 0;
+        let touchStartX = 0;
+        let touchStartIdx = 0;
+
+        item.addEventListener('touchstart', e => {
+            touchStartIdx = parseInt(item.dataset.paradaIdx);
+            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+            touchActive = false;
+
+            touchHoldTimer = setTimeout(() => {
+                touchActive = true;
+                // Vibração feedback
+                if (navigator.vibrate) navigator.vibrate(60);
+                item.style.opacity = '0.6';
+                item.style.transform = 'scale(1.03)';
+                item.style.boxShadow = '0 6px 24px rgba(52,152,219,0.4)';
+            }, 800);
+        }, { passive: true });
+
+        item.addEventListener('touchmove', e => {
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+
+            // Se moveu antes do long press ativar, cancela o timer (é scroll normal)
+            if (!touchActive) {
+                if (dx > 8 || dy > 8) clearTimeout(touchHoldTimer);
+                return;
+            }
+
+            // Drag ativo: bloqueia scroll e move o item
+            e.preventDefault();
+            const deltaY = e.touches[0].clientY - touchStartY;
+            item.style.transform = `translateY(${deltaY}px) scale(1.03)`;
+
+            const rect = list.getBoundingClientRect();
+            const relY = e.touches[0].clientY - rect.top + list.scrollTop;
+            let overIdx = touchStartIdx;
+            list.querySelectorAll('[data-parada-id]').forEach(el => {
+                if (el === item) return;
+                const r = el.getBoundingClientRect();
+                const midY = r.top + r.height / 2 - rect.top + list.scrollTop;
+                if (relY > midY) overIdx = parseInt(el.dataset.paradaIdx);
+            });
+            _dragOverParadaIdx = overIdx;
+        }, { passive: false });
+
+        item.addEventListener('touchend', e => {
+            clearTimeout(touchHoldTimer);
+            item.style.opacity = '1';
+            item.style.transform = '';
+            item.style.boxShadow = '';
+            if (touchActive && touchStartIdx !== _dragOverParadaIdx && _dragOverParadaIdx !== null) {
+                reordenarParada(touchStartIdx, _dragOverParadaIdx);
+            }
+            touchActive = false;
+            _dragOverParadaIdx = null;
+        }, { passive: true });
+
+        item.addEventListener('touchcancel', () => {
+            clearTimeout(touchHoldTimer);
+            touchActive = false;
+            item.style.opacity = '1';
+            item.style.transform = '';
+            item.style.boxShadow = '';
+        }, { passive: true });
+    });
+}
+
+async function reordenarParada(fromIdx, toIdx) {
+    const arr = [...rotaParadas];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    rotaParadas = arr;
+    // Salva no banco
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+    await sb.from("rotas").update({ paradas_template: rotaParadas, paradas: paradasAtivas }).eq("id", rotaAtualId);
+    renderParadasList();
+    showToast({ type: 'success', title: '✅ Ordem salva!', body: 'Clientes reordenados com sucesso.', duration: 2000 });
 }
 
 function renderParadasAtivasList(paradas) {
@@ -4016,6 +4253,7 @@ async function removerParada(paradaId) {
         paradas: paradasAtivas
     }).eq("id", rotaAtualId);
     renderParadasList();
+    preencherClientesComPedido();
     showToast({type:'success',title:'✅ Removido!',body:'Cliente removido da rota.',duration:2000});
 }
 
@@ -4026,15 +4264,19 @@ async function excluirRota(rotaId) {
 }
 
 async function carregarRotasSalvas() {
-    const {data:rotas} = await sb.from("rotas").select('*, "Rotas" as nome').order("created_at",{ascending:false}).limit(50);
     const list = document.getElementById('rotasSalvasList');
-    if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
+    try {
+        const {data:rotasRaw, error} = await sb.from("rotas").select('*').order("created_at",{ascending:false}).limit(50);
+        if (error) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro: ${error.message}</div>`; return; }
+        // Normaliza o campo nome (coluna pode chamar "Rotas" com maiúscula)
+        const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['Rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
+        if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
 
-    // Separa rotas especiais das normais
-    const rotasEspeciais = rotas.filter(r => r.tipo === 'especial');
-    const rotasNormais   = rotas.filter(r => r.tipo !== 'especial');
+    // Todas as rotas da tabela são normais
+    const rotasNormais = rotas;
+    const rotasEspeciais = [];
 
     // Bloco de rotas especiais (histórico)
     let htmlEspeciais = '';
@@ -4088,7 +4330,8 @@ async function carregarRotasSalvas() {
             }).join('');
     }
 
-    list.innerHTML = htmlEspeciais + htmlNormais || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
+    list.innerHTML = (htmlEspeciais + htmlNormais) || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
+    } catch(e) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro inesperado: ${e.message}</div>`; }
 }
 
 // ===== LONG PRESS NO SALDO DO CABEÇALHO =====
@@ -4194,8 +4437,9 @@ async function executarExcluirRota(rotaId) {
 }
 
 async function abrirEditarRota(rotaId) {
-    const {data:r} = await sb.from("rotas").select('*, "Rotas" as nome').eq("id",rotaId).single();
-    if (!r) return;
+    const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
+    if (!rRaw) return;
+    const r = { ...rRaw, nome: rRaw['Rotas'] || rRaw['nome'] || rRaw['name'] || '' };
     rotaEditandoId = rotaId;
     document.getElementById('editRotaNome').value = r.nome || '';
     document.getElementById('editRotaHora').value = r.hora_saida || '05:20';
@@ -4239,195 +4483,368 @@ async function salvarEdicaoRota() {
 }
 
 
+// ===== ROTA ALEATÓRIA =====
+let raConfig = null; // { ativa, hora_inicio, hora_fim, raio_fabrica, clientes_fila, removidos }
+let raRealtimeCh = null;
+let raStatusInterval = null;
 
-// ===== ROTA ESPECIAL =====
-let rotaEspecialConfig = null; // config salva no supabase (tabela app_config)
-let rotaEspecialAtiva = false;
-let reRealtimeCh = null;
+// Chave usada no Supabase (tabela rota_especial_gps, reutilizando estrutura existente)
+const RA_CHAVE = 'rota_aleatoria';
 
-async function loadRotaEspecial() {
-    // Busca config da rota especial no supabase
-    const { data } = await sb.from('rota_especial_gps').select('*').eq('chave', 'rota_especial').single();
-    if (data) {
-        try { rotaEspecialConfig = JSON.parse(data.valor); } catch(e) { rotaEspecialConfig = null; }
+// ---------- CARREGAR ----------
+async function loadRotaAleatoria() {
+    await buscarConfigRA();
+    renderUIRotaAleatoria();
+    preencherCamposRA();
+    atualizarPreviewRA();
+    iniciarRealtimeRA();
+    if (raStatusInterval) clearInterval(raStatusInterval);
+    raStatusInterval = setInterval(renderUIRotaAleatoria, 60000);
+}
+
+async function buscarConfigRA() {
+    const { data } = await sb.from('rota_especial_gps')
+        .select('valor').eq('chave', RA_CHAVE).maybeSingle();
+    if (data?.valor) {
+        try { raConfig = JSON.parse(data.valor); } catch(e) { raConfig = null; }
     }
-    if (rotaEspecialConfig) {
-        document.getElementById('reHoraInicio').value = rotaEspecialConfig.hora_inicio || '14:00';
-        document.getElementById('reHoraFim').value    = rotaEspecialConfig.hora_fim    || '17:00';
-        // Marca dias
-        const dias = rotaEspecialConfig.dias || [];
-        document.querySelectorAll('[data-re-dia]').forEach(el => {
-            if (dias.includes(el.dataset.reDia)) el.classList.add('ativo');
-        });
-        rotaEspecialAtiva = rotaEspecialConfig.ativa || false;
+    if (!raConfig) {
+        raConfig = {
+            ativa: false,
+            hora_inicio: '07:00',
+            hora_fim: '11:00',
+            raio_fabrica: 100,
+            clientes_fila: [],
+            removidos: []
+        };
     }
-    atualizarStatusRE();
-    if (rotaEspecialAtiva) monitorarRotaEspecial();
 }
 
-function toggleReDia(el) {
-    el.classList.toggle('ativo');
+// ---------- SALVAR CONFIG ----------
+async function salvarConfigRotaAleatoria() {
+    const inicio = document.getElementById('raHoraInicio').value;
+    const fim    = document.getElementById('raHoraFim').value;
+    const raio   = parseInt(document.getElementById('raRaioFabrica').value) || 100;
+
+    if (!inicio || !fim) return showToast({type:'confirm', title:'⚠️', body:'Defina o horário de início e fim.', duration:2500});
+    if (inicio >= fim) return showToast({type:'confirm', title:'⚠️', body:'O início deve ser antes do fim.', duration:2500});
+
+    // Garantir que existe array de dias
+    if (!raConfig.dias_operacao || raConfig.dias_operacao.length === 0) {
+        raConfig.dias_operacao = ['seg','ter','qua','qui','sex','sab','dom'];
+    }
+
+    raConfig.hora_inicio  = inicio;
+    raConfig.hora_fim     = fim;
+    raConfig.raio_fabrica = raio;
+
+    await _salvarRA();
+    atualizarPreviewRA();
+    renderUIRotaAleatoria();
+    showToast({type:'success', title:'✅ Configuração salva!', body:`${inicio} → ${fim} · Raio ${raio}m`, duration:3000});
 }
 
-function getDiasRE() {
-    return [...document.querySelectorAll('[data-re-dia].ativo')].map(el => el.dataset.reDia);
-}
-
-async function salvarRotaEspecial() {
-    const inicio = document.getElementById('reHoraInicio').value;
-    const fim    = document.getElementById('reHoraFim').value;
-    const dias   = getDiasRE();
-    if (!inicio || !fim) return showToast({type:'confirm',title:'⚠️',body:'Defina o horário de início e fim.',duration:2500});
-    if (dias.length === 0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-
-    rotaEspecialConfig = { hora_inicio: inicio, hora_fim: fim, dias, ativa: rotaEspecialAtiva, clientes_fila: rotaEspecialConfig?.clientes_fila || [] };
-
-    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
-    showToast({type:'success',title:'✅ Rota Especial salva!',body:`${inicio} → ${fim} · ${dias.join(', ')}`,duration:3000});
-    atualizarStatusRE();
-}
-
-async function toggleAtivarRotaEspecial() {
-    if (!rotaEspecialConfig) return showToast({type:'confirm',title:'⚠️',body:'Salve a configuração primeiro.',duration:2500});
-    rotaEspecialAtiva = !rotaEspecialAtiva;
-    rotaEspecialConfig.ativa = rotaEspecialAtiva;
-    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
-    atualizarStatusRE();
-    if (rotaEspecialAtiva) {
-        monitorarRotaEspecial();
-        showToast({type:'success',title:'⚡ Rota Especial ativada!',body:'Novos pedidos no horário entrarão automaticamente.',duration:3000});
+// ---------- TOGGLE LIGA/DESLIGA ----------
+async function toggleRotaAleatoria() {
+    if (!raConfig) return;
+    raConfig.ativa = !raConfig.ativa;
+    await _salvarRA();
+    renderUIRotaAleatoria();
+    atualizarStatusHomeRA();
+    if (raConfig.ativa) {
+        showToast({type:'success', title:'🎲 Rota Aleatória ativada!', body:`Das ${raConfig.hora_inicio} às ${raConfig.hora_fim} todos os dias.`, duration:3500});
     } else {
-        if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); reRealtimeCh = null; }
-        showToast({type:'confirm',title:'⏹ Rota Especial desativada',body:'',duration:2000});
+        showToast({type:'confirm', title:'⏹ Rota Aleatória desativada', body:'Nenhum cliente novo entrará na fila.', duration:2500});
     }
 }
 
-function horaAtualMinutos() {
-    const d = new Date();
-    const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000);
-    return b.getHours() * 60 + b.getMinutes();
-}
-
-function estaDentroDoHorarioRE() {
-    if (!rotaEspecialConfig) return false;
-    const diaAtual = diaHoje();
-    if (!(rotaEspecialConfig.dias||[]).includes(diaAtual)) return false;
-    const agora = horaAtualMinutos();
-    const [hI, mI] = rotaEspecialConfig.hora_inicio.split(':').map(Number);
-    const [hF, mF] = rotaEspecialConfig.hora_fim.split(':').map(Number);
-    return agora >= hI*60+mI && agora <= hF*60+mF;
-}
-
-function atualizarStatusRE() {
-    const dot  = document.getElementById('reStatusDot');
-    const txt  = document.getElementById('reStatusTexto');
-    const badge = document.getElementById('reStatusBadge');
-    const btn  = document.getElementById('btnAtivarRE');
-    const card = document.getElementById('rotaEspecialCard');
-    const cont = document.getElementById('reContador');
-    const filaTxt = document.getElementById('reClientesFila');
-    const fila = rotaEspecialConfig?.clientes_fila || [];
-
-    if (!rotaEspecialAtiva) {
-        dot.className = 're-status-dot';
-        txt.textContent = 'Inativa — clique em Ativar para iniciar';
-        badge.textContent = 'Inativa';
-        badge.style.background = 'rgba(255,255,255,0.08)';
-        badge.style.color = 'rgba(255,255,255,0.35)';
-        btn.textContent = '▶ Ativar';
-        btn.style.background = 'rgba(255,255,255,0.08)';
-        btn.style.color = 'rgba(255,255,255,0.6)';
-        card.classList.remove('rota-especial-ativa');
-        cont.style.display = 'none';
-        filaTxt.textContent = '';
-    } else if (estaDentroDoHorarioRE()) {
-        dot.className = 're-status-dot ativa';
-        txt.textContent = `Ativa · ${rotaEspecialConfig.hora_inicio} → ${rotaEspecialConfig.hora_fim}`;
-        badge.textContent = '⚡ Ativa';
-        badge.style.background = 'rgba(245,166,35,0.2)';
-        badge.style.color = '#f5a623';
-        btn.textContent = '⏹ Desativar';
-        btn.style.background = 'rgba(231,76,60,0.15)';
-        btn.style.color = '#e74c3c';
-        card.classList.add('rota-especial-ativa');
-        cont.style.display = fila.length > 0 ? 'block' : 'none';
-        cont.textContent = fila.length;
-        filaTxt.textContent = fila.length > 0 ? `${fila.length} cliente(s) aguardando na fila` : 'Aguardando novos pedidos...';
-        renderFilaRE(fila);
+// ---------- TOGGLE DIAS DA SEMANA ----------
+async function toggleDiaRA(btn, dia) {
+    if (!raConfig) { raConfig = {}; }
+    if (!raConfig.dias_operacao) { raConfig.dias_operacao = ['seg','ter','qua','qui','sex','sab','dom']; }
+    
+    const idx = raConfig.dias_operacao.indexOf(dia);
+    if (idx === -1) {
+        raConfig.dias_operacao.push(dia);
     } else {
-        dot.className = 're-status-dot fora';
-        const config = rotaEspecialConfig;
-        txt.textContent = `Fora do horário · ${config?.hora_inicio||'--'} → ${config?.hora_fim||'--'}`;
-        badge.textContent = '⏰ Fora do horário';
-        badge.style.background = 'rgba(149,165,166,0.15)';
-        badge.style.color = '#95a5a6';
-        btn.textContent = '⏹ Desativar';
-        btn.style.background = 'rgba(231,76,60,0.15)';
-        btn.style.color = '#e74c3c';
-        card.classList.remove('rota-especial-ativa');
-        cont.style.display = 'none';
-        filaTxt.textContent = `Próxima janela: ${config?.hora_inicio||'--'}`;
+        raConfig.dias_operacao.splice(idx, 1);
+    }
+    
+    // Validar que ao menos um dia está selecionado
+    if (raConfig.dias_operacao.length === 0) {
+        raConfig.dias_operacao.push(dia);
+        return showToast({type:'confirm', title:'⚠️', body:'Selecione ao menos um dia.', duration:2500});
+    }
+    
+    // Atualizar visual
+    if (raConfig.dias_operacao.includes(dia)) {
+        btn.style.background = '#9b59b6';
+        btn.style.color = 'white';
+        btn.style.borderColor = '#9b59b6';
+    } else {
+        btn.style.background = '#fafafa';
+        btn.style.color = '#999';
+        btn.style.borderColor = '#e8e8e8';
+    }
+    
+    // Salvar
+    await _salvarRA();
+    atualizarPreviewRA();
+}
+
+// ---------- SALVAR NO SUPABASE ----------
+async function _salvarRA() {
+    await sb.from('rota_especial_gps').upsert(
+        { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
+        { onConflict: 'chave' }
+    );
+}
+
+// ---------- HELPER: DENTRO DO HORÁRIO ----------
+function raDentroDoHorario() {
+    if (!raConfig?.hora_inicio || !raConfig?.hora_fim) return false;
+    const agora  = horasBRT(new Date());
+    const hAtual = agora.getHours() * 60 + agora.getMinutes();
+    const [hI, mI] = raConfig.hora_inicio.split(':').map(Number);
+    const [hF, mF] = raConfig.hora_fim.split(':').map(Number);
+    return hAtual >= hI * 60 + mI && hAtual <= hF * 60 + mF;
+}
+
+// ---------- RENDER UI ----------
+function renderUIRotaAleatoria() {
+    if (!raConfig) return;
+
+    const ativa       = raConfig.ativa;
+    const dentroHora  = raDentroDoHorario();
+    const fila        = raConfig.clientes_fila || [];
+    const removidos   = raConfig.removidos || [];
+
+    // Toggle visual
+    const btn    = document.getElementById('raToggleBtn');
+    const circle = document.getElementById('raToggleCircle');
+    if (btn && circle) {
+        btn.style.background    = ativa ? '#9b59b6' : '#444';
+        circle.style.left       = ativa ? '29px' : '3px';
+    }
+
+    // Badge
+    const badge = document.getElementById('raBadgeStatus');
+    if (badge) {
+        if (!ativa) {
+            badge.textContent         = 'Inativa';
+            badge.style.background    = 'rgba(255,255,255,0.08)';
+            badge.style.color         = 'rgba(255,255,255,0.3)';
+        } else if (dentroHora) {
+            badge.textContent         = '🟢 Aceitando pedidos';
+            badge.style.background    = 'rgba(155,89,182,0.25)';
+            badge.style.color         = '#c39bd3';
+        } else {
+            badge.textContent         = '⏰ Fora do horário';
+            badge.style.background    = 'rgba(149,165,166,0.15)';
+            badge.style.color         = '#95a5a6';
+        }
+    }
+
+    // Dot
+    const dot = document.getElementById('raDot');
+    if (dot) {
+        dot.className = '';
+        if (!ativa)        dot.style.background = '#555';
+        else if (dentroHora) { dot.className = 'ra-dot-ativa'; dot.style.background = ''; }
+        else               { dot.className = 'ra-dot-fora'; dot.style.background = ''; }
+    }
+
+    // Texto de status
+    const txt  = document.getElementById('raStatusTexto');
+    const hora = document.getElementById('raHoraTexto');
+    const sub  = document.getElementById('raSubtitulo');
+    if (!ativa) {
+        if (txt)  txt.textContent  = 'Desligada — toque no botão para ativar';
+        if (hora) hora.textContent = '';
+        if (sub)  sub.textContent  = 'Configure e ative para começar';
+    } else if (dentroHora) {
+        if (txt)  txt.textContent  = 'Ativa · aceitando pedidos agora';
+        if (hora) hora.textContent = `${raConfig.hora_inicio} → ${raConfig.hora_fim}`;
+        if (sub)  sub.textContent  = `${fila.length} cliente(s) na fila`;
+    } else {
+        if (txt)  txt.textContent  = 'Ativa · fora do horário';
+        if (hora) hora.textContent = `Próxima janela: ${raConfig.hora_inicio} → ${raConfig.hora_fim}`;
+        if (sub)  sub.textContent  = `${fila.length} cliente(s) acumulado(s)`;
+    }
+
+    // Contador
+    const cont = document.getElementById('raContadorClientes');
+    const num  = document.getElementById('raNumClientes');
+    if (cont && num) {
+        cont.style.display = (ativa && fila.length > 0) ? 'block' : 'none';
+        num.textContent    = fila.length;
+    }
+
+    // Fila de clientes
+    const filaBox  = document.getElementById('raClientesFilaBox');
+    const filaList = document.getElementById('raClientesFilaList');
+    if (filaBox && filaList) {
+        if (ativa && fila.length > 0) {
+            filaBox.style.display = 'block';
+            filaList.innerHTML = fila.map((c, i) => `
+                <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border-radius:10px;padding:8px 10px;">
+                    <div style="width:22px;height:22px;border-radius:50%;background:#9b59b6;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:900;flex-shrink:0;">${i+1}</div>
+                    <div style="flex:1;">
+                        <div style="font-size:13px;font-weight:700;color:#f0f0f8;">${c.nome}</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.35);">⏰ ${c.hora_pedido || '--'}</div>
+                    </div>
+                    <button onclick="removerClienteRAAdmin('${c.id}')"
+                        style="padding:4px 8px;background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">
+                        ⏭️
+                    </button>
+                </div>`).join('');
+        } else {
+            filaBox.style.display = 'none';
+        }
+    }
+
+    // Removidos
+    const remBox  = document.getElementById('raRemovidosBox');
+    const remList = document.getElementById('raRemovidosList');
+    if (remBox && remList) {
+        if (removidos.length > 0) {
+            remBox.style.display = 'block';
+            remList.innerHTML = removidos.map(c => `
+                <div style="background:#fff8f0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;border-left:3px solid #e67e22;">
+                    <div style="flex:1;">
+                        <div style="font-weight:700;font-size:13px;">👤 ${c.nome}</div>
+                        <div style="font-size:11px;color:#aaa;">Removido às ${c.hora_removido || '--'}</div>
+                    </div>
+                </div>`).join('');
+        } else {
+            remBox.style.display = 'none';
+        }
     }
 }
 
-function renderFilaRE(fila) {
-    const el = document.getElementById('reClientesLista');
-    if (!fila || fila.length === 0) { el.style.display = 'none'; return; }
-    el.style.display = 'block';
-    el.innerHTML = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">👥 Na fila</div>` +
-        fila.map(c => `
-        <div class="re-cliente-item">
-            <div class="re-cliente-nome">👤 ${c.nome}</div>
-            <div class="re-cliente-hora">${c.hora_pedido || ''}</div>
-        </div>`).join('');
+// ---------- PREENCHER CAMPOS AO ABRIR ----------
+function preencherCamposRA() {
+    if (!raConfig) return;
+    const ini = document.getElementById('raHoraInicio');
+    const fim = document.getElementById('raHoraFim');
+    const rai = document.getElementById('raRaioFabrica');
+    if (ini) ini.value = raConfig.hora_inicio || '07:00';
+    if (fim) fim.value = raConfig.hora_fim    || '11:00';
+    if (rai) rai.value = raConfig.raio_fabrica || 100;
+
+    // Listeners para preview ao vivo
+    if (ini) ini.addEventListener('input', atualizarPreviewRA);
+    if (fim) fim.addEventListener('input', atualizarPreviewRA);
+    
+    // Inicializar botões de dias
+    atualizarBotoesDiasRA();
 }
 
-// Monitora novos pedidos em tempo real para adicionar à fila da rota especial
-function monitorarRotaEspecial() {
-    if (reRealtimeCh) { sb.removeChannel(reRealtimeCh); }
-    reRealtimeCh = sb.channel('re_pedidos')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
-            if (!rotaEspecialAtiva || !estaDentroDoHorarioRE()) return;
-            const pedido = payload.new;
-            await adicionarClienteFilaRE(pedido);
+// ---------- ATUALIZAR BOTÕES DE DIAS ----------
+function atualizarBotoesDiasRA() {
+    if (!raConfig) { raConfig = {}; }
+    if (!raConfig.dias_operacao) { raConfig.dias_operacao = ['seg','ter','qua','qui','sex','sab','dom']; }
+    
+    const botoes = document.querySelectorAll('.dia-ra-btn');
+    botoes.forEach(btn => {
+        const dia = btn.getAttribute('data-dia');
+        if (raConfig.dias_operacao.includes(dia)) {
+            btn.style.background = '#9b59b6';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#9b59b6';
+        } else {
+            btn.style.background = '#fafafa';
+            btn.style.color = '#999';
+            btn.style.borderColor = '#e8e8e8';
+        }
+    });
+}
+
+// ---------- PREVIEW HORÁRIO ----------
+function atualizarPreviewRA() {
+    const ini = document.getElementById('raHoraInicio')?.value;
+    const fim = document.getElementById('raHoraFim')?.value;
+    const box = document.getElementById('raPreviewHorario');
+    const txt = document.getElementById('raPreviewTexto');
+    const dias = document.getElementById('raPreviewDias');
+    
+    if (!box || !txt) return;
+    
+    if (ini && fim) {
+        box.style.display = 'block';
+        txt.textContent   = `${ini} às ${fim}`;
+        
+        // Atualizar texto dos dias
+        if (dias && raConfig && raConfig.dias_operacao) {
+            const diasMap = { seg: 'segunda', ter: 'terça', qua: 'quarta', qui: 'quinta', sex: 'sexta', sab: 'sábado', dom: 'domingo' };
+            const diasSelecionados = raConfig.dias_operacao.map(d => diasMap[d]).join(', ');
+            dias.textContent = diasSelecionados || 'nenhum dia';
+        }
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+// ---------- REMOVER CLIENTE (ADM) ----------
+async function removerClienteRAAdmin(clienteId) {
+    if (!raConfig) return;
+    const fila  = raConfig.clientes_fila || [];
+    const idx   = fila.findIndex(c => c.id === clienteId);
+    if (idx === -1) return;
+    const [removido] = fila.splice(idx, 1);
+    removido.hora_removido = agoraISO().substring(11, 16);
+    raConfig.clientes_fila = fila;
+    if (!raConfig.removidos) raConfig.removidos = [];
+    raConfig.removidos.push(removido);
+    await _salvarRA();
+    renderUIRotaAleatoria();
+    showToast({type:'confirm', title:'⏭️ Cliente removido', body:`${removido.nome} ficará para a próxima rota.`, duration:2500});
+}
+
+// ---------- LIMPAR REMOVIDOS ----------
+async function limparRemovidosRA() {
+    if (!raConfig) return;
+    raConfig.removidos = [];
+    await _salvarRA();
+    renderUIRotaAleatoria();
+}
+
+// ---------- STATUS NA HOME ----------
+async function atualizarStatusHomeRA() {
+    const el = document.getElementById('homeRotaAleatoriaStatus');
+    if (!el) return;
+    if (!raConfig) {
+        // Tenta buscar rápido
+        const { data } = await sb.from('rota_especial_gps').select('valor').eq('chave', RA_CHAVE).maybeSingle();
+        if (data?.valor) { try { raConfig = JSON.parse(data.valor); } catch(e) {} }
+    }
+    if (!raConfig || !raConfig.ativa) {
+        el.textContent = '⭕ Desligada';
+        el.style.color = '#aaa';
+    } else if (raDentroDoHorario()) {
+        el.textContent = `🟢 Ativa · ${(raConfig.clientes_fila||[]).length} cliente(s)`;
+        el.style.color = '#9b59b6';
+    } else {
+        el.textContent = `🟣 Ativa · fora do horário`;
+        el.style.color = '#95a5a6';
+    }
+}
+
+// ---------- REALTIME: escuta novos pedidos e adiciona à fila ----------
+function iniciarRealtimeRA() {
+    if (raRealtimeCh) { sb.removeChannel(raRealtimeCh); }
+    raRealtimeCh = sb.channel('ra_adm_pedidos')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'rota_especial_gps',
+            filter: `chave=eq.${RA_CHAVE}` }, async () => {
+            await buscarConfigRA();
+            renderUIRotaAleatoria();
+            atualizarStatusHomeRA();
         })
         .subscribe();
-    // Atualiza status a cada minuto (para checar se entrou/saiu do horário)
-    setInterval(atualizarStatusRE, 60000);
-}
-
-async function adicionarClienteFilaRE(pedido) {
-    // Busca dados do cliente
-    const { data: cliente } = await sb.from('cadastros')
-        .select('name, phone, delivery_lat, delivery_lon, delivery_address')
-        .eq('phone', pedido.customer_phone).single();
-
-    if (!cliente?.delivery_lat || !cliente?.delivery_lon) return; // sem endereço, ignora
-
-    // Verifica se já está na fila
-    const fila = rotaEspecialConfig.clientes_fila || [];
-    if (fila.find(x => x.phone === pedido.customer_phone)) return;
-
-    const agora = agoraISO();
-    const hora = agora.substring(11, 16);
-
-    fila.push({
-        id: Date.now().toString(),
-        phone: pedido.customer_phone,
-        nome: cliente.name || pedido.customer_name,
-        endereco: cliente.delivery_address || `${cliente.delivery_lat}, ${cliente.delivery_lon}`,
-        coords: [parseFloat(cliente.delivery_lat), parseFloat(cliente.delivery_lon)],
-        hora_pedido: hora,
-        status: 'pendente'
-    });
-
-    rotaEspecialConfig.clientes_fila = fila;
-    await sb.from('rota_especial_gps').upsert({ chave: 'rota_especial', valor: JSON.stringify(rotaEspecialConfig) }, { onConflict: 'chave' });
-    atualizarStatusRE();
-    showToast({type:'success',title:'⚡ Cliente na fila!',body:`${cliente.name} entrou na rota especial.`,duration:3000});
 }
 
 </script>
+
 <!-- Modal Editar Rota -->
 <div id="modalEditarRota" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
     <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
