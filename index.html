@@ -918,7 +918,11 @@
 const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+        lock: async (name, acquireTimeout, fn) => fn()
+    }
+});
 
 // ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
 function agoraISO() {
