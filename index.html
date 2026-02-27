@@ -12,7 +12,7 @@
     <style>
         :root { --primary: #c75b24; --success: #25d366; --dark: #1a1a2e; --blue: #3498db; --danger: #e74c3c; --warning: #f1c40f; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #f0f0f5; min-height: 100vh; }
+        body { background: #1c0e08; min-height: 100vh; color-scheme: dark; }
 
         /* HEADER */
         .header { background: linear-gradient(135deg, #1a1a2e 0%, #2d1f0e 100%); padding: 18px 20px 14px; color: white; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
@@ -20,14 +20,47 @@
         .header-fiado-valor { font-size: 22px; font-weight: 900; color: #ff6b6b; letter-spacing: 0.5px; }
         .header-fiado-valor.zero { color: #2ecc71; }
 
+
+        /* ===== ANTI-CHROME COLOR OVERRIDE ===== */
+        :root { color-scheme: dark; }
+        * { -webkit-tap-highlight-color: transparent; }
+        input, select, textarea, button {
+            color-scheme: dark;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input[type="time"], input[type="number"], input[type="text"] {
+            color-scheme: dark;
+            background: #110820 !important;
+            color: #e8d8f8 !important;
+            border-color: #2e1f4a !important;
+        }
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(0.7);
+        }
+        select {
+            background: #110820 !important;
+            color: #e8d8f8 !important;
+            border-color: #2e1f4a !important;
+        }
+        select option {
+            background: #150b25;
+            color: #e8d8f8;
+        }
+        /* Scrollbar dark */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #1c0e08; }
+        ::-webkit-scrollbar-thumb { background: #4a2d7a; border-radius: 4px; }
+        /* ===== FIM ANTI-CHROME ===== */
+
         /* HOME */
-        #homeScreen { display: none; padding: 20px 15px; max-width: 600px; margin: 0 auto; }
+        #homeScreen { display: none; padding: 20px 15px; max-width: 600px; margin: 0 auto; background: #1c0e08; }
         .home-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-        .home-card { background: white; border-radius: 24px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none; width: 100%; }
+        .home-card { background: #1a0f2e; border-radius: 24px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none; width: 100%; }
         .home-card:active { transform: scale(0.96); }
         .home-card-icon { font-size: 42px; margin-bottom: 10px; display: block; }
-        .home-card-label { font-size: 15px; font-weight: 700; color: #333; }
-        .home-card-sub { font-size: 12px; color: #999; margin-top: 3px; }
+        .home-card-label { font-size: 15px; font-weight: 700; color: #e8d8f8; }
+        .home-card-sub { font-size: 12px; color: #9080b8; margin-top: 3px; }
         .home-card.card-orange { border-top: 4px solid var(--primary); }
         .home-card.card-blue { border-top: 4px solid var(--blue); }
         .home-card.card-red { border-top: 4px solid var(--danger); }
@@ -47,17 +80,17 @@
         #innerApp { display: none; }
         .section { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
         .section.active { display: block; }
-        .back-area { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 65px; z-index: 89; }
-        .back-btn { background: #f0f0f0; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #333; }
-        .back-section-title { font-weight: 700; color: var(--primary); font-size: 16px; }
+        .back-area { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #1a0f2e; border-bottom: 1px solid #2e1f4a; }
+        .back-btn { background: #110820; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #e8d8f8; }
+        .back-section-title { font-weight: 700; color: #c75b24; font-size: 16px; }
 
         /* CARDS */
-        .card-box { background: white; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .card-box { background: #1a0f2e; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.35); }
         .card-box h4 { color: var(--primary); margin-bottom: 12px; }
-        .input-text { width: 100%; padding: 12px; border: 1.5px solid #e8e8e8; border-radius: 12px; margin-bottom: 10px; font-size: 15px; background: #fafafa; }
-        .input-text:focus { outline: none; border-color: var(--primary); }
+        .input-text { width: 100%; padding: 12px; border: 1.5px solid #2e1f4a; border-radius: 12px; margin-bottom: 10px; font-size: 15px; background: #110820; color: #e8d8f8; }
+        .input-text:focus { outline: none; border-color: #c75b24; }
         .input-prefix-container { position: relative; display: flex; align-items: center; margin-bottom: 10px; }
-        .input-prefix-container span { position: absolute; left: 15px; font-weight: bold; color: #555; }
+        .input-prefix-container span { position: absolute; left: 15px; font-weight: bold; color: #9080b8; }
         .input-prefix-container input { padding-left: 50px !important; margin-bottom: 0; }
         .btn { padding: 11px 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .btn:active { opacity: 0.85; transform: scale(0.98); }
@@ -69,11 +102,11 @@
         .btn-sm { padding: 7px 12px; font-size: 12px; }
 
         /* PRODUCT ITEM */
-        .prod-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid #eee; }
+        .prod-item { display: flex; justify-content: space-between; align-items: center; background: #150b25; padding: 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid #2e1f4a; }
         .prod-item img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; margin-right: 10px; }
 
         /* CLIENT */
-        .client-card { background: white; border: 1px solid #eee; padding: 14px; border-radius: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .client-card { background: #1a0f2e; border: 1px solid #2e1f4a; padding: 14px; border-radius: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
         .saldo-positivo { color: var(--blue); font-weight: bold; }
         .saldo-devedor { color: var(--danger); font-weight: bold; }
 
@@ -87,7 +120,7 @@
         /* SWIPE ORDER CARDS */
         .order-wrap { position: relative; margin-bottom: 8px; border-radius: 18px; overflow: hidden; }
         .order-card {
-            background: #fff;
+            background: #1a0f2e;
             border-radius: 18px;
             padding: 14px 15px 12px;
             position: relative;
@@ -99,16 +132,16 @@
         }
         
         .order-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .order-card-name { font-size: 15px; font-weight: 800; color: #1a1a2e; }
-        .order-card-time { font-size: 11px; color: #bbb; font-weight: 500; }
-        .order-card-phone { font-size: 12px; color: #aaa; margin-top: 1px; }
-        .order-card-items { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .order-card-name { font-size: 15px; font-weight: 800; color: #e8d8f8; }
+        .order-card-time { font-size: 11px; color: #9080b8; font-weight: 500; }
+        .order-card-phone { font-size: 12px; color: #9080b8; margin-top: 1px; }
+        .order-card-items { font-size: 13px; color: #b0a0c8; line-height: 1.6; margin-bottom: 10px; }
         .order-card-footer { display: flex; justify-content: space-between; align-items: center; }
         .order-card-valor { font-size: 16px; font-weight: 900; }
         .order-card-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-        .badge-fiado { background: #fff0f0; color: #e74c3c; }
-        .badge-pago  { background: #e8faf0; color: #27ae60; }
-        .order-fiado-btn { margin-top: 10px; width: 100%; padding: 9px; background: #fff8ee; border: 1.5px solid #e67e22; color: #e67e22; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .badge-fiado { background: #3d1f1f; color: #e74c3c; }
+        .badge-pago  { background: #1a3025; color: #27ae60; }
+        .order-fiado-btn { margin-top: 10px; width: 100%; padding: 9px; background: #2d1f0e; border: 1.5px solid #e67e22; color: #e67e22; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
         /* SWITCH */
         .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
@@ -252,19 +285,19 @@
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
                 <span class="back-section-title" id="sectionTitle" onclick="toggleAutoZerarBox()" style="cursor:pointer;user-select:none;-webkit-user-select:none;"></span>
             </div>
-            <button id="btnInativos" onclick="verClientesInativos()" style="display:none; padding:7px 12px; background:#fff3e0; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">
+            <button id="btnInativos" onclick="verClientesInativos()" style="display:none; padding:7px 12px; background:#2d1f0e; border:1.5px solid #e67e22; color:#e67e22; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">
                 ⏰ Inativos
             </button>
         </div>
 
         <!-- Modal Clientes Inativos -->
         <div id="modalInativos" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:center; justify-content:center; padding:15px;">
-            <div style="background:white; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
+            <div style="background:#1a0f2e; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="color:#e67e22; font-size:17px;">⏰ Clientes Inativos (+20 dias)</h3>
-                    <button onclick="document.getElementById('modalInativos').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                    <button onclick="document.getElementById('modalInativos').style.display='none'" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
                 </div>
-                <div id="inativosList"><div style="text-align:center;color:#888;padding:20px;">Carregando...</div></div>
+                <div id="inativosList"><div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div></div>
             </div>
         </div>
 
@@ -275,10 +308,10 @@
                 <input type="text" id="newPName" class="input-text" placeholder="Ex: Coxinha de Frango">
                 <input type="number" id="newPPrice" class="input-text" placeholder="Preço (ex: 7.00)" step="0.50">
                 <input type="file" id="newPImg" class="input-text" accept="image/*">
-                <div style="display:flex; align-items:center; justify-content:space-between; background:#f8f8f8; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
                     <div>
-                        <div style="font-weight:700; font-size:14px; color:#333;">Disponível no catálogo</div>
-                        <div style="font-size:12px; color:#999; margin-top:2px;">Se desligado, some do cardápio</div>
+                        <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Disponível no catálogo</div>
+                        <div style="font-size:12px; color:#9080b8; margin-top:2px;">Se desligado, some do cardápio</div>
                     </div>
                     <label class="switch"><input type="checkbox" id="newPAvailable" checked><span class="slider"></span></label>
                 </div>
@@ -292,12 +325,12 @@
 
         <!-- MODAL DEVOLUÇÃO -->
         <div id="modalDevolucao" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
-            <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; padding:20px 18px 30px;">
+            <div style="background:#150b25; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; padding:20px 18px 30px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                     <h3 style="color:#3498db; font-size:17px;">💰 Devolução de Dinheiro</h3>
-                    <button onclick="document.getElementById('modalDevolucao').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                    <button onclick="document.getElementById('modalDevolucao').style.display='none'" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
                 </div>
-                <p style="font-size:12px; color:#999; margin-bottom:14px;">Insira o valor a devolver para cada cliente. O valor será descontado do débito deles.</p>
+                <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Insira o valor a devolver para cada cliente. O valor será descontado do débito deles.</p>
                 <div id="devolucaoList" style="display:flex; flex-direction:column; gap:10px;"></div>
             </div>
         </div>
@@ -318,7 +351,7 @@
                     style="padding-left:44px; margin-bottom:0; border-radius:16px; border:2px solid #e0e0e0; font-size:15px;"
                     oninput="filterClients(this.value)">
             </div>
-            <div id="clientSearchEmpty" style="display:none; text-align:center; padding:24px; color:#aaa; font-size:14px; background:white; border-radius:16px; margin-bottom:12px;">
+            <div id="clientSearchEmpty" style="display:none; text-align:center; padding:24px; color:#9080b8; font-size:14px; background:#1a0f2e; border-radius:16px; margin-bottom:12px;">
                 😕 Nenhum cliente encontrado
             </div>
 
@@ -346,12 +379,12 @@
 
             <!-- MODAL: clientes do período -->
             <div id="modalExcluirClientes" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
-                <div style="background:white; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
+                <div style="background:#150b25; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                         <h3 style="color:#1a1a2e; font-size:17px;">👤 Remover da contagem</h3>
-                        <button onclick="fecharModalExcluir()" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                        <button onclick="fecharModalExcluir()" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
                     </div>
-                    <p style="font-size:12px; color:#999; margin-bottom:14px;">Marque os clientes para remover os pedidos deles do cabeçalho</p>
+                    <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Marque os clientes para remover os pedidos deles do cabeçalho</p>
                     <div id="excluirClientesList" style="display:flex; flex-direction:column; gap:8px;"></div>
                     <button onclick="aplicarExclusoes()" style="margin-top:16px; width:100%; padding:13px; background:linear-gradient(135deg,#1a1a2e,#c75b24); color:white; border:none; border-radius:14px; font-weight:800; font-size:15px; cursor:pointer;">✅ Aplicar</button>
                 </div>
@@ -468,19 +501,19 @@
 
             <!-- Modal do pedido salvo -->
             <div id="modalPedidoSalvoCliente" style="display:none;position:fixed;inset:0;background:rgba(10,10,20,0.75);backdrop-filter:blur(4px);z-index:4000;align-items:flex-end;justify-content:center;">
-                <div style="background:white;width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px 20px;animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
+                <div style="background:#150b25;width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px 20px;animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                         <h3 style="font-size:17px;font-weight:800;">⭐ Pedido Salvo</h3>
-                        <button onclick="fecharModalPedidoSalvo()" style="background:#f0f0f0;border:none;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-size:16px;">✕</button>
+                        <button onclick="fecharModalPedidoSalvo()" style="background:#110820;border:none;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-size:16px;color:#e8d8f8;">✕</button>
                     </div>
-                    <div id="modalPedidoSalvoNome" style="font-size:13px;color:#888;margin-bottom:10px;"></div>
-                    <div id="compraPedidoSalvoTexto" style="background:#f8f8f8;border-radius:14px;padding:14px;font-size:14px;color:#333;white-space:pre-line;margin-bottom:12px;line-height:1.7;"></div>
+                    <div id="modalPedidoSalvoNome" style="font-size:13px;color:#9080b8;margin-bottom:10px;"></div>
+                    <div id="compraPedidoSalvoTexto" style="background:#150b25;border-radius:14px;padding:14px;font-size:14px;color:#e8d8f8;white-space:pre-line;margin-bottom:12px;line-height:1.7;"></div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
                         <div id="compraPedidoSalvoTotal" style="font-weight:900;color:var(--primary);font-size:20px;"></div>
                         <button onclick="limparPedidoSalvoCliente()" style="background:#fee2e2;border:none;color:#e74c3c;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Remover</button>
                     </div>
                     <div style="display:flex;gap:10px;">
-                        <button onclick="usarPedidoSalvo()" style="flex:1;background:#f0f0f0;border:none;color:#333;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;">🛒 Add ao Carrinho</button>
+                        <button onclick="usarPedidoSalvo()" style="flex:1;background:#110820;border:none;color:#e8d8f8;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;">🛒 Add ao Carrinho</button>
                         <button onclick="comprarPedidoSalvoDireto()" style="flex:1;background:linear-gradient(135deg,#25d366,#1aad52);border:none;color:white;border-radius:14px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;">✅ Fazer Compra</button>
                     </div>
                 </div>
@@ -490,7 +523,7 @@
             <div id="compraEtapa1">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;">Etapa 1 de 2</div>
+                        <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;">Etapa 1 de 2</div>
                         <div style="font-size:18px;font-weight:900;color:#1a1a2e;">👤 Selecionar Cliente</div>
                     </div>
                     <button onclick="reiniciarListaClientes()" id="btnReiniciarClientes" style="display:none;background:linear-gradient(135deg,#3498db,#2980b9);border:none;color:white;border-radius:10px;padding:7px 13px;font-weight:800;font-size:12px;cursor:pointer;">↺ Reiniciar</button>
@@ -503,7 +536,7 @@
 
                 <!-- Cliente selecionado + voltar -->
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                    <button onclick="voltarEtapa1Compra()" style="background:#f0f0f0;border:none;border-radius:12px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;color:#333;">← Voltar</button>
+                    <button onclick="voltarEtapa1Compra()" style="background:#110820;border:none;border-radius:12px;padding:9px 14px;font-weight:800;font-size:14px;cursor:pointer;color:#e8d8f8;">← Voltar</button>
                     <div style="flex:1;background:linear-gradient(135deg,#25d366,#1aad52);border-radius:14px;padding:10px 14px;">
                         <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">Etapa 2 de 2 · Cliente</div>
                         <div id="compraClienteInfo" style="font-size:15px;font-weight:800;color:white;margin-top:1px;"></div>
@@ -526,15 +559,15 @@
                 </div>
 
                 <!-- Total -->
-                <div style="background:#fff3cd;border-radius:14px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:14px;color:#555;font-weight:600;">Total</span>
+                <div style="background:#2d2510;border-radius:14px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:14px;color:#9080b8;font-weight:600;">Total</span>
                     <span id="compraTotalLabel" style="font-size:24px;font-weight:900;color:var(--primary);">R$ 0,00</span>
                 </div>
 
                 <!-- Forma de pagamento -->
                 <div style="margin-bottom:14px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                        <div style="font-size:13px;font-weight:700;color:#555;">💳 Forma de pagamento</div>
+                        <div style="font-size:13px;font-weight:700;color:#9080b8;">💳 Forma de pagamento</div>
                         <button onclick="salvarPedidoParaCliente()" id="btnSalvarPedidoCliente" style="display:none;background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:white;border-radius:8px;padding:5px 10px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(142,68,173,0.35);">⭐ Salvar pedido</button>
                     </div>
                     <div style="display:flex;gap:8px;">
@@ -543,7 +576,7 @@
                             ⏳ Pagar Depois
                         </div>
                         <div id="cpopt-PAGA-NA-ENTREGA" onclick="selecionarPagamentoCompra('PAGA NA ENTREGA')"
-                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid #eee;background:white;color:#333;font-weight:700;font-size:14px;cursor:pointer;">
+                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid #2e1f4a;background:#150b25;color:#e8d8f8;font-weight:700;font-size:14px;cursor:pointer;">
                             🤝 Pagar na Entrega
                         </div>
                     </div>
@@ -556,10 +589,10 @@
 
         <!-- Modal Histórico Execuções -->
         <div id="modalHistoricoExec" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:center; justify-content:center; padding:15px;">
-            <div style="background:white; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
+            <div style="background:#1a0f2e; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="color:#8e44ad; font-size:17px;">📋 Histórico de Execuções</h3>
-                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" style="background:#f0f0f0; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕</button>
+                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
                 </div>
                 <div id="historicoExecList"></div>
             </div>
@@ -595,17 +628,17 @@
             </div>
 
             <div style="margin-bottom:12px;">
-                <p style="color:#888; font-size:13px;">Selecione os clientes para repetir o último pedido no pagar depois:</p>
+                <p style="color:#9080b8; font-size:13px;">Selecione os clientes para repetir o último pedido no pagar depois:</p>
             </div>
             <div id="refazerList"></div>
-            <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:white; padding:14px; border-top:2px solid #eee; margin-top:10px;">
-                <div id="refazerSelecionados" style="font-size:13px; color:#555;"></div>
+            <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:#1a0f2e; padding:14px; border-top:2px solid #2e1f4a; margin-top:10px;">
+                <div id="refazerSelecionados" style="font-size:13px; color:#9080b8;"></div>
             </div>
         </div>
         <!-- ABA HISTÓRICO DE COMPRAS -->
         <div id="tab-historico" class="section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#333;">🛍️ Todas as Compras</h3>
+                <h3 style="color:#e8d8f8;">🛍️ Todas as Compras</h3>
                 <span id="historicoContador" style="background:#16a085; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
             </div>
             <!-- Busca -->
@@ -618,8 +651,8 @@
             <!-- Filtros -->
             <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
                 <button id="filtro-todos" onclick="filtrarHistorico('todos')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #16a085; background:#16a085; color:white; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">Todos</button>
-                <button id="filtro-fiado" onclick="filtrarHistorico('FIADO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #e74c3c; background:white; color:#e74c3c; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">⏳ Pagar Depois</button>
-                <button id="filtro-pago" onclick="filtrarHistorico('PAGO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #27ae60; background:white; color:#27ae60; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">✅ Pago</button>
+                <button id="filtro-fiado" onclick="filtrarHistorico('FIADO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #e74c3c; background:#3d1f1f; color:#e74c3c; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">⏳ Pagar Depois</button>
+                <button id="filtro-pago" onclick="filtrarHistorico('PAGO')" style="flex:1; padding:9px; border-radius:12px; border:2px solid #27ae60; background:#1a3025; color:#27ae60; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">✅ Pago</button>
             </div>
             <div id="historicoList"></div>
             <div id="historicoLoadMore" style="display:none; text-align:center; padding:10px;">
@@ -630,7 +663,7 @@
         <!-- ABA HISTÓRICO DE PAGAMENTOS -->
         <div id="tab-pagamentos" class="section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#333;">💳 Histórico de Pagamentos</h3>
+                <h3 style="color:#e8d8f8;">💳 Histórico de Pagamentos</h3>
                 <span id="pagamentosContador" style="background:#2980b9; color:white; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;"></span>
             </div>
             <div id="pagamentosTotalBanner" style="background:linear-gradient(135deg,#2980b9,#1a5276);color:white;border-radius:18px;padding:16px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 15px rgba(41,128,185,0.3);">
@@ -653,23 +686,23 @@
 
         <!-- Modal cadastrar/editar endereço -->
         <div id="modalEndereco" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-            <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+            <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                     <h3 style="color:#e67e22;font-size:17px;">📍 Endereço de Entrega</h3>
-                    <button onclick="fecharModalEndereco()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+                    <button onclick="fecharModalEndereco()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
                 </div>
-                <div id="modalEnderecoNome" style="font-size:15px;font-weight:800;color:#333;margin-bottom:16px;"></div>
+                <div id="modalEnderecoNome" style="font-size:15px;font-weight:800;color:#e8d8f8;margin-bottom:16px;"></div>
                 <input type="text" id="enderecoTexto" class="input-text" placeholder="Rua, número, bairro... (opcional)">
-                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📌 Coordenadas</div>
+                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📌 Coordenadas</div>
                 <div style="position:relative;margin-bottom:6px;">
                     <input type="text" id="enderecoCoords" class="input-text"
                         placeholder="-8,2181191, -34,9332629"
                         style="margin-bottom:0;font-size:15px;letter-spacing:0.3px;"
                         oninput="validarCoordsInput(this)">
                     <div id="coordsPreview" style="display:none;margin-top:6px;padding:8px 12px;background:#f0fff4;border:1px solid #27ae60;border-radius:10px;font-size:12px;color:#1e8449;font-weight:600;"></div>
-                    <div id="coordsErro" style="display:none;margin-top:6px;padding:8px 12px;background:#fff0f0;border:1px solid #e74c3c;border-radius:10px;font-size:12px;color:#c0392b;font-weight:600;"></div>
+                    <div id="coordsErro" style="display:none;margin-top:6px;padding:8px 12px;background:#3d1f1f;border:1px solid #e74c3c;border-radius:10px;font-size:12px;color:#e74c3c;font-weight:600;"></div>
                 </div>
-                <div style="font-size:11px;color:#aaa;margin-bottom:14px;">Cole as coordenadas do Google Maps (com vírgula ou ponto como decimal)</div>
+                <div style="font-size:11px;color:#9080b8;margin-bottom:14px;">Cole as coordenadas do Google Maps (com vírgula ou ponto como decimal)</div>
                 <button onclick="usarLocalizacaoAtualEndereco()" style="width:100%;padding:11px;background:#f0f8ff;border:2px dashed #3498db;border-radius:12px;color:#2980b9;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;">
                     📍 Usar minha localização atual
                 </button>
@@ -695,24 +728,24 @@
                     <input type="text" id="rotaNome" class="input-text" placeholder="Nome da rota (ex: Rota 1 — Manhã)">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                         <div style="flex:1;">
-                            <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">⏰ Horário de saída</div>
+                            <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">⏰ Horário de saída</div>
                             <input type="time" id="rotaHoraSaida" class="input-text" style="margin-bottom:0;" value="05:20">
                         </div>
                         <div style="flex:1;">
-                            <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">📍 Raio fábrica (m)</div>
+                            <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">📍 Raio fábrica (m)</div>
                             <input type="number" id="rotaRaio" class="input-text" style="margin-bottom:0;" value="20">
                         </div>
                     </div>
                     <div style="margin-bottom:10px;">
-                        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📅 Dias da semana</div>
+                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📅 Dias da semana</div>
                         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
-                            <div onclick="toggleDia(this,'Dom')" data-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Dom</div></div>
-                            <div onclick="toggleDia(this,'Seg')" data-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Seg</div></div>
-                            <div onclick="toggleDia(this,'Ter')" data-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Ter</div></div>
-                            <div onclick="toggleDia(this,'Qua')" data-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qua</div></div>
-                            <div onclick="toggleDia(this,'Qui')" data-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qui</div></div>
-                            <div onclick="toggleDia(this,'Sex')" data-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sex</div></div>
-                            <div onclick="toggleDia(this,'Sáb')" data-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sáb</div></div>
+                            <div onclick="toggleDia(this,'Dom')" data-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Dom</div></div>
+                            <div onclick="toggleDia(this,'Seg')" data-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Seg</div></div>
+                            <div onclick="toggleDia(this,'Ter')" data-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Ter</div></div>
+                            <div onclick="toggleDia(this,'Qua')" data-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qua</div></div>
+                            <div onclick="toggleDia(this,'Qui')" data-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qui</div></div>
+                            <div onclick="toggleDia(this,'Sex')" data-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sex</div></div>
+                            <div onclick="toggleDia(this,'Sáb')" data-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sáb</div></div>
                         </div>
                     </div>
                     <button onclick="criarRota()" class="btn btn-success btn-block">➕ Criar Rota</button>
@@ -723,36 +756,36 @@
             <div id="addParadaBox" class="card-box" style="display:none;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                     <h4 style="margin-bottom:0;">👥 Clientes de <span id="addParadaRotaNome" style="color:#27ae60;"></span></h4>
-                    <button onclick="fecharAddParada()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#555;">✕</button>
+                    <button onclick="fecharAddParada()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#e8d8f8;">✕</button>
                 </div>
-                <div style="font-size:12px;color:#888;margin-bottom:12px;padding:8px 10px;background:#f0f8ff;border-radius:10px;border-left:3px solid #3498db;">
+                <div style="font-size:12px;color:#9080b8;margin-bottom:12px;padding:8px 10px;background:#f0f8ff;border-radius:10px;border-left:3px solid #3498db;">
                     💡 Cadastre aqui os clientes que <strong>pertencem</strong> a esta rota. Todo dia que eles fizerem pedido, entram automaticamente na entrega.
                 </div>
 
                 <!-- Adicionar cliente -->
                 <div style="margin-bottom:10px;">
-                    <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">➕ Adicionar cliente à rota</label>
+                    <label style="font-size:12px;font-weight:700;color:#9080b8;display:block;margin-bottom:6px;">➕ Adicionar cliente à rota</label>
                     <select id="paradaCliente" class="input-text" onchange="onParadaClienteChange()" style="margin-bottom:0;">
                         <option value="">-- Selecionar cliente --</option>
                     </select>
-                    <div id="paradaClienteInfo" style="display:none;font-size:12px;color:#888;padding:6px 10px;background:#f8f8f8;border-radius:8px;margin-top:6px;"></div>
-                    <div id="paradaSemEndereco" style="display:none;margin-top:8px;padding:10px 12px;background:#fff3cd;border:1px solid #f0c040;border-radius:10px;font-size:12px;color:#856404;">
+                    <div id="paradaClienteInfo" style="display:none;font-size:12px;color:#9080b8;padding:6px 10px;background:#150b25;border-radius:8px;margin-top:6px;"></div>
+                    <div id="paradaSemEndereco" style="display:none;margin-top:8px;padding:10px 12px;background:#2d2510;border:1px solid #f0c040;border-radius:10px;font-size:12px;color:#d4a80a;">
                         ⚠️ Este cliente não tem endereço cadastrado.
                         <button onclick="openSection('enderecos')" style="display:block;width:100%;margin-top:6px;padding:7px;background:#f0c040;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;">📍 Cadastrar endereço agora</button>
                     </div>
                     <div id="paradaEtaPreview" style="display:none;background:#f0fff4;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;margin-top:8px;">
                         <div style="font-size:11px;font-weight:700;color:#27ae60;">⏱️ Posição estimada</div>
                         <div id="paradaEtaValor" style="font-size:18px;font-weight:900;color:#1e8449;">-- min</div>
-                        <div id="paradaEtaHistorico" style="font-size:11px;color:#555;margin-top:2px;"></div>
+                        <div id="paradaEtaHistorico" style="font-size:11px;color:#9080b8;margin-top:2px;"></div>
                     </div>
                     <button onclick="adicionarParada()" class="btn btn-blue btn-block" style="margin-top:10px;">➕ Adicionar à rota</button>
                 </div>
 
                 <!-- Lista de clientes fixos -->
                 <div style="border-top:1px solid #eee;padding-top:10px;">
-                    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">📋 Clientes cadastrados nesta rota</div>
+                    <div style="font-size:12px;font-weight:700;color:#9080b8;margin-bottom:8px;">📋 Clientes cadastrados nesta rota</div>
                     <div id="rotaParadasList" style="display:flex;flex-direction:column;gap:8px;"></div>
-                    <div id="rotaResumoEta" style="margin-top:10px;padding:10px;background:#f8fff8;border-radius:12px;border:1px solid #d5f5e3;font-size:13px;color:#555;display:none;">
+                    <div id="rotaResumoEta" style="margin-top:10px;padding:10px;background:#1a3025;border-radius:12px;border:1px solid #27ae60;font-size:13px;color:#e8d8f8;display:none;">
                         <strong>📊 Resumo:</strong> <span id="rotaResumoTexto"></span>
                     </div>
                 </div>
@@ -762,9 +795,9 @@
             <div id="rotaAtualBox" class="card-box" style="display:none;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <h4 style="margin-bottom:0;">🛵 Paradas de hoje — <span id="rotaAtualNomeLabel"></span></h4>
-                    <button onclick="fecharRotaAtual()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#555;">✕</button>
+                    <button onclick="fecharRotaAtual()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#e8d8f8;">✕</button>
                 </div>
-                <div id="rotaAtualInfo" style="font-size:12px;color:#888;margin-bottom:10px;padding:8px 10px;background:#fffbf0;border-radius:10px;border-left:3px solid #f1c40f;">
+                <div id="rotaAtualInfo" style="font-size:12px;color:#9080b8;margin-bottom:10px;padding:8px 10px;background:#1a1228;border-radius:10px;border-left:3px solid #f1c40f;">
                     ⚡ Apenas clientes com pedido hoje aparecem aqui.
                 </div>
                 <div id="rotaParadasAtivasList" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -773,7 +806,7 @@
             <!-- ROTAS SALVAS -->
             <div class="card-box">
                 <h4>📁 Rotas Salvas</h4>
-                <div id="rotasSalvasList" style="color:#888;font-size:13px;text-align:center;padding:20px;">Carregando...</div>
+                <div id="rotasSalvasList" style="color:#9080b8;font-size:13px;text-align:center;padding:20px;">Carregando...</div>
             </div>
         </div>
 
@@ -795,7 +828,7 @@
                     <!-- Toggle liga/desliga -->
                     <div onclick="toggleRotaAleatoria()" id="raToggleBtn"
                         style="width:56px;height:30px;border-radius:30px;background:#333;cursor:pointer;position:relative;transition:background 0.3s;flex-shrink:0;">
-                        <div id="raToggleCircle" style="width:24px;height:24px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
+                        <div id="raToggleCircle" style="width:24px;height:24px;border-radius:50%;background:#e8d8f8;position:absolute;top:3px;left:3px;transition:left 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>
                     </div>
                 </div>
 
@@ -830,36 +863,36 @@
                 <!-- Horário início e fim -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">⏰ Horário de início</div>
+                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">⏰ Horário de início</div>
                         <input type="time" id="raHoraInicio" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="07:00">
                     </div>
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">🏁 Horário de fim</div>
+                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">🏁 Horário de fim</div>
                         <input type="time" id="raHoraFim" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="11:00">
                     </div>
                 </div>
 
                 <!-- Raio da fábrica -->
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📍 Raio de saída da fábrica (metros)</div>
+                    <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📍 Raio de saída da fábrica (metros)</div>
                     <div style="position:relative;display:flex;align-items:center;">
                         <input type="number" id="raRaioFabrica" class="input-text" style="margin-bottom:0;padding-right:50px;" value="100" min="10" max="1000">
-                        <span style="position:absolute;right:14px;font-size:13px;font-weight:700;color:#aaa;">m</span>
+                        <span style="position:absolute;right:14px;font-size:13px;font-weight:700;color:#9080b8;">m</span>
                     </div>
-                    <div style="font-size:11px;color:#aaa;margin-top:4px;">O entregador precisa ultrapassar esse raio para confirmar a saída</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:4px;">O entregador precisa ultrapassar esse raio para confirmar a saída</div>
                 </div>
 
                 <!-- Dias da semana -->
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;">📅 Dias de operação</div>
+                    <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:8px;">📅 Dias de operação</div>
                     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
-                        <button onclick="toggleDiaRA(this,'seg')" data-dia="seg" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Seg</button>
-                        <button onclick="toggleDiaRA(this,'ter')" data-dia="ter" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Ter</button>
-                        <button onclick="toggleDiaRA(this,'qua')" data-dia="qua" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Qua</button>
-                        <button onclick="toggleDiaRA(this,'qui')" data-dia="qui" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Qui</button>
-                        <button onclick="toggleDiaRA(this,'sex')" data-dia="sex" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Sex</button>
-                        <button onclick="toggleDiaRA(this,'sab')" data-dia="sab" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Sab</button>
-                        <button onclick="toggleDiaRA(this,'dom')" data-dia="dom" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #e8e8e8;border-radius:10px;background:#fafafa;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#999;user-select:none;">Dom</button>
+                        <button onclick="toggleDiaRA(this,'seg')" data-dia="seg" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Seg</button>
+                        <button onclick="toggleDiaRA(this,'ter')" data-dia="ter" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Ter</button>
+                        <button onclick="toggleDiaRA(this,'qua')" data-dia="qua" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Qua</button>
+                        <button onclick="toggleDiaRA(this,'qui')" data-dia="qui" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Qui</button>
+                        <button onclick="toggleDiaRA(this,'sex')" data-dia="sex" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Sex</button>
+                        <button onclick="toggleDiaRA(this,'sab')" data-dia="sab" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Sab</button>
+                        <button onclick="toggleDiaRA(this,'dom')" data-dia="dom" class="dia-ra-btn" style="padding:10px 4px;border:2px solid #2e1f4a;border-radius:10px;background:#150b25;cursor:pointer;transition:0.2s;font-weight:700;font-size:11px;color:#9080b8;user-select:none;">Dom</button>
                     </div>
                 </div>
 
@@ -872,9 +905,9 @@
             <!-- CARD CLIENTES AGUARDANDO PRÓXIMA -->
             <div id="raRemovidosBox" class="card-box" style="display:none;border-top:4px solid #e67e22;">
                 <h4 style="color:#e67e22;margin-bottom:6px;">⏭️ Aguardando próxima rota</h4>
-                <div style="font-size:12px;color:#888;margin-bottom:10px;">Removidos pelo entregador — ficam para a próxima saída.</div>
+                <div style="font-size:12px;color:#9080b8;margin-bottom:10px;">Removidos pelo entregador — ficam para a próxima saída.</div>
                 <div id="raRemovidosList" style="display:flex;flex-direction:column;gap:8px;"></div>
-                <button onclick="limparRemovidosRA()" style="margin-top:10px;width:100%;padding:9px;background:#fff3e0;border:1.5px solid #e67e22;color:#e67e22;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Limpar lista</button>
+                <button onclick="limparRemovidosRA()" style="margin-top:10px;width:100%;padding:9px;background:#2d1f0e;border:1.5px solid #e67e22;color:#e67e22;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Limpar lista</button>
             </div>
 
         </div>
@@ -980,6 +1013,7 @@ async function updateFiadoHeader() {
 }
 
 function openSection(section) {
+    history.pushState({ page: 'section', section: section }, '');
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('innerApp').style.display = 'block';
     document.querySelectorAll('#innerApp .section').forEach(s => s.classList.remove('active'));
@@ -1008,6 +1042,54 @@ function openSection(section) {
     s.fn();
 }
 
+
+// ===== BOTÃO FÍSICO DE VOLTAR (Android) =====
+// Estado inicial para que o back button tenha um estado anterior
+history.replaceState({ page: 'home' }, '');
+
+window.addEventListener('popstate', function(e) {
+    const state = e.state;
+
+    // 1. Fechar qualquer modal visível primeiro
+    const modais = [
+        'modalInativos', 'modalPedidoSalvoCliente', 'modalEditarSaldo',
+        'modalEditarRota', 'modalEndereco', 'modalDevolucao',
+        'modalExcluir', 'modalProtegidos'
+    ];
+    for (const id of modais) {
+        const el = document.getElementById(id);
+        if (el && el.style.display !== 'none' && el.style.display !== '') {
+            el.style.display = 'none';
+            // Reempurra estado para não sair da seção ao fechar modal
+            history.pushState(state, '');
+            return;
+        }
+    }
+
+    // 2. Fechar toast de confirmação se estiver aberto
+    const toast = document.getElementById('toastContainer');
+    if (toast && toast.style.display !== 'none' && toast.style.display !== '') {
+        closeToast && closeToast();
+        history.pushState(state, '');
+        return;
+    }
+
+    // 3. Se estiver na etapa 2 da compra → voltar para etapa 1
+    const etapa2 = document.getElementById('compraEtapa2');
+    if (etapa2 && etapa2.style.display === 'block') {
+        voltarEtapa1Compra();
+        return;
+    }
+
+    // 4. Se estiver numa seção → voltar para home
+    const innerApp = document.getElementById('innerApp');
+    if (innerApp && innerApp.style.display !== 'none') {
+        goHome(true);
+        return;
+    }
+});
+// ===== FIM BOTÃO FÍSICO =====
+
 function toggleAutoZerarBox() {
     // Só abre se estiver na aba de pedidos
     const box = document.getElementById('autoZerarBox');
@@ -1019,7 +1101,8 @@ function toggleAutoZerarBox() {
     if (titulo) titulo.style.opacity = visivel ? '1' : '0.7';
 }
 
-function goHome() {
+function goHome(fromPopstate) {
+    if (!fromPopstate) history.back();
     document.getElementById('innerApp').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
     document.getElementById('btnInativos').style.display = 'none';
@@ -1030,12 +1113,12 @@ async function verClientesInativos() {
     const modal = document.getElementById('modalInativos');
     const list = document.getElementById('inativosList');
     modal.style.display = 'flex';
-    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+    list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
 
     // Busca todos os clientes
     const { data: clients } = await sb.from("cadastros").select("*").order("name");
     if (!clients || clients.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">Nenhum cliente cadastrado.</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:30px;">Nenhum cliente cadastrado.</div>';
         return;
     }
 
@@ -1068,11 +1151,11 @@ async function verClientesInativos() {
         const debtColor = c.debt > 0 ? '#e74c3c' : '#27ae60';
         const debtText = c.debt > 0 ? `Débito: R$ ${c.debt.toFixed(2)}` : c.debt < 0 ? `Crédito: R$ ${Math.abs(c.debt).toFixed(2)}` : 'Sem dívida';
         return `
-        <div style="background:#fafafa; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:10px; border-left:4px solid #e67e22;">
+        <div style="background:#150b25; border:1px solid #2e1f4a; border-radius:14px; padding:14px; margin-bottom:10px; border-left:4px solid #e67e22;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div>
                     <div style="font-weight:800; font-size:15px;">${c.name}</div>
-                    <div style="font-size:12px; color:#999; margin-top:2px;">${c.phone}</div>
+                    <div style="font-size:12px; color:#9080b8; margin-top:2px;">${c.phone}</div>
                 </div>
                 <button onclick="cobrarClienteInativo('${c.phone}','${c.name.replace(/'/g,"\'")}',${c.debt})"
                     style="padding:6px 12px; background:#25d366; border:none; border-radius:10px; color:white; font-size:12px; font-weight:700; cursor:pointer;">
@@ -1097,7 +1180,7 @@ function cobrarClienteInativo(phone, name, debt) {
 async function loadAdminProducts() {
     const { data } = await sb.from("cardapio").select("*").order("created_at", { ascending: true });
     const list = document.getElementById('adminProductList');
-    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum produto</div>'; return; }
+    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum produto</div>'; return; }
     list.innerHTML = data.map(p => `
         <div class="prod-item" style="opacity:${p.available === false ? '0.55' : '1'}; border:1px solid ${p.available === false ? '#ffcccc' : '#eee'};">
             <div style="display:flex;align-items:center;flex:1;">
@@ -1113,7 +1196,7 @@ async function loadAdminProducts() {
                     <input type="checkbox" ${p.available === false ? '' : 'checked'} onchange="toggleAvailable('${p.id}', this.checked)">
                     <span class="slider"></span>
                 </label>
-                <button onclick="editProduct('${p.id}')" class="btn btn-sm" style="background:#f0f0f0;">✏️</button>
+                <button onclick="editProduct('${p.id}')" class="btn btn-sm" style="background:#110820;color:#e8d8f8;">✏️</button>
                 <button onclick="removeProduct('${p.id}')" class="btn btn-danger btn-sm">🗑️</button>
             </div>
         </div>`).join('');
@@ -1208,11 +1291,11 @@ async function loadAdminClients() {
     const el = document.getElementById('headerFiadoValor');
     el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
     el.className = 'header-fiado-valor' + (total > 0 ? '' : ' zero');
-    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum cliente</div>'; return; }
+    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente</div>'; return; }
     list.innerHTML = data.map(c => `
         <div class="client-card" data-name="${c.name.toLowerCase()}">
             <div style="display:flex;justify-content:space-between;align-items:start;">
-                <div><strong>${c.name}</strong><br><small style="color:#888;">${c.phone}</small></div>
+                <div><strong>${c.name}</strong><br><small style="color:#9080b8;">${c.phone}</small></div>
                 <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <small>PAGAR DEPOIS</small>
@@ -1391,14 +1474,14 @@ async function abrirModalDevolucao() {
     const clientes = (data || []).filter(c => c.debt > 0);
     const list = document.getElementById('devolucaoList');
     if (!clientes.length) {
-        list.innerHTML = '<div style="text-align:center;color:#888;padding:24px;">Nenhum cliente com débito no momento.</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:24px;">Nenhum cliente com débito no momento.</div>';
     } else {
         list.innerHTML = clientes.map(c => `
-            <div style="background:#f9f9f9; border-radius:16px; padding:14px; border:1px solid #eee;">
+            <div style="background:#150b25; border-radius:16px; padding:14px; border:1px solid #2e1f4a;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <div>
                         <div style="font-weight:800; font-size:15px; color:#1a1a2e;">${c.name}</div>
-                        <div style="font-size:12px; color:#888;">${c.phone}</div>
+                        <div style="font-size:12px; color:#9080b8;">${c.phone}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:13px; color:#e74c3c; font-weight:700;">Débito: R$ ${c.debt.toFixed(2).replace('.', ',')}</div>
@@ -1406,7 +1489,7 @@ async function abrirModalDevolucao() {
                 </div>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <div style="position:relative; flex:1; display:flex; align-items:center;">
-                        <span style="position:absolute; left:12px; font-weight:bold; color:#555; font-size:13px;">R$</span>
+                        <span style="position:absolute; left:12px; font-weight:bold; color:#9080b8; font-size:13px;">R$</span>
                         <input type="number" id="dev_${c.phone}" class="input-text" placeholder="0,00" min="0" step="0.01" style="padding-left:40px; margin:0; font-size:15px;">
                     </div>
                     <button onclick="executarDevolucao('${c.phone}', '${c.name.replace(/'/g,"\\'")}', ${c.debt})" class="btn btn-blue" style="white-space:nowrap; padding:12px 16px;">💸 Devolver</button>
@@ -1598,7 +1681,7 @@ async function abrirModalExcluir() {
     const modal = document.getElementById('modalExcluirClientes');
     const list = document.getElementById('excluirClientesList');
     modal.style.display = 'flex';
-    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+    list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
 
     // Busca pedidos do período
     const now = new Date();
@@ -1625,18 +1708,18 @@ async function abrirModalExcluir() {
     });
 
     if (Object.keys(clientes).length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px;">Nenhum cliente no período</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente no período</div>';
         return;
     }
 
     list.innerHTML = Object.values(clientes).map(c => {
         const checked = _excluidos.has(c.phone) ? 'checked' : '';
         const resumo = c.pedidos.map(p => p.replace(/✅ /g,'').replace(/\n/g,', ').trim()).join(' | ');
-        return `<label style="display:flex; align-items:center; gap:12px; background:#f9f9f9; border-radius:14px; padding:12px 14px; cursor:pointer; border:2px solid ${_excluidos.has(c.phone) ? '#e74c3c' : '#eee'};" id="label_${c.phone.replace(/\D/g,'')}">
+        return `<label style="display:flex; align-items:center; gap:12px; background:#150b25; border-radius:14px; padding:12px 14px; cursor:pointer; border:2px solid ${_excluidos.has(c.phone) ? '#e74c3c' : '#2e1f4a'};" id="label_${c.phone.replace(/\D/g,'')}">
             <input type="checkbox" ${checked} onchange="toggleExclusao('${c.phone}')" style="width:20px; height:20px; accent-color:#e74c3c; cursor:pointer; flex-shrink:0;">
             <div style="flex:1; min-width:0;">
-                <div style="font-weight:800; font-size:14px; color:#222;">${c.name}</div>
-                <div style="font-size:11px; color:#999; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${resumo}</div>
+                <div style="font-weight:800; font-size:14px; color:#e8d8f8;">${c.name}</div>
+                <div style="font-size:11px; color:#9080b8; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${resumo}</div>
             </div>
         </label>`;
     }).join('');
@@ -1706,7 +1789,7 @@ async function loadOrders() {
 
     // Mostra "Carregando..." no carrossel
     document.getElementById('rotaTabsBar').innerHTML = '';
-    document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Carregando...</div>';
+    document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#9080b8;">Carregando...</div>';
 
     try {
     // Busca pedidos + rotas + clientes em paralelo
@@ -1718,12 +1801,13 @@ async function loadOrders() {
 
     if (error) throw error;
 
+    const phonesComEndereco = new Set();
     (clientes || []).forEach(c => phonesComEndereco.add(c.phone));
     const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r["Rotas"] || r.nome || "Sem nome" }));
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
-        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#888;">Sem pedidos hoje</div>';
+        document.getElementById('orderSlides').innerHTML = '<div style="min-width:100%;padding:40px 0;text-align:center;color:#9080b8;">Sem pedidos hoje</div>';
         return;
     }
 
@@ -1741,20 +1825,30 @@ async function loadOrders() {
         });
     });
 
-    // Separa pedidos por rota (só 1 por cliente, na posição correta)
-    const phoneVisto = new Set();
+    // Separa pedidos: Geral (todos), por rota (na ordem da rota), sem rota (não está em nenhuma rota)
+    const phoneVistoRota = new Set();
     const grupos = {}; // rotaNome → [ {order, posicao} ]
-    const geral = [];
+    const semRota = [];
 
+    // Primeiro: identifica quem pertence a alguma rota (1 pedido por cliente)
     data.forEach(o => {
         const phone = o.customer_phone;
         const rotaInfo = phoneParaRota[phone];
-        if (!phoneVisto.has(phone) && rotaInfo && phonesComEndereco.has(phone)) {
-            phoneVisto.add(phone);
+        if (!phoneVistoRota.has(phone) && rotaInfo && phonesComEndereco.has(phone)) {
+            phoneVistoRota.add(phone);
             if (!grupos[rotaInfo.nome]) grupos[rotaInfo.nome] = [];
             grupos[rotaInfo.nome].push({ order: o, posicao: rotaInfo.posicao });
-        } else {
-            geral.push(o);
+        }
+    });
+
+    // Segundo: quem não entrou em nenhuma rota vai para "Sem Rota"
+    const phoneVistoSemRota = new Set();
+    data.forEach(o => {
+        if (!phoneVistoRota.has(o.customer_phone)) {
+            if (!phoneVistoSemRota.has(o.customer_phone)) {
+                phoneVistoSemRota.add(o.customer_phone);
+                semRota.push(o);
+            }
         }
     });
 
@@ -1764,7 +1858,10 @@ async function loadOrders() {
         grupos[nome] = grupos[nome].map((x, i) => ({ ...x.order, _posRota: i + 1 }));
     });
 
-    // Monta abas: Geral primeiro, depois rotas em ordem de hora_saida
+    // Geral = TODOS os pedidos na ordem que chegaram (sem filtro)
+    const geral = [...data];
+
+    // Monta abas: Geral primeiro, depois rotas em ordem de hora_saida, por último Sem Rota
     const abas = [];
     abas.push({ label: '📋 Geral', orders: geral, cor: '#555' });
     const rotasOrdenadas = Object.keys(grupos).sort((a, b) => {
@@ -1775,13 +1872,17 @@ async function loadOrders() {
     rotasOrdenadas.forEach(nome => {
         abas.push({ label: '🗺️ ' + nome, orders: grupos[nome], cor: '#1e8449' });
     });
+    // Aba Sem Rota — só aparece se tiver alguém lá
+    if (semRota.length > 0) {
+        abas.push({ label: '⚠️ Sem rota', orders: semRota, cor: '#e67e22' });
+    }
 
     _totalAbas = abas.length;
     _abaAtual = 0;
 
     // Botão restart no topo (mostra pedidos ocultos)
     const restartBtn = `<button onclick="restartPedidos()" title="Mostrar todos os pedidos ocultos"
-        style="flex-shrink:0;padding:8px 12px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:#e8e8e8;color:#555;transition:0.2s;">
+        style="flex-shrink:0;padding:8px 12px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:#110820;color:#9080b8;transition:0.2s;">
         🔄
     </button>`;
 
@@ -1790,7 +1891,7 @@ async function loadOrders() {
     tabsBar.innerHTML = abas.map((a, i) => `
         <button id="rotaTab_${i}" onclick="irParaAba(${i})" data-cor="${a.cor}"
             style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;white-space:nowrap;
-            background:${i===0 ? a.cor : '#e8e8e8'};color:${i===0 ? 'white' : '#555'};">
+            background:${i===0 ? a.cor : '#110820'};color:${i===0 ? 'white' : '#9080b8'};">
             ${a.label} <span style="opacity:0.8;font-size:11px;">${a.orders.length}</span>
         </button>`).join('') + restartBtn;
 
@@ -1799,7 +1900,7 @@ async function loadOrders() {
     slides.innerHTML = abas.map(a => `
         <div style="min-width:100%;box-sizing:border-box;padding:0 2px;">
             ${a.orders.length === 0
-                ? '<div style="text-align:center;color:#aaa;padding:40px 0;font-size:14px;">Nenhum pedido nesta aba</div>'
+                ? '<div style="text-align:center;color:#9080b8;padding:40px 0;font-size:14px;">Nenhum pedido nesta aba</div>'
                 : a.orders.map(o => buildOrderCard(o)).join('')
             }
         </div>`).join('');
@@ -1820,7 +1921,7 @@ function irParaAba(idx) {
     // Atualiza visual das abas
     document.querySelectorAll('[id^="rotaTab_"]').forEach(btn => {
         const aba = parseInt(btn.id.replace('rotaTab_', ''));
-        btn.style.background = aba === _abaAtual ? (btn.dataset.cor || '#555') : '#e8e8e8';
+        btn.style.background = aba === _abaAtual ? (btn.dataset.cor || '#555') : '#110820';
         btn.style.color = aba === _abaAtual ? 'white' : '#555';
     });
     // Scroll a aba ativa para o centro
@@ -1879,8 +1980,8 @@ function buildOrderCard(o) {
 
     const isCancelado = o.status === 'CANCELADO';
     const cancelBtnStyle = isCancelado
-        ? `background:#fafafa;border:1.5px solid #ccc;color:#aaa;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:default;width:100%;margin-top:8px;`
-        : `background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;`;
+        ? `background:#150b25;border:1.5px solid #4a2d7a;color:#5a4878;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:default;width:100%;margin-top:8px;`
+        : `background:#3d1f1f;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:12px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;`;
     const cancelBtnContent = isCancelado ? `❌ Pedido Cancelado` : `❌ Cancelou`;
     const cancelBtnAction = isCancelado ? `` : `onclick="confirmarCancelamentoPedido('${o.id}')"`;
     const cancelBtn = `<button ${cancelBtnAction} style="${cancelBtnStyle}">${cancelBtnContent}</button>`;
@@ -2496,14 +2597,14 @@ async function executarAutoRefazer() {
 async function loadRefazerPedidos() {
     atualizarBannerAgendamento();
     const list = document.getElementById('refazerList');
-    list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+    list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
     refazerSelecionados = carregarSelecoes(); // restaura seleções salvas
     atualizarResumoRefazer();
 
     // Busca todos os clientes
     const { data: clients } = await sb.from("cadastros").select("*").order("name");
     if (!clients || clients.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Nenhum cliente</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente</div>';
         return;
     }
 
@@ -2531,15 +2632,15 @@ async function loadRefazerPedidos() {
     atualizarResumoRefazer();
 
     if (cardsFiltrados.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#888;padding:30px;">Nenhum cliente para exibir.</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:30px;">Nenhum cliente para exibir.</div>';
         return;
     }
 
     list.innerHTML = cardsFiltrados.map(({ client: c, lastOrder: o }) => {
         const nomeExibido = c.show_name === false ? '🔒 Anônimo' : c.name;
         if (!o) return `
-            <div style="background:white;border:1px solid #eee;border-radius:16px;padding:14px;margin-bottom:10px;opacity:0.5;display:flex;justify-content:space-between;align-items:center;">
-                <div><strong>${nomeExibido}</strong><br><small style="color:#aaa;">⭐ Nenhum pedido salvo</small></div>
+            <div style="background:#1a0f2e;border:1px solid #2e1f4a;border-radius:16px;padding:14px;margin-bottom:10px;opacity:0.5;display:flex;justify-content:space-between;align-items:center;">
+                <div><strong>${nomeExibido}</strong><br><small style="color:#9080b8;">⭐ Nenhum pedido salvo</small></div>
             </div>`;
 
         const valor = Number(o.total).toFixed(2).replace('.', ',');
@@ -2548,7 +2649,7 @@ async function loadRefazerPedidos() {
         const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
         const foiPulado = badgesPulados[c.phone];
         const badgePulado = foiPulado
-            ? `<div style="margin-top:6px;background:#fff3cd;border:1px solid #f39c12;border-radius:8px;padding:4px 8px;font-size:11px;color:#b7770d;font-weight:700;">⏭️ Pulado em ${foiPulado} · já pediu após 12h de ontem</div>`
+            ? `<div style="margin-top:6px;background:#2d2510;border:1px solid #f39c12;border-radius:8px;padding:4px 8px;font-size:11px;color:#d4a80a;font-weight:700;">⏭️ Pulado em ${foiPulado} · já pediu após 12h de ontem</div>`
             : '';
 
         const isBloqueado = refazerBloqueados.includes(c.phone);
@@ -2558,17 +2659,17 @@ async function loadRefazerPedidos() {
 
         return `
             <div id="card_refazer_${c.phone}" onclick="toggleRefazer('${c.phone}','${c.name.replace(/'/g,"\'")}',${o.total},'${o.items.replace(/'/g,"\'").replace(/\n/g,"\\n")}',${c.show_name === true})"
-                style="background:${isSel?'#fdf6ff':'white'};border:2px solid ${isSel?'#8e44ad':'#eee'};border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;${isBloqueado?'opacity:0.6;':''}">
+                style="background:${isSel?'#1a0845':'#1a0f2e'};border:2px solid ${isSel?'#8e44ad':'#2e1f4a'};border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.2s;${isBloqueado?'opacity:0.6;':''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
         <strong style="font-size:15px;">${nomeExibido}</strong>
-                        <div style="font-size:12px;color:#888;margin-top:2px;">${itens}</div>
+                        <div style="font-size:12px;color:#9080b8;margin-top:2px;">${itens}</div>
                         <div style="font-size:12px;color:#8e44ad;font-weight:700;margin-top:2px;">⭐ Pedido salvo</div>
                     </div>
                     <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                        <button onclick="toggleBloqueioRefazer('${c.phone}', event)" style="background:${isBloqueado?'#e74c3c':'#eee'};border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:${isBloqueado?'white':'#888'};" title="${isBloqueado?'Desbloquear automático':'Bloquear automático'}">🚫</button>
+                        <button onclick="toggleBloqueioRefazer('${c.phone}', event)" style="background:${isBloqueado?'#e74c3c':'#110820'};border:none;border-radius:10px;padding:4px 8px;cursor:pointer;font-size:12px;color:${isBloqueado?'white':'#9080b8'};" title="${isBloqueado?'Desbloquear automático':'Bloquear automático'}">🚫</button>
                         <div style="font-size:18px;font-weight:900;color:#8e44ad;">R$ ${valor}</div>
-                        <div id="check_${c.phone}" style="width:26px;height:26px;border:2px solid ${isSel?'#8e44ad':'#ddd'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${isSel?'#8e44ad':''};color:${isSel?'white':''}">${isSel?'✓':''}</div>
+                        <div id="check_${c.phone}" style="width:26px;height:26px;border:2px solid ${isSel?'#8e44ad':'#4a2d7a'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${isSel?'#8e44ad':'transparent'};color:${isSel?'white':''}">${isSel?'✓':''}</div>
                     </div>
                 </div>
                 ${badgePulado}
@@ -2588,7 +2689,7 @@ function renderHistoricoExecucoes() {
     const list = document.getElementById('historicoExecList');
     const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
     if (historico.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">Nenhuma execução registrada ainda.</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:30px;">Nenhuma execução registrada ainda.</div>';
         return;
     }
     list.innerHTML = historico.map((h, i) => {
@@ -2599,13 +2700,13 @@ function renderHistoricoExecucoes() {
                 const orderId = typeof x === 'object' ? x.orderId : null;
                 const phone = typeof x === 'object' ? x.phone : null;
                 const cancelado = typeof x === 'object' && x.cancelado;
-                return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;background:#f9f9f9;border-radius:10px;padding:6px 10px;">
-                    <span style="font-size:13px;${cancelado?'text-decoration:line-through;color:#aaa;':''}">• ${name} · R$ ${total}</span>
+                return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;background:#150b25;border-radius:10px;padding:6px 10px;">
+                    <span style="font-size:13px;${cancelado?'text-decoration:line-through;color:#9080b8;':''}">• ${name} · R$ ${total}</span>
                     ${cancelado
                         ? `<span style="font-size:11px;color:#e74c3c;font-weight:700;">Cancelado</span>`
                         : orderId
-                            ? `<button onclick="cancelarPedidoAutoRefazer(${i},'${orderId}','${phone}',${x.total},'${name}')" style="background:#fff0f0;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Cancelar</button>`
-                            : `<span style="font-size:11px;color:#aaa;">sem id</span>`
+                            ? `<button onclick="cancelarPedidoAutoRefazer(${i},'${orderId}','${phone}',${x.total},'${name}')" style="background:#3d1f1f;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;">🗑️ Cancelar</button>`
+                            : `<span style="font-size:11px;color:#9080b8;">sem id</span>`
                     }
                 </div>`;
             }).join('')}</div>`
@@ -2614,10 +2715,10 @@ function renderHistoricoExecucoes() {
             ? `<div style="margin-top:6px;"><span style="color:#f39c12;font-weight:700;">⏭️ Pulados (${h.pulados.length}):</span><br>${h.pulados.map(n => `<span style="font-size:12px;">• ${n}</span>`).join('<br>')}</div>`
             : '';
         const nenhum = h.lancados.length === 0 && h.pulados.length === 0
-            ? '<div style="font-size:12px;color:#aaa;margin-top:4px;">Nenhum cliente selecionado.</div>' : '';
+            ? '<div style="font-size:12px;color:#9080b8;margin-top:4px;">Nenhum cliente selecionado.</div>' : '';
         return `
-        <div style="background:#fafafa;border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid #8e44ad;">
-            <div style="font-weight:800;font-size:13px;color:#555;">🤖 Execução #${historico.length - i} · ${h.data}</div>
+        <div style="background:#150b25;border:1px solid #2e1f4a;border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid #8e44ad;">
+            <div style="font-weight:800;font-size:13px;color:#9080b8;">🤖 Execução #${historico.length - i} · ${h.data}</div>
             ${lancHTML}${pulHTML}${nenhum}
         </div>`;
     }).join('');
@@ -2666,7 +2767,7 @@ function toggleRefazer(phone, name, total, items, showName = false) {
     if (refazerSelecionados[phone]) {
         delete refazerSelecionados[phone];
         card.style.border = '2px solid #eee';
-        card.style.background = 'white';
+        card.style.background = '#1a0f2e';
         check.textContent = '';
         check.style.borderColor = '#ddd';
         check.style.background = '';
@@ -2783,7 +2884,7 @@ function renderListaClientesCompra() {
     }).join('');
 
     if (visiveis.length === 0) {
-        box.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhum cliente disponível.<br>Toque em ↺ Reiniciar para restaurar.</div>';
+        box.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhum cliente disponível.<br>Toque em ↺ Reiniciar para restaurar.</div>';
     }
 }
 
@@ -2858,6 +2959,7 @@ async function onCompraClienteChange(c) {
     }
 
     // Vai para etapa 2
+    history.pushState({ page: 'compra-etapa2' }, '');
     document.getElementById('compraEtapa1').style.display = 'none';
     document.getElementById('compraEtapa2').style.display = 'block';
     renderCompraProdList();
@@ -2945,7 +3047,7 @@ function renderCompraProdList() {
     list.style.gap = '13px';
     list.style.padding = '4px 0 8px';
     list.innerHTML = compraProdutos.map(p => `
-        <div style="background:white;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);display:flex;flex-direction:column;transition:transform 0.2s;">
+        <div style="background:#1a0f2e;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;flex-direction:column;transition:transform 0.2s;">
             <div style="height:110px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden;">
                 ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;">` : '🥟'}
             </div>
@@ -2957,7 +3059,7 @@ function renderCompraProdList() {
                 <div style="display:flex;align-items:center;justify-content:space-between;background:#f1f2f6;border-radius:20px;padding:4px;margin-top:8px;">
                     <button onclick="qtyCompra('${p.id}',-1)" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--danger);color:white;font-size:18px;font-weight:bold;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
                     <input type="number" id="cqty_${p.id}" value="${compraCart[p.id] || 0}" onchange="setQtyCompra('${p.id}', this.value)"
-                        style="width:38px;border:none;background:transparent;text-align:center;font-weight:800;font-size:16px;color:#222;-moz-appearance:textfield;outline:none;">
+                        style="width:38px;border:none;background:transparent;text-align:center;font-weight:800;font-size:16px;color:#e8d8f8;-moz-appearance:textfield;outline:none;">
                     <button onclick="qtyCompra('${p.id}',1)" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--success);color:white;font-size:18px;font-weight:bold;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
                 </div>
             </div>
@@ -2994,7 +3096,7 @@ function selecionarPagamentoCompra(metodo) {
     ['FIADO','PAGA NA ENTREGA'].forEach(m => {
         const el = document.getElementById('cpopt-' + m.replace(/ /g,'-'));
         if (el) el.style.borderColor = m === metodo ? 'var(--success)' : '#eee';
-        if (el) el.style.background = m === metodo ? '#e8f5e9' : 'white';
+        if (el) el.style.background = m === metodo ? '#1a3025' : '#150b25';
         if (el) el.style.color = m === metodo ? 'var(--success)' : '#333';
     });
 }
@@ -3117,15 +3219,19 @@ async function executarCompra(total, pedidoTexto) {
         if (raData?.valor) {
             let raConfig = JSON.parse(raData.valor);
             if (raConfig.ativa) {
-                const agora = new Date();
-                const offset = -3 * 60 - agora.getTimezoneOffset();
-                const brt = new Date(agora.getTime() + offset * 60000);
-                const hAtual = brt.getHours() * 60 + brt.getMinutes();
+                const _TZ = 'America/Sao_Paulo';
+                const _now = new Date();
+                // Hora atual em Brasília (sem duplo cálculo de fuso)
+                const _hStr = _now.toLocaleTimeString('pt-BR', { timeZone: _TZ, hour: '2-digit', minute: '2-digit' });
+                const [_hh, _mm] = _hStr.split(':').map(Number);
+                const hAtual = _hh * 60 + _mm;
                 const [hI, mI] = (raConfig.hora_inicio || '07:00').split(':').map(Number);
                 const [hF, mF] = (raConfig.hora_fim || '11:00').split(':').map(Number);
-                const emHorario = hAtual >= hI * 60 + mI && hAtual <= hF * 60 + mF;
-                const dias = ['dom','seg','ter','qua','qui','sex','sab'];
-                const nesteDia = (raConfig.dias_operacao || []).includes(dias[brt.getDay()]);
+                const emHorario = hAtual >= hI * 60 + mI && hAtual < hF * 60 + mF;
+                // Dia da semana em Brasília
+                const _diaNome = _now.toLocaleDateString('pt-BR', { timeZone: _TZ, weekday: 'short' }).replace('.','').toLowerCase();
+                const _diasMap = { 'dom':'dom', 'seg':'seg', 'ter':'ter', 'qua':'qua', 'qui':'qui', 'sex':'sex', 'sáb':'sab', 'sab':'sab' };
+                const nesteDia = (raConfig.dias_operacao || []).includes(_diasMap[_diaNome] || _diaNome);
 
                 if (emHorario && nesteDia) {
                     const cli = compraClienteAtual;
@@ -3142,7 +3248,7 @@ async function executarCompra(total, pedidoTexto) {
                                 nome: cli.name,
                                 endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
                                 coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
-                                hora_pedido: brt.toISOString().substring(11, 16),
+                                hora_pedido: _hStr,
                                 status: 'pendente'
                             });
                             raConfig.clientes_fila = fila;
@@ -3181,7 +3287,7 @@ async function loadHistoricoPagamentos() {
     const contador = document.getElementById('pagamentosContador');
     const totalEl = document.getElementById('pagamentosTotalValor');
 
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;">Carregando...</div>';
 
     const { data, error } = await sb
         .from("pagamentos_reembolsos")
@@ -3190,7 +3296,7 @@ async function loadHistoricoPagamentos() {
         .limit(100);
 
     if (error || !data || data.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhum pagamento registrado ainda.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#9080b8;font-size:15px;">📭 Nenhum pagamento registrado ainda.</div>';
         contador.textContent = '0 registros';
         totalEl.textContent = 'R$ 0,00';
         return;
@@ -3208,21 +3314,21 @@ async function loadHistoricoPagamentos() {
         const saldoDepois = Number(p.saldo_posterior || 0).toFixed(2).replace('.', ',');
         const saldoColor = Number(p.saldo_posterior) <= 0 ? '#27ae60' : '#e74c3c';
         const saldoLabel = Number(p.saldo_posterior) <= 0 ? '✅ Quitado' : 'Restante: R$ ' + saldoDepois;
-        const bgSaldo = Number(p.saldo_posterior) <= 0 ? '#d5f5e3' : '#fde8e8';
+        const bgSaldo = Number(p.saldo_posterior) <= 0 ? '#1a3025' : '#3d1f1f';
 
-        return '<div style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid #2980b9;">' +
+        return '<div style="background:#1a0f2e;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.3);border-left:4px solid #2980b9;">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">' +
                 '<div>' +
-                    '<div style="font-weight:800;font-size:15px;color:#222;">👤 ' + p.client_name + '</div>' +
-                    '<div style="font-size:12px;color:#999;margin-top:2px;">📞 ' + (p.client_phone || '—') + '</div>' +
-                    '<div style="font-size:11px;color:#aaa;margin-top:2px;">📅 ' + dateStr + ' às ' + timeStr + '</div>' +
+                    '<div style="font-weight:800;font-size:15px;color:#e8d8f8;">👤 ' + p.client_name + '</div>' +
+                    '<div style="font-size:12px;color:#9080b8;margin-top:2px;">📞 ' + (p.client_phone || '—') + '</div>' +
+                    '<div style="font-size:11px;color:#9080b8;margin-top:2px;">📅 ' + dateStr + ' às ' + timeStr + '</div>' +
                 '</div>' +
                 '<div style="text-align:right;">' +
                     '<div style="font-size:22px;font-weight:900;color:#27ae60;">+ R$ ' + Number(p.amount).toFixed(2).replace('.', ',') + '</div>' +
                 '</div>' +
             '</div>' +
             '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                '<span style="background:#f0f0f0;color:#555;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">Antes: R$ ' + saldoAntes + '</span>' +
+                '<span style="background:#110820;color:#9080b8;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">Antes: R$ ' + saldoAntes + '</span>' +
                 '<span style="background:' + bgSaldo + ';color:' + saldoColor + ';font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;">' + saldoLabel + '</span>' +
             '</div>' +
         '</div>';
@@ -3238,7 +3344,7 @@ const _HISTORICO_PAGE_SIZE = 50;
 async function loadHistoricoFiado() {
     const list = document.getElementById('historicoList');
     const contador = document.getElementById('historicoContador');
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">Carregando...</div>';
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;">Carregando...</div>';
 
     // Busca as últimas 50 compras do Supabase
     const { data: allData, error } = await sb
@@ -3248,7 +3354,7 @@ async function loadHistoricoFiado() {
         .limit(50);
 
     if (error || !allData || allData.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#9080b8;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
         contador.textContent = '0 registros';
         return;
     }
@@ -3323,7 +3429,7 @@ function renderHistorico(append = false) {
     const dados = _getHistoricoFiltrado();
 
     if (!dados || dados.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:#9080b8;font-size:15px;">📭 Nenhuma compra encontrada.</div>';
         contador.textContent = '0 registros';
         loadMoreBtn.style.display = 'none';
         return;
@@ -3341,7 +3447,7 @@ function renderHistorico(append = false) {
         const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
         const items = (o.items || '').trim().replace(/✅ /g, '').split('\n').filter(Boolean);
-        const itemsHTML = items.map(it => `<span style="display:inline-block;background:#f0f0f0;border-radius:8px;padding:2px 8px;font-size:12px;margin:2px;">${it}</span>`).join('');
+        const itemsHTML = items.map(it => `<span style="display:inline-block;background:#110820;border-radius:8px;padding:2px 8px;font-size:12px;margin:2px;color:#e8d8f8;">${it}</span>`).join('');
 
         const ehFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
         const isCardapio = !(o.items || '').includes('✅');
@@ -3358,15 +3464,15 @@ function renderHistorico(append = false) {
             : `<button onclick="marcarNaoPagou('${o.id}')" style="background:#fff8ee;border:1.5px solid #e67e22;color:#e67e22;border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">❌ Não Pagou</button>`;
 
         return `
-        <div id="hist_${o.id}" style="background:white;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border-left:4px solid ${borderColor};">
+        <div id="hist_${o.id}" style="background:#1a0f2e;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.3);border-left:4px solid ${borderColor};">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                 <div>
-                    <div style="font-weight:800;font-size:15px;color:#222;">👤 ${o.customer_name}</div>
-                    <div style="font-size:12px;color:#999;margin-top:2px;">📞 ${o.customer_phone || '—'}</div>
+                    <div style="font-weight:800;font-size:15px;color:#e8d8f8;">👤 ${o.customer_name}</div>
+                    <div style="font-size:12px;color:#9080b8;margin-top:2px;">📞 ${o.customer_phone || '—'}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:20px;font-weight:900;color:${valorColor};">R$ ${Number(o.total).toFixed(2).replace('.', ',')}</div>
-                    <div style="font-size:11px;color:#aaa;">${dateStr} às ${timeStr}</div>
+                    <div style="font-size:11px;color:#9080b8;">${dateStr} às ${timeStr}</div>
                 </div>
             </div>
             <div style="margin-top:8px;line-height:1.8;">${itemsHTML}</div>
@@ -3620,7 +3726,7 @@ async function carregarRotasHoje() {
 function renderRotasHoje() {
     const list = document.getElementById('rotasHojeList');
     if (!rotasHoje || rotasHoje.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:10px;">Nenhuma rota para hoje.<br>Crie uma usando ➕ Nova</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;font-size:13px;padding:10px;">Nenhuma rota para hoje.<br>Crie uma usando ➕ Nova</div>';
         return;
     }
     const corStatus = { criada:'#f1c40f', aguardando:'#3498db', em_andamento:'#27ae60', concluido:'#95a5a6' };
@@ -3634,9 +3740,9 @@ function renderRotasHoje() {
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div style="flex:1;">
                     <div style="font-weight:800;font-size:14px;">${r.nome}</div>
-                    <div style="font-size:11px;color:#aaa;margin-top:2px;">⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:2px;">⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
                     <div style="font-size:12px;font-weight:700;color:${cor};margin-top:4px;${pulse}">${labelStatus[r.status]||r.status}</div>
-                    ${total>0?`<div style="font-size:11px;color:#888;margin-top:2px;">👥 ${total} clientes · 📦 ${entregues} entregas hoje</div>`:''}
+                    ${total>0?`<div style="font-size:11px;color:#9080b8;margin-top:2px;">👥 ${total} clientes · 📦 ${entregues} entregas hoje</div>`:''}
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
                     <button onclick="abrirParadasRota('${r.id}')" style="padding:5px 10px;background:${cor};color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📋 Paradas</button>
@@ -3783,7 +3889,7 @@ let todosClientesEnderecos = [];
 
 async function loadEnderecos() {
     const el = document.getElementById('enderecosList');
-    el.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Carregando...</div>';
+    el.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
 
     // Tenta buscar com colunas de endereço
     const { data, error } = await sb.from('cadastros')
@@ -3819,7 +3925,7 @@ async function loadEnderecos() {
     }
 
     if (!data || data.length === 0) {
-        el.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;font-size:14px;">😕 Nenhum cliente cadastrado ainda.<br><span style="font-size:12px;margin-top:6px;display:block;">Cadastre clientes na aba 👥 Clientes.</span></div>';
+        el.innerHTML = '<div style="text-align:center;color:#9080b8;padding:30px;font-size:14px;">😕 Nenhum cliente cadastrado ainda.<br><span style="font-size:12px;margin-top:6px;display:block;">Cadastre clientes na aba 👥 Clientes.</span></div>';
         return;
     }
 
@@ -3834,18 +3940,18 @@ function filtrarEnderecos(q) {
 
 function renderEnderecos(lista) {
     const el = document.getElementById('enderecosList');
-    if (!lista.length) { el.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;">Nenhum cliente encontrado</div>'; return; }
+    if (!lista.length) { el.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente encontrado</div>'; return; }
     el.innerHTML = lista.map(c => {
         const temEnd = c.delivery_lat && c.delivery_lon;
-        return `<div style="background:white;border-radius:14px;padding:13px 14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        return `<div style="background:#1a0f2e;border-radius:14px;padding:13px 14px;box-shadow:0 2px 10px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;font-size:14px;color:#222;">${c.name || 'Sem nome'}</div>
-                <div style="font-size:11px;color:#999;margin-top:2px;">📱 ${c.phone}</div>
+                <div style="font-weight:700;font-size:14px;color:#e8d8f8;">${c.name || 'Sem nome'}</div>
+                <div style="font-size:11px;color:#9080b8;margin-top:2px;">📱 ${c.phone}</div>
                 ${temEnd
                     ? `<div style="font-size:11px;color:#27ae60;margin-top:3px;">✅ ${c.delivery_address || `${(+c.delivery_lat).toFixed(5)}, ${(+c.delivery_lon).toFixed(5)}`}</div>`
                     : `<div style="font-size:11px;color:#e74c3c;margin-top:3px;">⚠️ Sem endereço cadastrado</div>`}
             </div>
-            <button onclick="abrirModalEndereco('${c.phone}')" style="padding:8px 14px;background:${temEnd ? '#f0faf5' : '#fff3cd'};color:${temEnd ? '#27ae60' : '#e67e22'};border:1.5px solid ${temEnd ? '#27ae60' : '#f0c040'};border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+            <button onclick="abrirModalEndereco('${c.phone}')" style="padding:8px 14px;background:${temEnd ? '#1a3025' : '#2d1f0e'};color:${temEnd ? '#27ae60' : '#e67e22'};border:1.5px solid ${temEnd ? '#27ae60' : '#f0c040'};border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
                 ${temEnd ? '✏️ Editar' : '📍 Cadastrar'}
             </button>
         </div>`;
@@ -4061,18 +4167,18 @@ async function gerarParadasAtivas(template) {
 function renderParadasList() {
     const list = document.getElementById('rotaParadasList');
     if (rotaParadas.length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhum cliente cadastrado nesta rota ainda</div>';
+        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhum cliente cadastrado nesta rota ainda</div>';
         document.getElementById('rotaResumoEta').style.display = 'none';
         return;
     }
     list.innerHTML = rotaParadas.map((p, i) => `
         <div draggable="true" data-parada-id="${p.id}" data-parada-idx="${i}"
             style="background:#f8f9fa;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;border-left:4px solid #3498db;cursor:grab;transition:opacity 0.2s,transform 0.2s;">
-            <div style="color:#bbb;font-size:18px;flex-shrink:0;touch-action:none;user-select:none;">☰</div>
+            <div style="color:#9080b8;font-size:18px;flex-shrink:0;touch-action:none;user-select:none;">☰</div>
             <div style="width:28px;height:28px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:13px;flex-shrink:0;">${i+1}</div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:700;font-size:13px;">👤 ${p.nome}</div>
-                <div style="font-size:11px;color:#aaa;">📍 ${p.endereco || 'Endereço não informado'}</div>
+                <div style="font-size:11px;color:#9080b8;">📍 ${p.endereco || 'Endereço não informado'}</div>
             </div>
             <button onclick="removerParada('${p.id}')" style="padding:4px 8px;background:#fee;color:#e74c3c;border:1px solid #fcc;border-radius:8px;font-size:11px;cursor:pointer;flex-shrink:0;">✕</button>
         </div>`).join('');
@@ -4238,7 +4344,7 @@ function renderParadasAtivasList(paradas) {
             <div style="width:28px;height:28px;border-radius:50%;background:${p.status==='entregue'?'#27ae60':'#f1c40f'};display:flex;align-items:center;justify-content:center;color:${p.status==='entregue'?'white':'#333'};font-weight:900;font-size:13px;flex-shrink:0;">${p.status==='entregue'?'✓':i+1}</div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:700;font-size:13px;">${p.nome}</div>
-                <div style="font-size:11px;color:#aaa;">📍 ${p.endereco} · ⏱️ ~${p.eta_min}min</div>
+                <div style="font-size:11px;color:#9080b8;">📍 ${p.endereco} · ⏱️ ~${p.eta_min}min</div>
                 <div style="font-size:10px;font-weight:700;margin-top:2px;color:${p.status==='entregue'?'#27ae60':'#e67e22'};">${p.status==='entregue'?'✅ Entregue':'📦 Pendente'}</div>
             </div>
         </div>`).join('');
@@ -4270,7 +4376,7 @@ async function carregarRotasSalvas() {
         if (error) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro: ${error.message}</div>`; return; }
         // Normaliza o campo nome (coluna pode chamar "Rotas" com maiúscula)
         const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['Rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
-        if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
+        if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
 
@@ -4293,7 +4399,7 @@ async function carregarRotasSalvas() {
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                         <div style="flex:1;">
                             <div style="font-weight:700;font-size:13px;">⚡ ${r.nome}</div>
-                            <div style="font-size:11px;color:#aaa;margin-top:2px;">🕐 ${dataHora} · ⏱️ ${dur}</div>
+                            <div style="font-size:11px;color:#9080b8;margin-top:2px;">🕐 ${dataHora} · ⏱️ ${dur}</div>
                             <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${entregues}/${total} entregas</div>
                         </div>
                         <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
@@ -4307,7 +4413,7 @@ async function carregarRotasSalvas() {
     // Bloco de rotas normais
     let htmlNormais = '';
     if (rotasNormais.length > 0) {
-        htmlNormais = `<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🗺️ Rotas Normais</div>` +
+        htmlNormais = `<div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🗺️ Rotas Normais</div>` +
             rotasNormais.map(r=>{
                 const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
                 const total=(r.paradas_template||r.paradas||[]).length;
@@ -4317,7 +4423,7 @@ async function carregarRotasSalvas() {
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                         <div style="flex:1;">
                             <div style="font-weight:700;font-size:13px;">${r.nome}</div>
-                            <div style="font-size:11px;color:#aaa;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                            <div style="font-size:11px;color:#9080b8;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
                             <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
                         </div>
                         <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
@@ -4330,7 +4436,7 @@ async function carregarRotasSalvas() {
             }).join('');
     }
 
-    list.innerHTML = (htmlEspeciais + htmlNormais) || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
+    list.innerHTML = (htmlEspeciais + htmlNormais) || '<div style="text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhuma rota salva</div>';
     } catch(e) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro inesperado: ${e.message}</div>`; }
 }
 
@@ -4603,11 +4709,14 @@ async function _salvarRA() {
 // ---------- HELPER: DENTRO DO HORÁRIO ----------
 function raDentroDoHorario() {
     if (!raConfig?.hora_inicio || !raConfig?.hora_fim) return false;
-    const agora  = horasBRT(new Date());
-    const hAtual = agora.getHours() * 60 + agora.getMinutes();
-    const [hI, mI] = raConfig.hora_inicio.split(':').map(Number);
-    const [hF, mF] = raConfig.hora_fim.split(':').map(Number);
-    return hAtual >= hI * 60 + mI && hAtual <= hF * 60 + mF;
+    const TZ = 'America/Sao_Paulo';
+    const _agora = new Date();
+    const _hStr = _agora.toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+    const [_hh, _mm] = _hStr.split(':').map(Number);
+    const hAtual = _hh * 60 + _mm;
+    const toMin  = h => { const [hh, mm] = h.split(':').map(Number); return hh * 60 + mm; };
+    // Usa < estrito no fim: às hora_fim exato já NÃO aceita mais pedidos
+    return hAtual >= toMin(raConfig.hora_inicio) && hAtual < toMin(raConfig.hora_fim);
 }
 
 // ---------- RENDER UI ----------
@@ -4713,7 +4822,7 @@ function renderUIRotaAleatoria() {
                 <div style="background:#fff8f0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;border-left:3px solid #e67e22;">
                     <div style="flex:1;">
                         <div style="font-weight:700;font-size:13px;">👤 ${c.nome}</div>
-                        <div style="font-size:11px;color:#aaa;">Removido às ${c.hora_removido || '--'}</div>
+                        <div style="font-size:11px;color:#9080b8;">Removido às ${c.hora_removido || '--'}</div>
                     </div>
                 </div>`).join('');
         } else {
@@ -4830,49 +4939,87 @@ async function atualizarStatusHomeRA() {
     }
 }
 
-// ---------- REALTIME: escuta novos pedidos e adiciona à fila ----------
+// ---------- REALTIME: escuta config + novos pedidos ----------
 function iniciarRealtimeRA() {
     if (raRealtimeCh) { sb.removeChannel(raRealtimeCh); }
     raRealtimeCh = sb.channel('ra_adm_pedidos')
+        // Escuta mudanças na própria config (quando entregador salva algo)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'rota_especial_gps',
             filter: `chave=eq.${RA_CHAVE}` }, async () => {
             await buscarConfigRA();
             renderUIRotaAleatoria();
             atualizarStatusHomeRA();
         })
+        // Escuta novos pedidos e adiciona na fila se dentro do horário
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
+            await adicionarNaFilaRAAdm(payload.new);
+        })
         .subscribe();
+}
+
+// Adiciona cliente na fila a partir de novo pedido (versão ADM com verificação rigorosa)
+async function adicionarNaFilaRAAdm(pedido) {
+    // Sempre recarrega a config do banco para garantir dados atualizados
+    await buscarConfigRA();
+    if (!raConfig?.ativa) return;
+    // Verificação estrita de horário usando a config mais recente
+    if (!raDentroDoHorario()) return;
+    if (!pedido?.customer_phone) return;
+
+    const { data: cli } = await sb.from('cadastros')
+        .select('name, phone, delivery_lat, delivery_lon, delivery_address')
+        .eq('phone', pedido.customer_phone).maybeSingle();
+    if (!cli?.delivery_lat || !cli?.delivery_lon) return;
+
+    const fila = raConfig.clientes_fila || [];
+    // Não adiciona se já está na fila (pendente ou em_rota)
+    if (fila.find(x => x.phone === pedido.customer_phone && (x.status === 'pendente' || x.status === 'em_rota'))) return;
+
+    fila.push({
+        id: Date.now().toString(),
+        phone: cli.phone,
+        nome: cli.name || pedido.customer_name,
+        endereco: cli.delivery_address || '',
+        coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
+        hora_pedido: agoraISO().substring(11, 16),
+        status: 'pendente'
+    });
+    raConfig.clientes_fila = fila;
+    await _salvarRA();
+    renderUIRotaAleatoria();
+    atualizarStatusHomeRA();
 }
 
 </script>
 
 <!-- Modal Editar Rota -->
 <div id="modalEditarRota" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-    <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <h3 style="color:#3498db;font-size:17px;">✏️ Editar Rota</h3>
-            <button onclick="document.getElementById('modalEditarRota').style.display='none'" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+            <button onclick="document.getElementById('modalEditarRota').style.display='none'" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
         </div>
         <input type="text" id="editRotaNome" class="input-text" placeholder="Nome da rota (ex: Rota 1 — Manhã)">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <div style="flex:1;">
-                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">⏰ Horário de saída</div>
+                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">⏰ Horário de saída</div>
                 <input type="time" id="editRotaHora" class="input-text" style="margin-bottom:0;">
             </div>
             <div style="flex:1;">
-                <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">📍 Raio fábrica (m)</div>
+                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">📍 Raio fábrica (m)</div>
                 <input type="number" id="editRotaRaio" class="input-text" style="margin-bottom:0;" value="20">
             </div>
         </div>
         <div style="margin-bottom:14px;">
-            <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">📅 Dias da semana</div>
+            <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📅 Dias da semana</div>
             <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
-                <div onclick="toggleDiaEdit(this,'Dom')" data-edit-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Dom</div></div>
-                <div onclick="toggleDiaEdit(this,'Seg')" data-edit-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Seg</div></div>
-                <div onclick="toggleDiaEdit(this,'Ter')" data-edit-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Ter</div></div>
-                <div onclick="toggleDiaEdit(this,'Qua')" data-edit-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qua</div></div>
-                <div onclick="toggleDiaEdit(this,'Qui')" data-edit-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Qui</div></div>
-                <div onclick="toggleDiaEdit(this,'Sex')" data-edit-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sex</div></div>
-                <div onclick="toggleDiaEdit(this,'Sáb')" data-edit-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#aaa;">Sáb</div></div>
+                <div onclick="toggleDiaEdit(this,'Dom')" data-edit-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Dom</div></div>
+                <div onclick="toggleDiaEdit(this,'Seg')" data-edit-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Seg</div></div>
+                <div onclick="toggleDiaEdit(this,'Ter')" data-edit-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Ter</div></div>
+                <div onclick="toggleDiaEdit(this,'Qua')" data-edit-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qua</div></div>
+                <div onclick="toggleDiaEdit(this,'Qui')" data-edit-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qui</div></div>
+                <div onclick="toggleDiaEdit(this,'Sex')" data-edit-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sex</div></div>
+                <div onclick="toggleDiaEdit(this,'Sáb')" data-edit-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sáb</div></div>
             </div>
         </div>
         <button onclick="salvarEdicaoRota()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar alterações</button>
@@ -4881,21 +5028,21 @@ function iniciarRealtimeRA() {
 
 <!-- Modal Editar Saldo do Cliente -->
 <div id="modalEditarSaldo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-    <div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
             <h3 style="color:#3498db;font-size:17px;">✏️ Editar Saldo do Cliente</h3>
-            <button onclick="fecharEditarSaldo()" style="background:#f0f0f0;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;">✕</button>
+            <button onclick="fecharEditarSaldo()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
         </div>
-        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">👤 Cliente</div>
+        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">👤 Cliente</div>
         <select id="editarSaldoSelect" onchange="onSelectClienteSaldo()" class="input-text" style="appearance:auto;">
             <option value="">— Selecione o cliente —</option>
         </select>
         <div id="editarSaldoNome" style="font-size:15px;font-weight:800;color:#1a1a2e;margin-bottom:2px;min-height:20px;"></div>
-        <div id="editarSaldoAtual" style="font-size:12px;color:#888;margin-bottom:12px;min-height:16px;"></div>
-        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;">💰 Novo saldo (positivo = débito · negativo = crédito · 0 = zerado)</div>
+        <div id="editarSaldoAtual" style="font-size:12px;color:#9080b8;margin-bottom:12px;min-height:16px;"></div>
+        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">💰 Novo saldo (positivo = débito · negativo = crédito · 0 = zerado)</div>
         <input type="number" id="editarSaldoValor" class="input-text" step="0.01" placeholder="Ex: 25.50">
         <div style="display:flex;gap:10px;margin-top:6px;">
-            <button onclick="fecharEditarSaldo()" class="btn btn-block" style="background:#f0f0f0;color:#555;">Cancelar</button>
+            <button onclick="fecharEditarSaldo()" class="btn btn-block" style="background:#110820;color:#9080b8;">Cancelar</button>
             <button onclick="salvarEditarSaldo()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar</button>
         </div>
     </div>
