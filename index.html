@@ -272,6 +272,11 @@
                 <div class="home-card-label">Endereços dos Clientes</div>
                 <div class="home-card-sub">Cadastrar localização de cada cliente</div>
             </button>
+            <button class="home-card" style="border-top:4px solid #e74c3c;" onclick="openSection('cache')">
+                <span class="home-card-icon">🗑️</span>
+                <div class="home-card-label">Limpar Cache</div>
+                <div class="home-card-sub">Forçar atualização no celular dos clientes</div>
+            </button>
         </div>
         
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
@@ -918,11 +923,7 @@
 const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: {
-        lock: async (name, acquireTimeout, fn) => fn()
-    }
-});
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
 function agoraISO() {
@@ -1036,7 +1037,8 @@ function openSection(section) {
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
         rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos },
-        'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria }
+        'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria },
+        'cache': { id: 'tab-cache', title: '🗑️ Limpar Cache', fn: loadCacheSection }
     };
     const s = map[section];
     document.getElementById(s.id).classList.add('active');
@@ -4994,6 +4996,94 @@ async function adicionarNaFilaRAAdm(pedido) {
     atualizarStatusHomeRA();
 }
 
+
+// ===== LIMPAR CACHE =====
+async function loadCacheSection() {
+    const select = document.getElementById('cacheClienteSelect');
+    select.innerHTML = '<option value="">— Selecione o cliente —</option>';
+    document.getElementById('cacheClienteInfo').style.display = 'none';
+    document.getElementById('cacheResultado').style.display = 'none';
+
+    const { data: clientes } = await sb.from('cadastros').select('phone, name').order('name');
+    (clientes || []).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.phone;
+        opt.textContent = c.name + ' · ' + c.phone;
+        select.appendChild(opt);
+    });
+
+    select.onchange = () => {
+        const phone = select.value;
+        const infoBox = document.getElementById('cacheClienteInfo');
+        if (!phone) { infoBox.style.display = 'none'; return; }
+        const opt = select.options[select.selectedIndex];
+        const parts = opt.textContent.split(' · ');
+        document.getElementById('cacheClienteNome').textContent = '👤 ' + parts[0];
+        document.getElementById('cacheClienteFone').textContent = '📱 ' + (parts[1] || phone);
+        infoBox.style.display = 'block';
+    };
+}
+
+async function limparCacheCliente() {
+    const phone = document.getElementById('cacheClienteSelect').value;
+    if (!phone) { mostrarToast('Selecione um cliente primeiro', 'warning'); return; }
+
+    const btn = document.getElementById('btnLimparCacheCliente');
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+
+    try {
+        const chave = 'force_reload_phone_' + phone;
+        const versao = Date.now().toString();
+        const { error } = await sb.from('configuracoes')
+            .upsert({ key: chave, value: versao }, { onConflict: 'key' });
+        if (error) throw error;
+
+        mostrarResultadoCache('✅ Comando enviado! ' + document.getElementById('cacheClienteNome').textContent.replace('👤 ', '') + ' vai recarregar na próxima vez que abrir o app.');
+        btn.textContent = '✅ Enviado!';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '🗑️ Limpar Cache deste Cliente';
+        }, 3000);
+    } catch(e) {
+        mostrarToast('Erro ao enviar comando', 'error');
+        btn.disabled = false;
+        btn.textContent = '🗑️ Limpar Cache deste Cliente';
+    }
+}
+
+async function limparCacheTodos() {
+    const btn = document.getElementById('btnLimparCacheTodos');
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+
+    try {
+        const versao = Date.now().toString();
+        const { error } = await sb.from('configuracoes')
+            .upsert({ key: 'force_reload_version', value: versao }, { onConflict: 'key' });
+        if (error) throw error;
+
+        mostrarResultadoCache('✅ Comando enviado para todos! Cada cliente vai recarregar o app automaticamente ao abrir.');
+        btn.textContent = '✅ Enviado!';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '💣 Limpar Cache de Todo Mundo';
+        }, 3000);
+    } catch(e) {
+        mostrarToast('Erro ao enviar comando', 'error');
+        btn.disabled = false;
+        btn.textContent = '💣 Limpar Cache de Todo Mundo';
+    }
+}
+
+function mostrarResultadoCache(msg) {
+    const el = document.getElementById('cacheResultado');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.color = '#25d366';
+    setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
 </script>
 
 <!-- Modal Editar Rota -->
@@ -5051,6 +5141,46 @@ async function adicionarNaFilaRAAdm(pedido) {
         </div>
     </div>
 </div>
+
+        <!-- ===== SEÇÃO LIMPAR CACHE ===== -->
+        <div id="tab-cache" class="section">
+
+            <!-- Card: Limpar cliente específico -->
+            <div class="card-box" style="border-left:4px solid #e74c3c;">
+                <h4 style="color:#e74c3c; margin-bottom:4px;">🎯 Limpar Cache de um Cliente</h4>
+                <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Selecione o cliente que deve recarregar o app na próxima vez que abrir.</p>
+                <select id="cacheClienteSelect" class="input-text" style="appearance:auto; margin-bottom:14px;">
+                    <option value="">— Selecione o cliente —</option>
+                </select>
+                <div id="cacheClienteInfo" style="display:none; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:14px; border:1px solid #2e1f4a;">
+                    <div id="cacheClienteNome" style="font-size:14px; font-weight:800; color:#e8d8f8;"></div>
+                    <div id="cacheClienteFone" style="font-size:12px; color:#9080b8; margin-top:2px;"></div>
+                </div>
+                <button onclick="limparCacheCliente()" id="btnLimparCacheCliente" class="btn btn-danger btn-block" style="padding:13px; font-size:15px;">
+                    🗑️ Limpar Cache deste Cliente
+                </button>
+            </div>
+
+            <!-- Divisor -->
+            <div style="display:flex; align-items:center; gap:12px; margin: 8px 0 18px;">
+                <div style="flex:1; height:1px; background:#2e1f4a;"></div>
+                <span style="font-size:12px; font-weight:700; color:#9080b8;">OU</span>
+                <div style="flex:1; height:1px; background:#2e1f4a;"></div>
+            </div>
+
+            <!-- Card: Limpar todos -->
+            <div class="card-box" style="border-left:4px solid #8e44ad;">
+                <h4 style="color:#8e44ad; margin-bottom:4px;">💣 Limpar Cache de Todo Mundo</h4>
+                <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Todos os clientes vão recarregar o app automaticamente. Use após publicar uma atualização.</p>
+                <button onclick="limparCacheTodos()" id="btnLimparCacheTodos" class="btn btn-block" style="padding:13px; font-size:15px; background:linear-gradient(135deg,#8e44ad,#6c3483); color:white;">
+                    💣 Limpar Cache de Todo Mundo
+                </button>
+            </div>
+
+            <!-- Log de resultado -->
+            <div id="cacheResultado" style="display:none; margin-top:4px; background:#150b25; border-radius:14px; padding:14px; border:1px solid #2e1f4a; font-size:13px; color:#9080b8; text-align:center;"></div>
+
+        </div>
 
 </div><!-- /adminApp -->
 </body>
