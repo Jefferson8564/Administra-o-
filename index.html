@@ -277,6 +277,7 @@
                 <div class="home-card-label">Limpar Cache</div>
                 <div class="home-card-sub">Forçar atualização no celular dos clientes</div>
             </button>
+
         </div>
         
         <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
@@ -348,6 +349,18 @@
                 </div>
                 <span style="font-size:36px; opacity:0.25;">📊</span>
             </div>
+
+            <!-- ACESSO RÁPIDO: PAINEL DE JOGO -->
+            <button onclick="openSection('tickets')" style="width:100%; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg,#1a0f2e,#2d1a4a); border:1.5px solid #f1c40f44; border-radius:18px; padding:14px 18px; margin-bottom:14px; cursor:pointer; text-align:left;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:28px;">🎮</span>
+                    <div>
+                        <div style="font-weight:800; font-size:15px; color:#f1c40f;">Tickets de Jogo</div>
+                        <div style="font-size:11px; color:#9080b8; margin-top:2px;">Configurar roleta, prêmios e tickets dos clientes</div>
+                    </div>
+                </div>
+                <span style="font-size:18px; color:#f1c40f; opacity:0.7;">›</span>
+            </button>
 
             <!-- BARRA DE PESQUISA -->
             <div style="position:relative; margin-bottom:14px;">
@@ -1038,7 +1051,8 @@ function openSection(section) {
         rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos },
         'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria },
-        'cache': { id: 'tab-cache', title: '🗑️ Limpar Cache', fn: loadCacheSection }
+        'cache': { id: 'tab-cache', title: '🗑️ Limpar Cache', fn: loadCacheSection },
+        'tickets': { id: 'tab-tickets', title: '🎮 Tickets de Jogo', fn: loadTicketsSection }
     };
     const s = map[section];
     document.getElementById(s.id).classList.add('active');
@@ -2755,6 +2769,26 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
         await sb.from("cadastros").update({ debt: (c.debt || 0) - Number(total) }).eq("phone", phone);
     }
 
+    // Estornar tickets pendentes (reverter total_gasto e remover pendentes)
+    try {
+        const { data: gt } = await sb.from('game_tickets').select('*').eq('phone', phone).maybeSingle();
+        if (gt) {
+            const { data: cfg } = await sb.from('configuracoes').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
+            const valorPorTicket = cfg ? Number(cfg.value) : 0;
+            const novoTotalGasto = Math.max(0, Number(gt.total_gasto) - Number(total));
+            if (valorPorTicket > 0) {
+                const ticketsTotaisNovos = Math.floor(novoTotalGasto / valorPorTicket);
+                const ticketsJaConfirmados = gt.tickets || 0;
+                const novosPendentes = Math.max(0, ticketsTotaisNovos - ticketsJaConfirmados);
+                await sb.from('game_tickets').update({
+                    total_gasto: novoTotalGasto,
+                    tickets_pendentes: novosPendentes,
+                    updated_at: new Date().toISOString()
+                }).eq('phone', phone);
+            }
+        }
+    } catch(e) { console.warn('Erro ao estornar tickets:', e); }
+
     // Remove do histórico local
     const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
     if (historico[execIndex]) {
@@ -3578,6 +3612,29 @@ async function executarCancelamento(orderId) {
                 tipo: "reembolso"
             });
         }
+    }
+
+    // Se não for fiado, estornar tickets pendentes
+    if (!isFiado) {
+        try {
+            const phone = o.customer_phone;
+            const { data: gt } = await sb.from('game_tickets').select('*').eq('phone', phone).maybeSingle();
+            if (gt) {
+                const { data: cfg } = await sb.from('configuracoes').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
+                const valorPorTicket = cfg ? Number(cfg.value) : 0;
+                const novoTotalGasto = Math.max(0, Number(gt.total_gasto) - Number(o.total));
+                if (valorPorTicket > 0) {
+                    const ticketsTotaisNovos = Math.floor(novoTotalGasto / valorPorTicket);
+                    const ticketsJaConfirmados = gt.tickets || 0;
+                    const novosPendentes = Math.max(0, ticketsTotaisNovos - ticketsJaConfirmados);
+                    await sb.from('game_tickets').update({
+                        total_gasto: novoTotalGasto,
+                        tickets_pendentes: novosPendentes,
+                        updated_at: new Date().toISOString()
+                    }).eq('phone', phone);
+                }
+            }
+        } catch(e) { console.warn('Erro ao estornar tickets:', e); }
     }
 
     // Remove do mapa e da lista global
@@ -5084,6 +5141,367 @@ function mostrarResultadoCache(msg) {
     setTimeout(() => { el.style.display = 'none'; }, 6000);
 }
 
+// ===== TICKETS DE JOGO =====
+// ===== TICKETS DE JOGO =====
+
+let gameTabAtiva = 'config';
+let fatiasRoleta = [];
+let todosClientesTickets = [];
+let premiosFiltro = 'todos';
+
+function gameTab(aba) {
+    gameTabAtiva = aba;
+    ['config','roleta','premios','clientes'].forEach(a => {
+        document.getElementById('gpanel-' + a).style.display = a === aba ? 'block' : 'none';
+        const btn = document.getElementById('gtab-' + a);
+        if (a === aba) {
+            btn.style.background = 'linear-gradient(135deg,#f1c40f,#e67e22)';
+            btn.style.color = '#1a1a2e';
+        } else {
+            btn.style.background = '#1a0f2e';
+            btn.style.color = '#9080b8';
+        }
+    });
+    if (aba === 'clientes') carregarClientesTickets();
+    if (aba === 'premios') carregarPremios();
+    if (aba === 'roleta') carregarRoleta();
+}
+
+async function loadTicketsSection() {
+    // Carregar configs salvas
+    const { data: cfgs } = await sb.from('game_config').select('*');
+    const cfg = {};
+    (cfgs || []).forEach(c => cfg[c.chave] = c.valor);
+
+    if (cfg.ticket_valor_reais) document.getElementById('inputValorTicket').value = cfg.ticket_valor_reais;
+    if (cfg.horario_liberacao) {
+        document.getElementById('inputHorarioLiberacao').value = cfg.horario_liberacao;
+        atualizarPreviewLiberacao(cfg.horario_liberacao);
+    }
+    if (cfg.custo_roleta) document.getElementById('inputCustoRoleta').value = cfg.custo_roleta;
+
+    // Iniciar na aba config
+    gameTab('config');
+    carregarRoleta();
+}
+
+async function salvarGameConfig(chave, valor) {
+    await sb.from('game_config').upsert({ chave, valor, updated_at: new Date().toISOString() }, { onConflict: 'chave' });
+}
+
+async function salvarValorTicket() {
+    const val = document.getElementById('inputValorTicket').value;
+    if (!val || Number(val) <= 0) { showToast({ type: 'warning', title: '⚠️ Valor inválido', body: 'Digite um valor maior que zero.', duration: 3000 }); return; }
+    await salvarGameConfig('ticket_valor_reais', val);
+    // Compatibilidade com código antigo
+    await salvarConfig('ticket_valor_reais', val);
+    showToast({ type: 'success', title: '✅ Salvo!', body: `A cada R$ ${val} gasto o cliente ganha 1 ticket.`, duration: 4000 });
+}
+
+async function salvarHorarioLiberacao() {
+    const val = document.getElementById('inputHorarioLiberacao').value;
+    if (!val) { showToast({ type: 'warning', title: '⚠️ Horário inválido', body: 'Selecione um horário de liberação.', duration: 3000 }); return; }
+    await salvarGameConfig('horario_liberacao', val);
+    atualizarPreviewLiberacao(val);
+    showToast({ type: 'success', title: '✅ Salvo!', body: `Tickets pendentes serão liberados todo dia às ${val}.`, duration: 4000 });
+}
+
+function atualizarPreviewLiberacao(horario) {
+    const el = document.getElementById('previewLiberacao');
+    if (!el || !horario) return;
+    const proxima = calcularProximaLiberacao(horario);
+    const agora = new Date();
+    const diffMs = proxima - agora;
+    const diffH = Math.floor(diffMs / 3600000);
+    const diffM = Math.floor((diffMs % 3600000) / 60000);
+    const tempoStr = diffH > 0 ? `em ${diffH}h ${diffM}min` : `em ${diffM}min`;
+    el.textContent = `⏰ Próxima liberação: hoje às ${horario} (${tempoStr})`;
+    el.style.display = 'block';
+}
+
+// Calcula o próximo datetime de liberação dado um horário fixo "HH:MM"
+// Exporta para uso também no código da loja
+function calcularProximaLiberacao(horario) {
+    const [hh, mm] = horario.split(':').map(Number);
+    const agora = new Date();
+    const proxima = new Date(agora);
+    proxima.setHours(hh, mm, 0, 0);
+    // Se o horário de hoje já passou, empurra para amanhã
+    if (proxima <= agora) proxima.setDate(proxima.getDate() + 1);
+    return proxima;
+}
+
+async function salvarCustoRoleta() {
+    const val = document.getElementById('inputCustoRoleta').value;
+    if (!val || Number(val) < 1) { showToast({ type: 'warning', title: '⚠️ Valor inválido', body: 'Mínimo 1 ticket.', duration: 3000 }); return; }
+    await salvarGameConfig('custo_roleta', val);
+    showToast({ type: 'success', title: '✅ Salvo!', body: `Cada giro custa ${val} ticket(s).`, duration: 4000 });
+}
+
+// ===== ROLETA =====
+const CORES_ROLETA = ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722','#8bc34a'];
+
+async function carregarRoleta() {
+    const { data } = await sb.from('game_config').select('valor').eq('chave', 'roleta_fatias').maybeSingle();
+    fatiasRoleta = data ? JSON.parse(data.valor) : [
+        { label: '10% OFF', prob: 30, tipo: 'desconto', desconto_pct: 10, cor: '#e74c3c' },
+        { label: '20% OFF', prob: 20, tipo: 'desconto', desconto_pct: 20, cor: '#e67e22' },
+        { label: 'Coxinha Grátis', prob: 10, tipo: 'produto', desconto_pct: 0, cor: '#2ecc71' },
+        { label: 'Tente de novo', prob: 40, tipo: 'nada', desconto_pct: 0, cor: '#9080b8' },
+    ];
+    renderFatiasRoleta();
+    desenharPreviewRoleta();
+}
+
+function renderFatiasRoleta() {
+    const cont = document.getElementById('listaFatiasRoleta');
+    cont.innerHTML = fatiasRoleta.map((f, i) => `
+        <div style="background:#110820;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #2e1f4a;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div style="width:18px;height:18px;border-radius:50%;background:${f.cor};flex-shrink:0;"></div>
+                <input type="text" value="${f.label}" onchange="fatiasRoleta[${i}].label=this.value;desenharPreviewRoleta()" placeholder="Nome do prêmio"
+                    style="flex:1;background:#1a0f2e;border:1px solid #2e1f4a;border-radius:8px;padding:7px 10px;color:#e8d8f8;font-size:13px;font-weight:700;">
+                <button onclick="removerFatia(${i})" style="background:#e74c3c22;border:none;border-radius:8px;padding:6px 10px;color:#e74c3c;cursor:pointer;font-weight:700;">✕</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <div style="flex:1;">
+                    <div style="font-size:11px;color:#9080b8;margin-bottom:4px;">Probabilidade %</div>
+                    <input type="number" value="${f.prob}" min="1" max="100" onchange="fatiasRoleta[${i}].prob=Number(this.value);atualizarSomaProb();desenharPreviewRoleta()"
+                        style="width:100%;background:#1a0f2e;border:1px solid #2e1f4a;border-radius:8px;padding:7px;color:#e8d8f8;font-size:14px;font-weight:700;text-align:center;">
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:11px;color:#9080b8;margin-bottom:4px;">Tipo</div>
+                    <select onchange="fatiasRoleta[${i}].tipo=this.value" style="width:100%;background:#1a0f2e;border:1px solid #2e1f4a;border-radius:8px;padding:7px;color:#e8d8f8;font-size:13px;appearance:auto;">
+                        <option value="desconto" ${f.tipo==='desconto'?'selected':''}>% Desconto</option>
+                        <option value="produto" ${f.tipo==='produto'?'selected':''}>Produto</option>
+                        <option value="tickets" ${f.tipo==='tickets'?'selected':''}>+Tickets</option>
+                        <option value="nada" ${f.tipo==='nada'?'selected':''}>Tente de novo</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:11px;color:#9080b8;margin-bottom:4px;">${f.tipo==='desconto'?'% desc.':f.tipo==='tickets'?'Qtd tickets':'—'}</div>
+                    <input type="number" value="${f.desconto_pct||0}" min="0" onchange="fatiasRoleta[${i}].desconto_pct=Number(this.value)"
+                        style="width:100%;background:#1a0f2e;border:1px solid #2e1f4a;border-radius:8px;padding:7px;color:#e8d8f8;font-size:14px;font-weight:700;text-align:center;"
+                        ${f.tipo==='nada'||f.tipo==='produto'?'disabled':''}>
+                </div>
+            </div>
+            <!-- Seletor de cor -->
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                ${CORES_ROLETA.map(c => `<div onclick="fatiasRoleta[${i}].cor='${c}';renderFatiasRoleta();desenharPreviewRoleta()" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===f.cor?'white':'transparent'};"></div>`).join('')}
+            </div>
+        </div>
+    `).join('');
+    atualizarSomaProb();
+}
+
+function adicionarFatia() {
+    fatiasRoleta.push({ label: 'Novo prêmio', prob: 10, tipo: 'nada', desconto_pct: 0, cor: CORES_ROLETA[fatiasRoleta.length % CORES_ROLETA.length] });
+    renderFatiasRoleta();
+    desenharPreviewRoleta();
+}
+
+function removerFatia(i) {
+    fatiasRoleta.splice(i, 1);
+    renderFatiasRoleta();
+    desenharPreviewRoleta();
+}
+
+function atualizarSomaProb() {
+    const soma = fatiasRoleta.reduce((s, f) => s + Number(f.prob), 0);
+    const el = document.getElementById('somaProb');
+    if (!el) return;
+    el.textContent = `Soma: ${soma}%`;
+    el.style.color = soma === 100 ? '#2ecc71' : soma > 100 ? '#e74c3c' : '#f1c40f';
+}
+
+function desenharPreviewRoleta() {
+    const canvas = document.getElementById('previewRoleta');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = 130, cy = 130, r = 120;
+    const total = fatiasRoleta.reduce((s, f) => s + Number(f.prob), 0) || 100;
+    ctx.clearRect(0, 0, 260, 260);
+    let angulo = -Math.PI / 2;
+    fatiasRoleta.forEach(f => {
+        const fatia = (Number(f.prob) / total) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, angulo, angulo + fatia);
+        ctx.closePath();
+        ctx.fillStyle = f.cor;
+        ctx.fill();
+        ctx.strokeStyle = '#1a0f2e';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Texto
+        const mid = angulo + fatia / 2;
+        ctx.save();
+        ctx.translate(cx + Math.cos(mid) * r * 0.65, cy + Math.sin(mid) * r * 0.65);
+        ctx.rotate(mid + Math.PI / 2);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        const maxLen = 10;
+        const txt = f.label.length > maxLen ? f.label.substring(0, maxLen) + '…' : f.label;
+        ctx.fillText(txt, 0, 0);
+        ctx.restore();
+        angulo += fatia;
+    });
+    // Centro
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1a0f2e';
+    ctx.fill();
+    ctx.strokeStyle = '#f1c40f';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+}
+
+async function salvarRoleta() {
+    const soma = fatiasRoleta.reduce((s, f) => s + Number(f.prob), 0);
+    if (soma !== 100) {
+        showToast({ type: 'warning', title: '⚠️ Probabilidades inválidas', body: `Soma atual: ${soma}%. Deve ser exatamente 100%.`, duration: 4000 });
+        return;
+    }
+    await salvarGameConfig('roleta_fatias', JSON.stringify(fatiasRoleta));
+    showToast({ type: 'success', title: '✅ Roleta salva!', body: `${fatiasRoleta.length} fatias configuradas.`, duration: 4000 });
+}
+
+// ===== PRÊMIOS =====
+let _premiosData = [];
+async function carregarPremios() {
+    document.getElementById('listaPremios').innerHTML = 'Carregando...';
+    const { data } = await sb.from('game_premios').select('*').order('created_at', { ascending: false });
+    _premiosData = data || [];
+    renderPremios();
+}
+
+function filtrarPremios(filtro) {
+    premiosFiltro = filtro;
+    ['todos','pendente','resgatado'].forEach(f => {
+        const btn = document.getElementById('pfiltro-' + f);
+        btn.style.background = f === filtro ? '#2ecc71' : '#1a0f2e';
+        btn.style.color = f === filtro ? 'white' : '#9080b8';
+    });
+    renderPremios();
+}
+
+function renderPremios() {
+    const lista = document.getElementById('listaPremios');
+    let dados = _premiosData;
+    if (premiosFiltro === 'pendente') dados = dados.filter(p => !p.resgatado);
+    if (premiosFiltro === 'resgatado') dados = dados.filter(p => p.resgatado);
+    if (!dados.length) { lista.innerHTML = '<div style="padding:20px;text-align:center;color:#9080b8;">Nenhum prêmio encontrado.</div>'; return; }
+    lista.innerHTML = dados.map(p => `
+        <div style="background:#110820;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid ${p.resgatado?'#2e1f4a':'#2ecc7133'};">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div style="font-weight:800;color:#e8d8f8;font-size:14px;">🏆 ${p.premio}</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:2px;">📱 ${p.phone}</div>
+                    <div style="font-size:11px;color:#9080b8;">${new Date(p.created_at).toLocaleDateString('pt-BR')} ${new Date(p.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+                <div style="text-align:right;">
+                    ${p.resgatado
+                        ? '<span style="background:#1a3025;color:#2ecc71;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ Resgatado</span>'
+                        : `<button onclick="marcarResgatado('${p.id}')" style="background:#2ecc7122;border:1px solid #2ecc71;color:#2ecc71;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">✔ Resgatar</button>`
+                    }
+                    ${p.desconto_pct ? `<div style="font-size:20px;font-weight:900;color:#f1c40f;margin-top:4px;">${p.desconto_pct}% OFF</div>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function marcarResgatado(id) {
+    await sb.from('game_premios').update({ resgatado: true }).eq('id', id);
+    showToast({ type: 'success', title: '✅ Resgatado!', body: 'Prêmio marcado como resgatado.', duration: 3000 });
+    carregarPremios();
+}
+
+// ===== CLIENTES TICKETS =====
+async function carregarClientesTickets() {
+    const lista = document.getElementById('listaTickets');
+    lista.innerHTML = 'Carregando...';
+    const [{ data: tickets }, { data: cfgHorario }, { data: cadastros }] = await Promise.all([
+        sb.from('game_tickets').select('*').order('tickets', { ascending: false }),
+        sb.from('game_config').select('valor').eq('chave', 'horario_liberacao').maybeSingle(),
+        sb.from('cadastros').select('phone, name')
+    ]);
+    todosClientesTickets = tickets || [];
+    const horarioFixo = cfgHorario ? cfgHorario.valor : null;
+    const proximaLiberacao = horarioFixo ? calcularProximaLiberacao(horarioFixo) : null;
+
+    // Mapa phone → name para lookup rápido
+    const nomeMap = {};
+    (cadastros || []).forEach(c => { if (c.phone) nomeMap[c.phone] = c.name || ''; });
+
+    // Popular select de ajuste manual
+    const sel = document.getElementById('selectClienteTicket');
+    sel.innerHTML = '<option value="">— Selecione o cliente —</option>';
+    todosClientesTickets.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.phone;
+        const nome = nomeMap[t.phone] ? nomeMap[t.phone] : t.phone;
+        opt.textContent = `${nome} — 🎟️ ${t.tickets}`;
+        sel.appendChild(opt);
+    });
+
+    if (!todosClientesTickets.length) {
+        lista.innerHTML = '<div style="padding:20px;text-align:center;color:#9080b8;">Nenhum cliente com tickets ainda.</div>';
+        return;
+    }
+
+    let liberacaoStr = '';
+    if (horarioFixo && proximaLiberacao) {
+        const agora = new Date();
+        const diffMs = proximaLiberacao - agora;
+        const diffH = Math.floor(diffMs / 3600000);
+        const diffM = Math.floor((diffMs % 3600000) / 60000);
+        const tempoStr = diffH > 0 ? `${diffH}h ${diffM}min` : `${diffM}min`;
+        liberacaoStr = `às ${horarioFixo} (faltam ${tempoStr})`;
+    }
+
+    lista.innerHTML = todosClientesTickets.map(t => {
+        const nome = nomeMap[t.phone] || null;
+        return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #2e1f4a;">
+            <div>
+                ${nome
+                    ? `<div style="font-weight:800;color:#e8d8f8;font-size:15px;">👤 ${nome}</div>
+                       <div style="font-size:11px;color:#9080b8;margin-top:1px;">📱 ${t.phone}</div>`
+                    : `<div style="font-weight:700;color:#e8d8f8;font-size:14px;">📱 ${t.phone}</div>`
+                }
+                <div style="font-size:11px;color:#9080b8;margin-top:2px;">Total gasto: R$ ${Number(t.total_gasto).toFixed(2).replace('.',',')}</div>
+                ${t.tickets_pendentes > 0 ? `<div style="font-size:11px;color:#f1c40f;margin-top:2px;">⏳ ${t.tickets_pendentes} pendente(s)${liberacaoStr ? ' — libera ' + liberacaoStr : ''}</div>` : ''}
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:22px;font-weight:900;color:#f1c40f;">🎟️ ${t.tickets}</div>
+                <div style="font-size:11px;color:#9080b8;">disponíveis</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function ajustarTicketsManual() {
+    const phone = document.getElementById('selectClienteTicket').value;
+    const qtd = Number(document.getElementById('inputAjusteTickets').value);
+    if (!phone) { showToast({ type: 'warning', title: '⚠️', body: 'Selecione um cliente.', duration: 3000 }); return; }
+    if (!qtd || qtd === 0) { showToast({ type: 'warning', title: '⚠️', body: 'Digite uma quantidade diferente de zero.', duration: 3000 }); return; }
+
+    const { data: gt } = await sb.from('game_tickets').select('*').eq('phone', phone).maybeSingle();
+    const ticketsAtuais = gt ? (gt.tickets || 0) : 0;
+    const novo = Math.max(0, ticketsAtuais + qtd);
+
+    if (gt) {
+        await sb.from('game_tickets').update({ tickets: novo, updated_at: new Date().toISOString() }).eq('phone', phone);
+    } else {
+        await sb.from('game_tickets').insert({ phone, tickets: novo, total_gasto: 0 });
+    }
+
+    showToast({ type: 'success', title: '✅ Ajustado!', body: `${phone}: ${ticketsAtuais} → ${novo} tickets.`, duration: 4000 });
+    carregarClientesTickets();
+}
+
 </script>
 
 <!-- Modal Editar Rota -->
@@ -5179,6 +5597,115 @@ function mostrarResultadoCache(msg) {
 
             <!-- Log de resultado -->
             <div id="cacheResultado" style="display:none; margin-top:4px; background:#150b25; border-radius:14px; padding:14px; border:1px solid #2e1f4a; font-size:13px; color:#9080b8; text-align:center;"></div>
+
+        </div>
+
+        <!-- ===== SEÇÃO TICKETS DE JOGO ===== -->
+        <div id="tab-tickets" class="section">
+
+            <!-- ABAS internas -->
+            <div style="display:flex; gap:8px; margin-bottom:18px; background:#110820; border-radius:14px; padding:6px;">
+                <button id="gtab-config" onclick="gameTab('config')" style="flex:1;padding:9px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#f1c40f,#e67e22);color:#1a1a2e;">⚙️ Config</button>
+                <button id="gtab-roleta" onclick="gameTab('roleta')" style="flex:1;padding:9px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#1a0f2e;color:#9080b8;">🎰 Roleta</button>
+                <button id="gtab-premios" onclick="gameTab('premios')" style="flex:1;padding:9px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#1a0f2e;color:#9080b8;">🏆 Prêmios</button>
+                <button id="gtab-clientes" onclick="gameTab('clientes')" style="flex:1;padding:9px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#1a0f2e;color:#9080b8;">👥 Clientes</button>
+            </div>
+
+            <!-- ABA: CONFIG -->
+            <div id="gpanel-config">
+                <div class="card-box" style="border-left:4px solid #f1c40f;">
+                    <h4 style="color:#f1c40f; margin-bottom:6px;">🎟️ Valor por Ticket</h4>
+                    <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">A cada R$ X gasto (acumulado), o cliente ganha 1 ticket. O restante sobra para o próximo.</p>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                        <span style="font-size:14px; font-weight:700; color:#e8d8f8; white-space:nowrap;">R$ por ticket:</span>
+                        <input type="number" id="inputValorTicket" class="input-text" min="1" step="1" placeholder="Ex: 10" style="max-width:120px; text-align:center; margin:0;">
+                    </div>
+                    <button onclick="salvarValorTicket()" class="btn btn-block" style="background:linear-gradient(135deg,#f1c40f,#e67e22);color:#1a1a2e;padding:13px;font-size:15px;font-weight:800;">
+                        💾 Salvar
+                    </button>
+                </div>
+
+                <div class="card-box" style="border-left:4px solid #9b59b6;">
+                    <h4 style="color:#9b59b6; margin-bottom:6px;">⏰ Horário de Liberação Diária</h4>
+                    <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Todo dia nesse horário exato, os tickets pendentes de <strong style="color:#e8d8f8;">todos os clientes</strong> são confirmados automaticamente. Se o pedido for cancelado antes disso, são removidos.</p>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <span style="font-size:14px; font-weight:700; color:#e8d8f8; white-space:nowrap;">Liberar às:</span>
+                        <input type="time" id="inputHorarioLiberacao" class="input-text" style="max-width:140px; text-align:center; margin:0; font-size:18px; font-weight:800;" onchange="atualizarPreviewLiberacao(this.value)">
+                    </div>
+                    <div id="previewLiberacao" style="font-size:12px; color:#9b59b6; margin-bottom:14px; padding:8px 12px; background:#110820; border-radius:10px; display:none;"></div>
+                    <button onclick="salvarHorarioLiberacao()" class="btn btn-block" style="background:linear-gradient(135deg,#9b59b6,#6c3483);color:white;padding:13px;font-size:15px;font-weight:800;">
+                        💾 Salvar Horário
+                    </button>
+                </div>
+
+                <div class="card-box" style="border-left:4px solid #e74c3c;">
+                    <h4 style="color:#e74c3c; margin-bottom:6px;">🎰 Custo da Roleta</h4>
+                    <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Quantos tickets o cliente gasta para girar a roleta.</p>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                        <span style="font-size:14px; font-weight:700; color:#e8d8f8; white-space:nowrap;">Tickets por giro:</span>
+                        <input type="number" id="inputCustoRoleta" class="input-text" min="1" step="1" placeholder="Ex: 1" style="max-width:100px; text-align:center; margin:0;">
+                    </div>
+                    <button onclick="salvarCustoRoleta()" class="btn btn-block" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;padding:13px;font-size:15px;font-weight:800;">
+                        💾 Salvar
+                    </button>
+                </div>
+            </div>
+
+            <!-- ABA: ROLETA -->
+            <div id="gpanel-roleta" style="display:none;">
+                <div class="card-box" style="border-left:4px solid #e74c3c;">
+                    <h4 style="color:#e74c3c; margin-bottom:12px;">🎰 Fatias da Roleta</h4>
+                    <p style="font-size:12px; color:#9080b8; margin-bottom:16px;">Configure os prêmios e probabilidades. A soma das probabilidades deve ser 100%.</p>
+                    <div id="listaFatiasRoleta"></div>
+                    <button onclick="adicionarFatia()" class="btn btn-block" style="background:#1a0f2e;border:1.5px dashed #e74c3c;color:#e74c3c;margin-top:8px;padding:12px;">
+                        ➕ Adicionar Fatia
+                    </button>
+                    <div id="somaProb" style="text-align:center;margin-top:10px;font-size:13px;font-weight:700;color:#9080b8;"></div>
+                    <button onclick="salvarRoleta()" class="btn btn-block" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;padding:13px;font-size:15px;font-weight:800;margin-top:14px;">
+                        💾 Salvar Roleta
+                    </button>
+                </div>
+
+                <!-- Preview visual da roleta -->
+                <div class="card-box" style="border-left:4px solid #f1c40f; text-align:center;">
+                    <h4 style="color:#f1c40f; margin-bottom:12px;">👁️ Preview da Roleta</h4>
+                    <canvas id="previewRoleta" width="260" height="260" style="border-radius:50%; max-width:260px;"></canvas>
+                </div>
+            </div>
+
+            <!-- ABA: PRÊMIOS -->
+            <div id="gpanel-premios" style="display:none;">
+                <div class="card-box" style="border-left:4px solid #2ecc71;">
+                    <h4 style="color:#2ecc71; margin-bottom:12px;">🏆 Prêmios Ganhos</h4>
+                    <div style="display:flex; gap:8px; margin-bottom:14px;">
+                        <button onclick="filtrarPremios('todos')" id="pfiltro-todos" class="btn btn-sm" style="background:#2ecc71;color:white;">Todos</button>
+                        <button onclick="filtrarPremios('pendente')" id="pfiltro-pendente" class="btn btn-sm" style="background:#1a0f2e;color:#9080b8;border:1px solid #2e1f4a;">Pendentes</button>
+                        <button onclick="filtrarPremios('resgatado')" id="pfiltro-resgatado" class="btn btn-sm" style="background:#1a0f2e;color:#9080b8;border:1px solid #2e1f4a;">Resgatados</button>
+                    </div>
+                    <div id="listaPremios" style="font-size:13px;color:#9080b8;text-align:center;padding:20px;">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- ABA: CLIENTES -->
+            <div id="gpanel-clientes" style="display:none;">
+                <div class="card-box" style="border-left:4px solid #3498db;">
+                    <h4 style="color:#3498db; margin-bottom:12px;">👥 Tickets por Cliente</h4>
+                    <div id="listaTickets" style="font-size:13px;color:#9080b8;text-align:center;padding:20px;">Carregando...</div>
+                </div>
+
+                <!-- Ajuste manual -->
+                <div class="card-box" style="border-left:4px solid #e67e22;">
+                    <h4 style="color:#e67e22; margin-bottom:10px;">✏️ Ajuste Manual de Tickets</h4>
+                    <select id="selectClienteTicket" class="input-text" style="appearance:auto; margin-bottom:10px;">
+                        <option value="">— Selecione o cliente —</option>
+                    </select>
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="number" id="inputAjusteTickets" class="input-text" placeholder="Qtd (negativo p/ remover)" style="margin:0;">
+                        <button onclick="ajustarTicketsManual()" class="btn btn-primary" style="white-space:nowrap;">Aplicar</button>
+                    </div>
+                    <p style="font-size:11px;color:#9080b8;">Use número positivo para adicionar e negativo para remover tickets.</p>
+                </div>
+            </div>
 
         </div>
 
