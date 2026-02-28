@@ -932,19 +932,19 @@ const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
-function _brtStr(d) {
-  return (d || new Date()).toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' });
-}
 function agoraISO() {
-  return _brtStr().replace(' ', 'T') + '-03:00';
+  const now = new Date();
+  const offset = -3 * 60;
+  const local = new Date(now.getTime() + (offset - now.getTimezoneOffset()) * 60000);
+  return local.toISOString().replace('Z', '-03:00');
 }
 function hojeStr() {
-  return _brtStr().split(' ')[0];
+  return agoraISO().split('T')[0];
 }
 function brasiliaDate(d) {
-  // Converte qualquer Date para o equivalente em Brasília usando timezone explícito
-  const str = d.toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' });
-  return new Date(str);
+  // Converte qualquer Date para o equivalente em Brasília
+  const offset = -3 * 60;
+  return new Date(d.getTime() + (offset - d.getTimezoneOffset()) * 60000);
 }
 function horasBRT(d) {
   // Retorna o objeto Date ajustado para BRT, útil para .getHours()/.getMinutes()
@@ -2273,7 +2273,7 @@ async function executarZerarJanela(slot) {
     const limiteBRT = new Date(agoraBRT);
     limiteBRT.setHours(ateH, ateM, 59, 999);
     // Converte de volta para UTC subtraindo 3 horas
-    const limiteUTC = new Date(limiteBRT.getTime() + 3 * 60 * 60000); // BRT → UTC (+3h)
+    const limiteUTC = new Date(limiteBRT.getTime() + (agora.getTimezoneOffset() - (-3 * 60)) * 60000);
     const limiteISO = limiteUTC.toISOString();
 
     const { data: pedidos } = await sb.from("pedidos")
@@ -3247,7 +3247,7 @@ async function executarCompra(total, pedidoTexto) {
 
     // ===== ROTA ALEATÓRIA: mesmo comportamento do cardápio =====
     try {
-        const { data: raData } = await sb.from('config_app')
+        const { data: raData } = await sb.from('rota_especial_gps')
             .select('valor').eq('chave', RA_CHAVE).maybeSingle();
         if (raData?.valor) {
             let raConfig = JSON.parse(raData.valor);
@@ -3285,7 +3285,7 @@ async function executarCompra(total, pedidoTexto) {
                                 status: 'pendente'
                             });
                             raConfig.clientes_fila = fila;
-                            await sb.from('config_app').upsert(
+                            await sb.from('rota_especial_gps').upsert(
                                 { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
                                 { onConflict: 'chave' }
                             );
@@ -3672,7 +3672,7 @@ function calcDistM(lat1, lon1, lat2, lon2) {
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function diaHoje() { return new Date(_brtStr()).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).replace('.','').toLowerCase(); }
+function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("cadastros").select("*").order("name");
     clientesCache = clients || [];
@@ -4650,7 +4650,7 @@ let raConfig = null; // { ativa, hora_inicio, hora_fim, raio_fabrica, clientes_f
 let raRealtimeCh = null;
 let raStatusInterval = null;
 
-// Chave usada no Supabase (tabela config_app)
+// Chave usada no Supabase (tabela rota_especial_gps, reutilizando estrutura existente)
 const RA_CHAVE = 'rota_aleatoria';
 
 // ---------- CARREGAR ----------
@@ -4665,7 +4665,7 @@ async function loadRotaAleatoria() {
 }
 
 async function buscarConfigRA() {
-    const { data } = await sb.from('config_app')
+    const { data } = await sb.from('rota_especial_gps')
         .select('valor').eq('chave', RA_CHAVE).maybeSingle();
     if (data?.valor) {
         try { raConfig = JSON.parse(data.valor); } catch(e) { raConfig = null; }
@@ -4756,7 +4756,7 @@ async function toggleDiaRA(btn, dia) {
 
 // ---------- SALVAR NO SUPABASE ----------
 async function _salvarRA() {
-    await sb.from('config_app').upsert(
+    await sb.from('rota_especial_gps').upsert(
         { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
         { onConflict: 'chave' }
     );
@@ -4980,7 +4980,7 @@ async function atualizarStatusHomeRA() {
     if (!el) return;
     if (!raConfig) {
         // Tenta buscar rápido
-        const { data } = await sb.from('config_app').select('valor').eq('chave', RA_CHAVE).maybeSingle();
+        const { data } = await sb.from('rota_especial_gps').select('valor').eq('chave', RA_CHAVE).maybeSingle();
         if (data?.valor) { try { raConfig = JSON.parse(data.valor); } catch(e) {} }
     }
     if (!raConfig || !raConfig.ativa) {
@@ -5000,7 +5000,7 @@ function iniciarRealtimeRA() {
     if (raRealtimeCh) { sb.removeChannel(raRealtimeCh); }
     raRealtimeCh = sb.channel('ra_adm_pedidos')
         // Escuta mudanças na própria config (quando entregador salva algo)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'config_app',
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'rota_especial_gps',
             filter: `chave=eq.${RA_CHAVE}` }, async () => {
             await buscarConfigRA();
             renderUIRotaAleatoria();
