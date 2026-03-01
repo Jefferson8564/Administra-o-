@@ -773,23 +773,18 @@
                     💡 Cadastre aqui os clientes que <strong>pertencem</strong> a esta rota. Todo dia que eles fizerem pedido, entram automaticamente na entrega.
                 </div>
 
-                <!-- Adicionar cliente -->
+                <!-- Adicionar cliente — seleção múltipla com numeração -->
                 <div style="margin-bottom:10px;">
-                    <label style="font-size:12px;font-weight:700;color:#9080b8;display:block;margin-bottom:6px;">➕ Adicionar cliente à rota</label>
-                    <select id="paradaCliente" class="input-text" onchange="onParadaClienteChange()" style="margin-bottom:0;">
-                        <option value="">-- Selecionar cliente --</option>
-                    </select>
-                    <div id="paradaClienteInfo" style="display:none;font-size:12px;color:#9080b8;padding:6px 10px;background:#150b25;border-radius:8px;margin-top:6px;"></div>
-                    <div id="paradaSemEndereco" style="display:none;margin-top:8px;padding:10px 12px;background:#2d2510;border:1px solid #f0c040;border-radius:10px;font-size:12px;color:#d4a80a;">
-                        ⚠️ Este cliente não tem endereço cadastrado.
-                        <button onclick="openSection('enderecos')" style="display:block;width:100%;margin-top:6px;padding:7px;background:#f0c040;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;">📍 Cadastrar endereço agora</button>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <label style="font-size:12px;font-weight:700;color:#9080b8;">➕ Adicionar clientes à rota</label>
+                        <span id="paradaSelCount" style="font-size:11px;font-weight:800;color:#27ae60;background:#1a3025;padding:2px 10px;border-radius:20px;display:none;">0 selecionados</span>
                     </div>
-                    <div id="paradaEtaPreview" style="display:none;background:#f0fff4;border:1px solid #27ae60;border-radius:12px;padding:10px 12px;margin-top:8px;">
-                        <div style="font-size:11px;font-weight:700;color:#27ae60;">⏱️ Posição estimada</div>
-                        <div id="paradaEtaValor" style="font-size:18px;font-weight:900;color:#1e8449;">-- min</div>
-                        <div id="paradaEtaHistorico" style="font-size:11px;color:#9080b8;margin-top:2px;"></div>
-                    </div>
-                    <button onclick="adicionarParada()" class="btn btn-blue btn-block" style="margin-top:10px;">➕ Adicionar à rota</button>
+                    <!-- Campo de busca -->
+                    <input id="paradaBusca" type="text" placeholder="🔍 Buscar cliente..." oninput="filtrarListaClientes()" style="width:100%;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:1px solid #3a2a5a;background:#1a0f2e;color:#e8d8f8;font-size:13px;margin-bottom:8px;outline:none;">
+                    <!-- Lista de clientes clicáveis -->
+                    <div id="paradaClienteLista" style="max-height:220px;overflow-y:auto;border-radius:12px;border:1px solid #2a1a4a;background:#120820;"></div>
+                    <!-- Botão adicionar todos selecionados -->
+                    <button onclick="adicionarParadasSelecionadas()" id="btnAdicionarSelecionados" style="display:none;width:100%;margin-top:10px;padding:11px;background:linear-gradient(135deg,#27ae60,#1e8449);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">✅ Adicionar selecionados à rota</button>
                 </div>
 
                 <!-- Lista de clientes fixos -->
@@ -931,24 +926,66 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ===== FUSO HORÁRIO BRASÍLIA (GMT-3) =====
+// ===== FUSO HORÁRIO SÃO PAULO =====
+const TZ_SP = 'America/Sao_Paulo';
+
+/**
+ * Retorna as partes de data/hora de uma Date no fuso America/Sao_Paulo.
+ * Usa Intl.DateTimeFormat — respeita automaticamente horário de verão.
+ */
+function _partesSP(d) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: TZ_SP,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  return Object.fromEntries(fmt.formatToParts(d || new Date()).filter(x => x.type !== 'literal').map(x => [x.type, x.value]));
+}
+
+/**
+ * Retorna ISO string com offset correto de São Paulo (ex: "2025-03-01T14:05:00-03:00").
+ * O offset é calculado dinamicamente, então funciona mesmo após mudanças de horário de verão.
+ */
 function agoraISO() {
   const now = new Date();
-  const offset = -3 * 60;
-  const local = new Date(now.getTime() + (offset - now.getTimezoneOffset()) * 60000);
-  return local.toISOString().replace('Z', '-03:00');
+  const p = _partesSP(now);
+  const localMs = new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`).getTime();
+  const offsetMin = Math.round((localMs - now.getTime()) / 60000);
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const absH = String(Math.floor(Math.abs(offsetMin) / 60)).padStart(2, '0');
+  const absM = String(Math.abs(offsetMin) % 60).padStart(2, '0');
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}${sign}${absH}:${absM}`;
 }
+
 function hojeStr() {
-  return agoraISO().split('T')[0];
+  const p = _partesSP();
+  return `${p.year}-${p.month}-${p.day}`;
 }
-function brasiliaDate(d) {
-  // Converte qualquer Date para o equivalente em Brasília
-  const offset = -3 * 60;
-  return new Date(d.getTime() + (offset - d.getTimezoneOffset()) * 60000);
-}
+
+/**
+ * Retorna um Date "espelhado" para São Paulo — permite usar .getHours()/.getMinutes() em BRT/BRST.
+ */
 function horasBRT(d) {
-  // Retorna o objeto Date ajustado para BRT, útil para .getHours()/.getMinutes()
-  return brasiliaDate(d || new Date());
+  const p = _partesSP(d);
+  return new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`);
+}
+
+/**
+ * Retorna um Date "deslocado" para uso em comparações com timestamps UTC do Supabase.
+ * Substitui a antiga brasiliaDate que usava toLocaleString('en-US') local (frágil).
+ */
+function brasiliaDate(d) {
+  const src = d || new Date();
+  const p = _partesSP(src);
+  const localMs = new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`).getTime();
+  const offsetMs = localMs - src.getTime();
+  return new Date(src.getTime() + offsetMs);
+}
+
+/** Garante que um timestamp do Supabase seja parseado como UTC. */
+function parseDateUTC(str) {
+  if (!str) return null;
+  return new Date(str.endsWith('Z') || str.includes('+') || str.indexOf('-', 10) > 0 ? str : str + 'Z');
 }
 let msgTemplate = "*NOVO PEDIDO*\nCliente: {nome}\n\n{pedido}\nTotal: R$ {total}\nPagamento: {pagamento}";
 let msgCobranca = "Olá {nome}, tudo bem? Passando para lembrar do seu débito pendente no valor de *R$ {valor}*. Como prefere pagar?";
@@ -973,7 +1010,7 @@ async function initAdmin() {
 
 // Verifica se algum disparo automatico deveria ter ocorrido hoje e foi perdido
 async function verificarExecucoesPerdidas() {
-    const hoje = new Date().toLocaleDateString('pt-BR');
+    const hoje = new Date().toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo' });
 
     // Auto-Refazer
     if (localStorage.getItem('autoRefazer_ativo') === '1') {
@@ -1145,7 +1182,8 @@ async function verClientesInativos() {
             .eq("customer_phone", c.phone)
             .order("created_at", { ascending: false })
             .limit(1);
-        const ultimo = orders && orders.length > 0 ? new Date(orders[0].created_at) : null;
+        const _rawU = orders && orders.length > 0 ? (orders[0].created_at || '') : '';
+        const ultimo = _rawU ? new Date(_rawU.endsWith('Z') || _rawU.includes('+') || _rawU.includes('-', 10) ? _rawU : _rawU + 'Z') : null;
         return { client: c, ultimaCompra: ultimo };
     }));
 
@@ -1410,7 +1448,7 @@ async function executarPayDebt(phone, val) {
 
     // Monta o comprovante usando o template configurável
     const now = new Date();
-    const dataHora = now.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const dataHora = now.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
     const saldoTexto = novoSaldo > 0
         ? `Saldo devedor restante: R$ ${novoSaldo.toFixed(2).replace('.', ',')}`
         : novoSaldo < 0
@@ -1584,10 +1622,9 @@ async function loadOrderSummary() {
     let dataInicio;
     if (horaBRT < 12) {
         // dia anterior em BRT
-        const d = new Date(dataBRT + 'T00:00:00-03:00');
-        d.setDate(d.getDate() - 1);
-        const dStr = d.toISOString().substring(0, 10);
-        dataInicio = dStr + 'T12:00:00-03:00';
+        const dOntem = new Date(new Date(dataBRT + 'T12:00:00-03:00').getTime() - 86400000);
+        const pOntem = _partesSP(dOntem);
+        dataInicio = `${pOntem.year}-${pOntem.month}-${pOntem.day}T12:00:00-03:00`;
     } else {
         dataInicio = dataBRT + 'T12:00:00-03:00';
     }
@@ -1697,18 +1734,22 @@ async function abrirModalExcluir() {
     list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
 
     // Busca pedidos do período
-    const now = new Date();
-    const start = new Date(now);
-    start.setHours(12, 0, 0, 0);
-    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    end.setHours(5, 0, 0, 0);
+    // Janela SP: 12h de hoje (ou ontem se < 12h) até 05h do dia seguinte
+    const _pNow = _partesSP(new Date());
+    const _hojeStr = `${_pNow.year}-${_pNow.month}-${_pNow.day}`;
+    const _hAtual = parseInt(_pNow.hour);
+    const _baseStr = _hAtual < 12
+        ? (() => { const p = _partesSP(new Date(Date.now()-86400000)); return `${p.year}-${p.month}-${p.day}`; })()
+        : _hojeStr;
+    const _startISO = `${_baseStr}T12:00:00-03:00`;
+    const _endDate = new Date(new Date(_baseStr + 'T12:00:00-03:00').getTime() + 86400000 - (7*3600000)); // +17h = 05h próximo dia
+    const _pEnd = _partesSP(_endDate);
+    const _endISO = `${_pEnd.year}-${_pEnd.month}-${_pEnd.day}T05:00:00-03:00`;
 
     const { data } = await sb.from("pedidos")
         .select("customer_name, customer_phone, items")
-        .gte("created_at", brasiliaDate(start).toISOString())
-        .lte("created_at", brasiliaDate(end).toISOString());
+        .gte("created_at", _startISO)
+        .lte("created_at", _endISO);
 
     _summaryOrders = data || [];
 
@@ -1757,18 +1798,19 @@ function fecharModalExcluir() {
 async function aplicarExclusoes() {
     fecharModalExcluir();
     // Recalcula contagem excluindo clientes marcados
-    const now = new Date();
-    const start = new Date(now);
-    start.setHours(12, 0, 0, 0);
-    if (horasBRT(now).getHours() < 12) start.setDate(start.getDate() - 1);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    end.setHours(5, 0, 0, 0);
+    const _pNow2 = _partesSP(new Date());
+    const _hojeStr2 = `${_pNow2.year}-${_pNow2.month}-${_pNow2.day}`;
+    const _hAtual2 = parseInt(_pNow2.hour);
+    const _baseStr2 = _hAtual2 < 12
+        ? (() => { const p = _partesSP(new Date(Date.now()-86400000)); return `${p.year}-${p.month}-${p.day}`; })()
+        : _hojeStr2;
+    const _startISO2 = `${_baseStr2}T12:00:00-03:00`;
+    const _endISO2 = (() => { const p = _partesSP(new Date(new Date(_baseStr2+'T12:00:00-03:00').getTime()+61200000)); return `${p.year}-${p.month}-${p.day}T05:00:00-03:00`; })();
 
     const { data } = await sb.from("pedidos")
         .select("customer_phone, items")
-        .gte("created_at", brasiliaDate(start).toISOString())
-        .lte("created_at", brasiliaDate(end).toISOString());
+        .gte("created_at", _startISO2)
+        .lte("created_at", _endISO2);
 
     const contagem = {};
     (data || []).forEach(o => {
@@ -1977,13 +2019,15 @@ function buildOrderCard(o) {
     const badgeClass = isFiado ? 'badge-fiado' : 'badge-pago';
     const badgeLabel = isFiado ? '⏳ PAGAR DEPOIS' : '🤝 PAGAR NA ENTREGA';
 
-    // Format time: "hoje às 19:04" or date (convertido para BRT GMT-3)
-    const dt = brasiliaDate(new Date(o.created_at));
-    const now = brasiliaDate(new Date());
-    const isToday = dt.toDateString() === now.toDateString();
+    // Format time: sem dupla conversão — usa Date original com Intl direto
+    // Garante parse como UTC — Supabase às vezes omite o 'Z' no created_at
+    const _raw = o.created_at || '';
+    const dt = new Date(_raw.endsWith('Z') || _raw.includes('+') || _raw.indexOf('-', 10) >= 0 ? _raw : _raw + 'Z');
+    const _fmtDia = d => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const isToday = _fmtDia(dt) === _fmtDia(new Date());
     const timeStr = isToday
-        ? 'hoje às ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        : dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }) + ' às ' + dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+        ? 'hoje às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })
+        : dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + ' às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
     // Items: clean and list
     const itemLines = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
@@ -2265,15 +2309,19 @@ async function executarZerarJanela(slot) {
     const protegidos = new Set(cfg['protegidos' + slot] || []);
     const ateHora = cfg['ate' + slot] || '12:00';
 
-    // Apaga TODOS os pedidos criados antes do horário limite de hoje (BRT GMT-3)
+    // Apaga TODOS os pedidos criados antes do horário limite de hoje (BRT via Intl)
     const agora = new Date();
     const [ateH, ateM] = ateHora.split(':').map(Number);
-    // Monta o horário limite no fuso de Brasília (GMT-3) e converte para UTC
-    const agoraBRT = brasiliaDate(agora);
-    const limiteBRT = new Date(agoraBRT);
-    limiteBRT.setHours(ateH, ateM, 59, 999);
-    // Converte de volta para UTC subtraindo 3 horas
-    const limiteUTC = new Date(limiteBRT.getTime() + (agora.getTimezoneOffset() - (-3 * 60)) * 60000);
+    // Pega a data de hoje em São Paulo e monta o limite como ISO com offset correto
+    const _pAgora = _partesSP(agora);
+    const _hojeStr = `${_pAgora.year}-${_pAgora.month}-${_pAgora.day}`;
+    const _hStr = String(ateH).padStart(2,'0') + ':' + String(ateM).padStart(2,'0') + ':59';
+    // Usa _spHoraParaUTC equivalente inline: estima UTC e refina com Intl
+    const _estimaUTC = new Date(`${_hojeStr}T${_hStr}Z`);
+    const _pEst = _partesSP(_estimaUTC);
+    const _spMs = new Date(`${_pEst.year}-${_pEst.month}-${_pEst.day}T${_pEst.hour}:${_pEst.minute}:${_pEst.second}`).getTime();
+    const _offsetMs = _spMs - _estimaUTC.getTime();
+    const limiteUTC = new Date(new Date(`${_hojeStr}T${_hStr}`).getTime() - _offsetMs);
     const limiteISO = limiteUTC.toISOString();
 
     const { data: pedidos } = await sb.from("pedidos")
@@ -2293,8 +2341,8 @@ async function executarZerarJanela(slot) {
     const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
     log.unshift({
         slot,
-        periodo: 'Tudo anterior a ' + ateHora + ' de ' + agora.toLocaleDateString('pt-BR'),
-        ts: new Date().toLocaleString('pt-BR'),
+        periodo: 'Tudo anterior a ' + ateHora + ' de ' + agora.toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo' }),
+        ts: new Date().toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' }),
         apagados: parasApagar.length,
         protegidos: protegidos.size
     });
@@ -2509,10 +2557,9 @@ async function executarAutoRefazer() {
     const lista = Object.values(sel);
     if (lista.length === 0) return;
 
-    // Quebra da regra: pedido feito após as 12h do dia anterior
-    const ontem12h = new Date();
-    ontem12h.setDate(ontem12h.getDate() - 1);
-    ontem12h.setHours(12, 0, 0, 0);
+    // Quebra da regra: pedido feito após as 12h do dia anterior (SP)
+    const _pOntem12h = _partesSP(new Date(Date.now() - 86400000));
+    const _ontem12hISO = `${_pOntem12h.year}-${_pOntem12h.month}-${_pOntem12h.day}T12:00:00-03:00`;
 
     const lancados = [];
     const pulados = [];
@@ -2529,7 +2576,7 @@ async function executarAutoRefazer() {
         const { data: pedidoRecente } = await sb.from("pedidos")
             .select("id")
             .eq("customer_phone", s.phone)
-            .gte("created_at", brasiliaDate(ontem12h).toISOString())
+            .gte("created_at", _ontem12hISO)
             .limit(1);
 
         if (pedidoRecente && pedidoRecente.length > 0) {
@@ -2571,7 +2618,7 @@ async function executarAutoRefazer() {
     }
 
     const agora = new Date();
-    const agoraStr = agora.toLocaleString('pt-BR');
+    const agoraStr = agora.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' });
     localStorage.setItem('autoRefazer_ultimaExec', agoraStr);
 
     // Salva histórico de execuções (máx 30)
@@ -2598,7 +2645,7 @@ async function executarAutoRefazer() {
 
     showToast({
         type: 'success',
-        title: `🤖 Automático executado às ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`,
+        title: `🤖 Automático executado às ${agora.toLocaleTimeString('pt-BR', { timeZone:'America/Sao_Paulo',hour:'2-digit', minute:'2-digit'})}`,
         body: body.trim(),
         duration: 12000
     });
@@ -3340,9 +3387,10 @@ async function loadHistoricoPagamentos() {
     totalEl.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
 
     list.innerHTML = data.map(function(p) {
-        const date = brasiliaDate(new Date(p.created_at));
-        const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
-        const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+        const _rawP = p.created_at || '';
+        const date = new Date(_rawP.endsWith('Z') || _rawP.includes('+') || _rawP.includes('-', 10) ? _rawP : _rawP + 'Z');
+        const dateStr = date.toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit' });
         const saldoAntes = Number(p.saldo_anterior || 0).toFixed(2).replace('.', ',');
         const saldoDepois = Number(p.saldo_posterior || 0).toFixed(2).replace('.', ',');
         const saldoColor = Number(p.saldo_posterior) <= 0 ? '#27ae60' : '#e74c3c';
@@ -3476,9 +3524,10 @@ function renderHistorico(append = false) {
     loadMoreBtn.style.display = ate < total ? 'block' : 'none';
 
     const html = paginados.map((o) => {
-        const date = brasiliaDate(new Date(o.created_at));
-        const dateStr = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
-        const timeStr = date.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+        const _rawO = o.created_at || '';
+        const date = new Date(_rawO.endsWith('Z') || _rawO.includes('+') || _rawO.includes('-', 10) ? _rawO : _rawO + 'Z');
+        const dateStr = date.toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit' });
         const items = (o.items || '').trim().replace(/✅ /g, '').split('\n').filter(Boolean);
         const itemsHTML = items.map(it => `<span style="display:inline-block;background:#110820;border-radius:8px;padding:2px 8px;font-size:12px;margin:2px;color:#e8d8f8;">${it}</span>`).join('');
 
@@ -3672,7 +3721,7 @@ function calcDistM(lat1, lon1, lat2, lon2) {
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function diaHoje() { const d = new Date(); const b = new Date(d.getTime() + (-3*60 - d.getTimezoneOffset())*60000); return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][b.getDay()]; }
+function diaHoje() { return new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).replace('.','').replace(/^./,c=>c.toUpperCase()); }
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("cadastros").select("*").order("name");
     clientesCache = clients || [];
@@ -3683,59 +3732,96 @@ async function loadRotasPanel() {
 }
 
 
+// Estado da seleção múltipla
+let _paradaSelecionados = []; // [{phone, nome, ordem}]
+let _paradaClientesFiltrados = [];
+
 async function preencherClientesComPedido() {
-    // Busca pedidos de hoje (payment_method !== 'FIADO' já pago, ou qualquer pedido do dia)
-    const hoje = hojeStr();
-    const { data: pedidosHoje } = await sb.from("pedidos")
-        .select("customer_phone, customer_name")
-        .gte("created_at", hoje + 'T00:00:00')
-        .lte("created_at", hoje + 'T23:59:59');
+    _paradaSelecionados = [];
+    _atualizarBtnSelecionados();
 
-    // Monta set de phones com pedido hoje
-    const phonesComPedido = new Set((pedidosHoje || []).map(p => p.customer_phone));
-
-    const sel = document.getElementById('paradaCliente');
-    const clientesComPedido = clientesCache.filter(c => phonesComPedido.has(c.phone));
-    const clientesSemPedido = clientesCache.filter(c => !phonesComPedido.has(c.phone));
-
-    sel.innerHTML = '<option value="">-- Selecionar cliente --</option>';
-
-    // Filtra clientes que JÁ estão cadastrados na rota atual
     const phonesNaRota = new Set((rotaParadas || []).map(p => p.cliente_phone));
-
-    // Mostra apenas clientes que NÃO estão na rota ainda
     const comEndereco = clientesCache.filter(c => c.delivery_lat && c.delivery_lon && !phonesNaRota.has(c.phone));
     const semEndereco = clientesCache.filter(c => (!c.delivery_lat || !c.delivery_lon) && !phonesNaRota.has(c.phone));
 
-    if (comEndereco.length > 0) {
-        const grpEnd = document.createElement('optgroup');
-        grpEnd.label = `✅ Com endereço cadastrado (${comEndereco.length})`;
-        comEndereco.forEach(c => {
-            const o = document.createElement('option');
-            o.value = c.phone; o.dataset.name = c.name; o.textContent = c.name;
-            grpEnd.appendChild(o);
-        });
-        sel.appendChild(grpEnd);
-    }
+    // Ordenar: com endereço primeiro, alfabético
+    _paradaClientesFiltrados = [
+        ...comEndereco.sort((a,b) => (a.name||'').localeCompare(b.name||'')),
+        ...semEndereco.sort((a,b) => (a.name||'').localeCompare(b.name||''))
+    ];
+    _renderListaClientes(_paradaClientesFiltrados);
+}
 
-    if (semEndereco.length > 0) {
-        const grpSem = document.createElement('optgroup');
-        grpSem.label = `⚠️ Sem endereço (${semEndereco.length})`;
-        semEndereco.forEach(c => {
-            const o = document.createElement('option');
-            o.value = c.phone; o.dataset.name = c.name;
-            o.textContent = c.name; o.style.color = '#aaa';
-            grpSem.appendChild(o);
-        });
-        sel.appendChild(grpSem);
-    }
+function filtrarListaClientes() {
+    const q = document.getElementById('paradaBusca').value.toLowerCase();
+    const filtrados = _paradaClientesFiltrados.filter(c =>
+        (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q)
+    );
+    _renderListaClientes(filtrados);
+}
 
-    if (comEndereco.length === 0 && semEndereco.length === 0 && phonesNaRota.size > 0) {
-        const o = document.createElement('option');
-        o.disabled = true;
-        o.textContent = '✅ Todos os clientes já estão nesta rota';
-        sel.appendChild(o);
+function _renderListaClientes(lista) {
+    const el = document.getElementById('paradaClienteLista');
+    if (!lista.length) {
+        el.innerHTML = '<div style="text-align:center;color:#9080b8;padding:16px;font-size:13px;">Nenhum cliente disponível</div>';
+        return;
     }
+    const phonesNaRota = new Set((rotaParadas || []).map(p => p.cliente_phone));
+
+    el.innerHTML = lista.map(c => {
+        const temEnd = c.delivery_lat && c.delivery_lon;
+        const sel = _paradaSelecionados.find(x => x.phone === c.phone);
+        const ordem = sel ? sel.ordem : null;
+        const ativo = !!sel;
+        return `<div onclick="_toggleClienteSelecionado('${c.phone}','${(c.name||'').replace(/'/g,"\'")}',${temEnd})"
+            style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #1e0f35;cursor:pointer;background:${ativo ? '#1a2e1a' : 'transparent'};transition:background 0.15s;">
+            <!-- Badge numerado ou círculo vazio -->
+            <div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;
+                background:${ativo ? '#27ae60' : 'transparent'};
+                border:2px solid ${ativo ? '#27ae60' : temEnd ? '#3a2a5a' : '#e74c3c'};
+                color:${ativo ? 'white' : '#9080b8'};">
+                ${ativo ? ordem : ''}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:13px;color:${ativo ? '#7fffb0' : '#e8d8f8'};">${c.name||'Sem nome'}</div>
+                <div style="font-size:10px;color:${temEnd ? '#27ae60' : '#e74c3c'};margin-top:1px;">
+                    ${temEnd ? '✅ Endereço cadastrado' : '⚠️ Sem endereço — não pode adicionar'}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function _toggleClienteSelecionado(phone, nome, temEnd) {
+    if (!temEnd) {
+        showToast({type:'confirm', title:'⚠️ Sem endereço', body:`${nome} não tem endereço cadastrado. Cadastre primeiro na aba Endereços.`, duration:3000});
+        return;
+    }
+    const idx = _paradaSelecionados.findIndex(x => x.phone === phone);
+    if (idx >= 0) {
+        // Desseleciona e reordena
+        _paradaSelecionados.splice(idx, 1);
+        _paradaSelecionados.forEach((x, i) => x.ordem = i + 1);
+    } else {
+        _paradaSelecionados.push({ phone, nome, ordem: _paradaSelecionados.length + 1 });
+    }
+    _atualizarBtnSelecionados();
+    // Re-render a lista sem refetch
+    const q = document.getElementById('paradaBusca').value.toLowerCase();
+    const filtrados = q
+        ? _paradaClientesFiltrados.filter(c => (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q))
+        : _paradaClientesFiltrados;
+    _renderListaClientes(filtrados);
+}
+
+function _atualizarBtnSelecionados() {
+    const n = _paradaSelecionados.length;
+    const btn = document.getElementById('btnAdicionarSelecionados');
+    const count = document.getElementById('paradaSelCount');
+    btn.style.display = n > 0 ? 'block' : 'none';
+    count.style.display = n > 0 ? 'inline-block' : 'none';
+    count.textContent = n + (n === 1 ? ' selecionado' : ' selecionados');
+    btn.textContent = `✅ Adicionar ${n} cliente${n !== 1 ? 's' : ''} à rota`;
 }
 
 async function carregarRotasHoje() {
@@ -3904,40 +3990,19 @@ function fecharAddParada() {
 
 async function calcularMediaEta() {
     const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
-    const ontemStr = brasiliaDate(ontem).toISOString().split('T')[0];
+    const ontemStr = (() => { const p = _partesSP(ontem); return `${p.year}-${p.month}-${p.day}`; })();
     const {data:hist} = await sb.from("rotas").select("paradas,saida_em,fim_em")
         .gte("created_at",ontemStr+'T00:00:00').lte("created_at",ontemStr+'T23:59:59')
         .eq("status","concluido").limit(5);
     if (hist && hist.length>0) {
         const tempos = hist.filter(h=>h.saida_em&&h.fim_em&&h.paradas?.length>0)
-            .map(h=>(new Date(h.fim_em)-new Date(h.saida_em))/60000/h.paradas.length);
+            .map(h=>(parseDateUTC(h.fim_em)-parseDateUTC(h.saida_em))/60000/h.paradas.length);
         if (tempos.length>0) { mediaMinPorParada=tempos.reduce((a,b)=>a+b,0)/tempos.length; return; }
     }
     mediaMinPorParada = 12;
 }
 
-function onParadaClienteChange() {
-    const sel = document.getElementById('paradaCliente');
-    const opt = sel.options[sel.selectedIndex];
-    const info = document.getElementById('paradaClienteInfo');
-    const semEnd = document.getElementById('paradaSemEndereco');
-    if (!opt.value) {
-        info.style.display = 'none';
-        semEnd.style.display = 'none';
-        document.getElementById('paradaEtaPreview').style.display = 'none';
-        return;
-    }
-    const c = clientesCache.find(x => x.phone === opt.value);
-    if (c) {
-        const debt = c.debt > 0 ? `💸 Deve R$ ${c.debt.toFixed(2)}` : c.debt < 0 ? `✅ Crédito R$ ${Math.abs(c.debt).toFixed(2)}` : '✅ Em dia';
-        const temEnd = c.delivery_lat && c.delivery_lon;
-        info.style.display = 'block';
-        info.innerHTML = `📱 ${c.phone} · ${debt}` + (temEnd ? `<br>📍 ${c.delivery_address || `${c.delivery_lat}, ${c.delivery_lon}`}` : '');
-        semEnd.style.display = temEnd ? 'none' : 'block';
-        if (temEnd) mostrarEtaPreview();
-        else document.getElementById('paradaEtaPreview').style.display = 'none';
-    }
-}
+function onParadaClienteChange() {}
 
 // ===== ENDEREÇOS DOS CLIENTES =====
 let enderecoClienteAtual = null;
@@ -4139,50 +4204,45 @@ function mostrarEtaPreview() {
 
 
 async function adicionarParada() {
+    // Mantido para compatibilidade — redireciona para o novo
+    await adicionarParadasSelecionadas();
+}
+
+async function adicionarParadasSelecionadas() {
     if (!rotaAtualId) return showToast({type:'confirm',title:'⚠️',body:'Selecione uma rota primeiro.',duration:2500});
-    const sel = document.getElementById('paradaCliente');
-    const clientePhone = sel.value;
-    const clienteNome = sel.options[sel.selectedIndex]?.dataset?.name || '';
-    if (!clientePhone) return showToast({type:'confirm',title:'⚠️',body:'Selecione um cliente.',duration:2500});
+    if (!_paradaSelecionados.length) return showToast({type:'confirm',title:'⚠️',body:'Toque nos clientes que deseja adicionar.',duration:2500});
 
-    const c = clientesCache.find(x => x.phone === clientePhone);
-    if (!c?.delivery_lat || !c?.delivery_lon) {
-        return showToast({type:'confirm',title:'⚠️ Sem endereço',body:`${clienteNome} não tem endereço cadastrado. Cadastre primeiro na aba Endereços.`,duration:4000});
+    let adicionados = 0;
+    for (const sel of _paradaSelecionados) {
+        const c = clientesCache.find(x => x.phone === sel.phone);
+        if (!c?.delivery_lat || !c?.delivery_lon) continue;
+        if (rotaParadas.find(p => p.cliente_phone === sel.phone)) continue;
+
+        rotaParadas.push({
+            id: Date.now().toString() + '_' + sel.phone,
+            cliente_phone: sel.phone,
+            nome: sel.nome || 'Sem nome',
+            endereco: c.delivery_address || `${(+c.delivery_lat).toFixed(4)}, ${(+c.delivery_lon).toFixed(4)}`,
+            coords: [parseFloat(c.delivery_lat), parseFloat(c.delivery_lon)],
+            eta_min: Math.round((rotaParadas.length + 1) * mediaMinPorParada),
+            status: 'pendente'
+        });
+        adicionados++;
     }
 
-    // Verifica se já está no template
-    if (rotaParadas.find(p => p.cliente_phone === clientePhone)) {
-        return showToast({type:'confirm',title:'ℹ️ Já cadastrado',body:`${clienteNome} já está nesta rota.`,duration:2500});
-    }
+    if (!adicionados) return showToast({type:'confirm',title:'ℹ️',body:'Nenhum cliente novo para adicionar.',duration:2500});
 
-    // Adiciona ao template (lista fixa da rota — sem verificar pedido)
-    const entrada = {
-        id: Date.now().toString(),
-        cliente_phone: clientePhone,
-        nome: clienteNome || 'Sem nome',
-        endereco: c.delivery_address || `${(+c.delivery_lat).toFixed(4)}, ${(+c.delivery_lon).toFixed(4)}`,
-        coords: [parseFloat(c.delivery_lat), parseFloat(c.delivery_lon)],
-        eta_min: Math.round((rotaParadas.length + 1) * mediaMinPorParada),
-        status: 'pendente'
-    };
-    rotaParadas.push(entrada);
-
-    // Gera paradas ativas: apenas quem tem pedido hoje
     const paradasAtivas = await gerarParadasAtivas(rotaParadas);
-
     await sb.from("rotas").update({
         paradas_template: rotaParadas,
         paradas: paradasAtivas
     }).eq("id", rotaAtualId);
 
-    sel.value = '';
-    document.getElementById('paradaClienteInfo').style.display = 'none';
-    document.getElementById('paradaSemEndereco').style.display = 'none';
-    document.getElementById('paradaEtaPreview').style.display = 'none';
+    _paradaSelecionados = [];
+    document.getElementById('paradaBusca').value = '';
     renderParadasList();
-    // Atualiza o select de clientes para refletir quem já está na rota
     preencherClientesComPedido();
-    showToast({type:'success',title:'✅ Cliente adicionado à rota!',body:`${entrada.nome} faz parte desta rota. Aparecerá nas entregas quando fizer pedido.`,duration:3000});
+    showToast({type:'success',title:`✅ ${adicionados} cliente${adicionados!==1?'s':''} adicionado${adicionados!==1?'s':''}!`,body:'Aparecerão nas entregas quando fizerem pedido.',duration:3000});
 }
 
 // Gera lista de paradas ativas do dia: só clientes do template que fizeram pedido hoje
@@ -4448,9 +4508,9 @@ async function carregarRotasSalvas() {
             rotasEspeciais.map(r => {
                 const entregues=(r.paradas||[]).filter(p=>p.status==='entregue').length;
                 const total=(r.paradas||[]).length;
-                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const dur=(r.saida_em&&r.fim_em)?Math.round((parseDateUTC(r.fim_em)-parseDateUTC(r.saida_em))/60000)+' min':'--';
                 const cor=corS[r.status]||'#ccc';
-                const dataHora = r.saida_em ? new Date(r.saida_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
+                const dataHora = r.saida_em ? parseDateUTC(r.saida_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
                 return `<div style="background:linear-gradient(135deg,#fff8ee,#fff3e0);border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid #e67e22;">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                         <div style="flex:1;">
@@ -4473,7 +4533,7 @@ async function carregarRotasSalvas() {
             rotasNormais.map(r=>{
                 const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
                 const total=(r.paradas_template||r.paradas||[]).length;
-                const dur=(r.saida_em&&r.fim_em)?Math.round((new Date(r.fim_em)-new Date(r.saida_em))/60000)+' min':'--';
+                const dur=(r.saida_em&&r.fim_em)?Math.round((parseDateUTC(r.fim_em)-parseDateUTC(r.saida_em))/60000)+' min':'--';
                 const cor=corS[r.status]||'#ccc';
                 return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
@@ -5396,7 +5456,7 @@ function renderPremios() {
                 <div>
                     <div style="font-weight:800;color:#e8d8f8;font-size:14px;">🏆 ${p.premio} ${qtdBadge}</div>
                     <div style="font-size:11px;color:#9080b8;margin-top:2px;">📱 ${p.phone}</div>
-                    <div style="font-size:11px;color:#9080b8;">${new Date(p.created_at).toLocaleDateString('pt-BR')} ${new Date(p.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+                    <div style="font-size:11px;color:#9080b8;">${parseDateUTC(p.created_at).toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo' })} ${parseDateUTC(p.created_at).toLocaleTimeString('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit' })}</div>
                 </div>
                 <div style="text-align:right;">
                     ${p.resgatado
