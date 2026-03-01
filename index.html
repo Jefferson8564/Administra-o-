@@ -1858,7 +1858,7 @@ async function loadOrders() {
 
     const phonesComEndereco = new Set();
     (clientes || []).forEach(c => phonesComEndereco.add(c.phone));
-    const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r["Rotas"] || r.nome || "Sem nome" }));
+    const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r["rotas"] || r.nome || "Sem nome" }));
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
@@ -3740,9 +3740,26 @@ async function preencherClientesComPedido() {
     _paradaSelecionados = [];
     _atualizarBtnSelecionados();
 
-    const phonesNaRota = new Set((rotaParadas || []).map(p => p.cliente_phone));
-    const comEndereco = clientesCache.filter(c => c.delivery_lat && c.delivery_lon && !phonesNaRota.has(c.phone));
-    const semEndereco = clientesCache.filter(c => (!c.delivery_lat || !c.delivery_lon) && !phonesNaRota.has(c.phone));
+    // Busca TODAS as rotas para saber quais clientes já estão em alguma rota
+    const { data: todasRotasRaw } = await sb.from("rotas").select("id, paradas_template");
+    const phonesEmQualquerRota = new Set();
+    (todasRotasRaw || []).forEach(r => {
+        const template = r.paradas_template || [];
+        template.forEach(p => {
+            if (p.cliente_phone) phonesEmQualquerRota.add(p.cliente_phone);
+        });
+    });
+
+    // Clientes da rota ATUAL ainda aparecem (para poder reordenar/remover)
+    const phonesNaRotaAtual = new Set((rotaParadas || []).map(p => p.cliente_phone));
+
+    // Filtra: remove quem já está em QUALQUER rota, exceto os da rota atual
+    const disponiveis = clientesCache.filter(c =>
+        !phonesEmQualquerRota.has(c.phone) || phonesNaRotaAtual.has(c.phone)
+    );
+
+    const comEndereco = disponiveis.filter(c => c.delivery_lat && c.delivery_lon && !phonesNaRotaAtual.has(c.phone));
+    const semEndereco = disponiveis.filter(c => (!c.delivery_lat || !c.delivery_lon) && !phonesNaRotaAtual.has(c.phone));
 
     // Ordenar: com endereço primeiro, alfabético
     _paradaClientesFiltrados = [
@@ -3828,7 +3845,7 @@ async function carregarRotasHoje() {
     const dia = diaHoje();
     const hoje = hojeStr(); // "2025-02-21"
     const { data: todasRotasRaw } = await sb.from("rotas").select('*').order("hora_saida",{ascending:true});
-    const todasRotas = (todasRotasRaw||[]).map(r => ({ ...r, nome: r['Rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
+    const todasRotas = (todasRotasRaw||[]).map(r => ({ ...r, nome: r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
 
     // Filtra rotas que têm o dia atual marcado (todas as rotas na tabela são normais)
     const rotasDoDia = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
@@ -3887,7 +3904,7 @@ function renderRotasHoje() {
                     ${total>0?`<div style="font-size:11px;color:#9080b8;margin-top:2px;">👥 ${total} clientes · 📦 ${entregues} entregas hoje</div>`:''}
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
-                    <button onclick="abrirParadasRota('${r.id}')" style="padding:5px 10px;background:${cor};color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">📋 Paradas</button>
+                    <button onclick="abrirParadasRota('${r.id}')" style="padding:5px 10px;background:${cor};color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">👥 Crentes</button>
                     ${r.status==='criada'?`<button onclick="excluirRota('${r.id}')" style="padding:5px 10px;background:#fee;color:#e74c3c;border:1px solid #fcc;border-radius:8px;font-size:11px;cursor:pointer;">✕</button>`:''}
                 </div>
             </div>
@@ -3933,10 +3950,12 @@ async function criarRota() {
     const dias = getDiasSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    const {data:nova,error} = await sb.from("rotas").insert({
-        "Rotas": nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
+    // Tenta inserir com coluna 'nome' primeiro; se falhar, tenta 'Rotas' (legado)
+    let nova, error;
+    ({ data: nova, error } = await sb.from("rotas").insert({
+        rotas: nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
         status:'criada', paradas:[], paradas_template:[]
-    }).select().single();
+    }).select().single());
     if (error||!nova) return showToast({type:'confirm',title:'❌ Erro ao criar rota',body: error?.message || 'Verifique sua conexão com o Supabase e tente novamente.',duration:6000});
     document.getElementById('novaRotaForm').style.display = 'none';
     document.getElementById('rotaNome').value = '';
@@ -3952,8 +3971,13 @@ async function criarRota() {
 async function abrirParadasRota(rotaId) {
     const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
     if (!rRaw) return;
-    const r = { ...rRaw, nome: rRaw['Rotas'] || rRaw['nome'] || rRaw['name'] || 'Sem nome' };
+    const r = { ...rRaw, nome: rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || 'Sem nome' };
     rotaAtualId = rotaId;
+    // Garante que clientesCache está carregado
+    if (!clientesCache || clientesCache.length === 0) {
+        const { data: clients } = await sb.from("cadastros").select("*").order("name");
+        clientesCache = clients || [];
+    }
     // Template = clientes fixos da rota (permanentes)
     rotaParadas = r.paradas_template || r.paradas || [];
     document.getElementById('rotaAtualNomeLabel').textContent = r.nome;
@@ -4491,7 +4515,7 @@ async function carregarRotasSalvas() {
         const {data:rotasRaw, error} = await sb.from("rotas").select('*').order("created_at",{ascending:false}).limit(50);
         if (error) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro: ${error.message}</div>`; return; }
         // Normaliza o campo nome (coluna pode chamar "Rotas" com maiúscula)
-        const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['Rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
+        const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
         if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
@@ -4544,9 +4568,10 @@ async function carregarRotasSalvas() {
                         </div>
                         <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
                     </div>
-                    <div style="display:flex;gap:8px;margin-top:10px;">
+                    <div style="display:flex;gap:6px;margin-top:10px;">
+                        <button onclick="abrirParadasRota('${r.id}')" style="flex:2;padding:7px;background:#e8f5e9;color:#27ae60;border:1.5px solid #27ae60;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">👥 Crentes</button>
                         <button onclick="abrirEditarRota('${r.id}')" style="flex:1;padding:7px;background:#f0f8ff;color:#3498db;border:1.5px solid #3498db;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">✏️ Editar</button>
-                        <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                        <button onclick="confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}')" style="flex:1;padding:7px;background:#fff0f0;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗑️</button>
                     </div>
                 </div>`;
             }).join('');
@@ -4661,7 +4686,7 @@ async function executarExcluirRota(rotaId) {
 async function abrirEditarRota(rotaId) {
     const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
     if (!rRaw) return;
-    const r = { ...rRaw, nome: rRaw['Rotas'] || rRaw['nome'] || rRaw['name'] || '' };
+    const r = { ...rRaw, nome: rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || '' };
     rotaEditandoId = rotaId;
     document.getElementById('editRotaNome').value = r.nome || '';
     document.getElementById('editRotaHora').value = r.hora_saida || '05:20';
@@ -4696,7 +4721,7 @@ async function salvarEdicaoRota() {
     const dias = getDiasEditSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    await sb.from("rotas").update({"Rotas": nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
+    await sb.from("rotas").update({rotas: nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
     document.getElementById('modalEditarRota').style.display = 'none';
     rotaEditandoId = null;
     await carregarRotasHoje();
