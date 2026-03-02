@@ -592,6 +592,7 @@
                         </div>
                     </div>
                 </div>
+
                 <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px;font-size:16px;margin-bottom:20px;">✅ Confirmar Compra</button>
 
             </div>
@@ -1442,6 +1443,56 @@ async function executarPayDebt(phone, val) {
         saldo_posterior: novoSaldo,
         tipo: "pagamento"
     });
+
+    // ===== TICKETS DO FIADO =====
+    // O ADM só gera tickets de pagamento fiado.
+    // Pedidos normais geram tickets pelo próprio cardápio (Cliente.html).
+    try {
+        const { data: cfg } = await sb.from('configuracoes').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
+        const valorPorTicket = cfg ? Number(cfg.value) : 0;
+        if (valorPorTicket > 0) {
+            const { data: gt } = await sb.from('game_tickets').select('*').eq('phone', phone).maybeSingle();
+
+            // Acumula só pagamentos de fiado num campo exclusivo
+            const totalFiadoAtual     = gt ? Number(gt.total_gasto_fiado || 0) : 0;
+            const novoTotalFiado      = totalFiadoAtual + val;
+            // Quantos tickets o fiado acumulado dá direito vs. quantos já foram gerados pelo fiado
+            const fiadoJaGerados      = gt ? Number(gt.tickets_fiado_gerados || 0) : 0;
+            const novosTickets        = Math.max(0, Math.floor(novoTotalFiado / valorPorTicket) - fiadoJaGerados);
+
+            // Próxima liberação às 15h
+            const _agora  = new Date();
+            const _p      = _partesSP(_agora);
+            const _hora   = parseInt(_p.hour) * 60 + parseInt(_p.minute);
+            const _lib15h = new Date(`${_p.year}-${_p.month}-${_p.day}T15:00:00-03:00`);
+            const liberarEm = (_hora < 15 * 60 ? _lib15h : new Date(_lib15h.getTime() + 86400000)).toISOString();
+
+            const ticketsPendentes = gt ? (gt.tickets_pendentes || 0) : 0;
+
+            if (gt) {
+                await sb.from('game_tickets').update({
+                    total_gasto_fiado:     novoTotalFiado,
+                    tickets_fiado_gerados: fiadoJaGerados + novosTickets,
+                    ...(novosTickets > 0 ? {
+                        tickets_pendentes: ticketsPendentes + novosTickets,
+                        tickets_liberar_em: gt.tickets_liberar_em || liberarEm
+                    } : {}),
+                    updated_at: new Date().toISOString()
+                }).eq('phone', phone);
+            } else if (novosTickets > 0) {
+                await sb.from('game_tickets').insert({
+                    phone,
+                    tickets: 0,
+                    tickets_pendentes: novosTickets,
+                    total_gasto: 0,
+                    total_gasto_fiado: novoTotalFiado,
+                    tickets_fiado_gerados: novosTickets,
+                    tickets_liberar_em: liberarEm
+                });
+            }
+        }
+    } catch(e) { console.warn('Erro ao gerar tickets do fiado:', e); }
+    // ===== FIM TICKETS FIADO =====
 
     if (input) input.value = '';
     loadAdminClients();
@@ -3679,6 +3730,21 @@ async function executarCancelamento(orderId) {
         } catch(e) { console.warn('Erro ao estornar tickets:', e); }
     }
 
+    // Remove o cliente das paradas ativas de todas as rotas no banco
+    try {
+        const phoneCancel = o.customer_phone;
+        const { data: rotasAtivas } = await sb.from("rotas").select("id, paradas, paradas_template");
+        for (const r of (rotasAtivas || [])) {
+            const paradasAtuais = r.paradas || [];
+            const novasParadas = paradasAtuais.filter(p => p.cliente_phone !== phoneCancel);
+            if (novasParadas.length !== paradasAtuais.length) {
+                await sb.from("rotas").update({ paradas: novasParadas }).eq("id", r.id);
+            }
+        }
+        // Remove também da memória local se a rota estiver carregada
+        rotaParadas = rotaParadas.filter(p => p.cliente_phone !== phoneCancel);
+    } catch(e) { console.warn('Erro ao remover cliente da rota:', e); }
+
     // Remove do mapa e da lista global
     delete historicoMap[orderId];
     _historicoAllData = _historicoAllData.filter(x => x.id !== orderId);
@@ -3865,7 +3931,7 @@ async function carregarRotasHoje() {
         if (r.status === 'criada') {
             const template = r.paradas_template || r.paradas || [];
             if (template.length > 0) {
-                const ativas = await gerarParadasAtivas(template);
+                const ativas = await gerarParadasAtivas(template, r.hora_saida);
                 await sb.from("rotas").update({ paradas: ativas }).eq("id", r.id);
                 r.paradas = ativas;
             }
@@ -4256,7 +4322,7 @@ async function adicionarParadasSelecionadas() {
 
     if (!adicionados) return showToast({type:'confirm',title:'ℹ️',body:'Nenhum cliente novo para adicionar.',duration:2500});
 
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
     await sb.from("rotas").update({
         paradas_template: rotaParadas,
         paradas: paradasAtivas
@@ -4269,19 +4335,37 @@ async function adicionarParadasSelecionadas() {
     showToast({type:'success',title:`✅ ${adicionados} cliente${adicionados!==1?'s':''} adicionado${adicionados!==1?'s':''}!`,body:'Aparecerão nas entregas quando fizerem pedido.',duration:3000});
 }
 
-// Gera lista de paradas ativas do dia: só clientes do template que fizeram pedido hoje
-async function gerarParadasAtivas(template) {
+// Gera lista de paradas ativas do dia:
+// Regra: pedido feito a partir das 14h entra na rota do dia SEGUINTE.
+// Portanto, inclui pedidos de ontem 14h+ E pedidos de hoje até 13:59.
+// Se a rota sair após as 14h, também inclui pedidos de hoje a partir das 14h.
+async function gerarParadasAtivas(template, horaSaida) {
     const hoje = hojeStr();
+
+    // Calcula "ontem" em BRT
+    const _ontemD = new Date();
+    _ontemD.setDate(_ontemD.getDate() - 1);
+    const _pOntem = _partesSP(_ontemD);
+    const ontem = `${_pOntem.year}-${_pOntem.month}-${_pOntem.day}`;
+
+    // Limite superior do pedido de hoje:
+    // Se a rota sai após 14h, aceita pedidos até a hora de saída.
+    // Senão (rota de manhã), só aceita pedidos de hoje até 13:59 — após 14h são do dia seguinte.
+    const _horaSaidaMin = horaSaida ? (parseInt(horaSaida) * 60 + parseInt((horaSaida.split(':')[1]||0))) : 0;
+    const _limiteHoje = _horaSaidaMin >= 14 * 60
+        ? hoje + 'T' + (horaSaida || '23:59') + ':00-03:00'
+        : hoje + 'T13:59:59-03:00';
+
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
 
-    // Busca pedidos E endereços dos clientes em paralelo
+    // Busca pedidos (ontem 14h até limite de hoje) E endereços em paralelo
     const [pedidosRes, clientesRes] = await Promise.all([
         sb.from("pedidos")
-            .select("customer_phone")
+            .select("customer_phone, created_at")
             .in("customer_phone", phones)
-            .gte("created_at", hoje + 'T00:00:00-03:00')
-            .lte("created_at", hoje + 'T23:59:59-03:00'),
+            .gte("created_at", ontem + 'T14:00:00-03:00')
+            .lte("created_at", _limiteHoje),
         sb.from("cadastros")
             .select("phone, delivery_lat, delivery_lon")
             .in("phone", phones)
@@ -4467,7 +4551,7 @@ async function reordenarParada(fromIdx, toIdx) {
     arr.splice(toIdx, 0, moved);
     rotaParadas = arr;
     // Salva no banco
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
     await sb.from("rotas").update({ paradas_template: rotaParadas, paradas: paradasAtivas }).eq("id", rotaAtualId);
     renderParadasList();
     showToast({ type: 'success', title: '✅ Ordem salva!', body: 'Clientes reordenados com sucesso.', duration: 2000 });
@@ -4493,7 +4577,7 @@ function renderParadasAtivasList(paradas) {
 async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
     rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
     await sb.from("rotas").update({
         paradas_template: rotaParadas,
         paradas: paradasAtivas
