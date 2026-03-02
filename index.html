@@ -1445,8 +1445,7 @@ async function executarPayDebt(phone, val) {
     });
 
     // ===== TICKETS DO FIADO =====
-    // O ADM só gera tickets de pagamento fiado.
-    // Pedidos normais geram tickets pelo próprio cardápio (Cliente.html).
+    // O ADM confirma o pagamento → tickets liberados IMEDIATAMENTE (sem esperar horário de liberação).
     try {
         const { data: cfg } = await sb.from('configuracoes').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
         const valorPorTicket = cfg ? Number(cfg.value) : 0;
@@ -1460,34 +1459,26 @@ async function executarPayDebt(phone, val) {
             const fiadoJaGerados      = gt ? Number(gt.tickets_fiado_gerados || 0) : 0;
             const novosTickets        = Math.max(0, Math.floor(novoTotalFiado / valorPorTicket) - fiadoJaGerados);
 
-            // Próxima liberação às 15h
-            const _agora  = new Date();
-            const _p      = _partesSP(_agora);
-            const _hora   = parseInt(_p.hour) * 60 + parseInt(_p.minute);
-            const _lib15h = new Date(`${_p.year}-${_p.month}-${_p.day}T15:00:00-03:00`);
-            const liberarEm = (_hora < 15 * 60 ? _lib15h : new Date(_lib15h.getTime() + 86400000)).toISOString();
-
-            const ticketsPendentes = gt ? (gt.tickets_pendentes || 0) : 0;
+            const ticketsConfirmados = gt ? (gt.tickets || 0) : 0;
 
             if (gt) {
                 await sb.from('game_tickets').update({
                     total_gasto_fiado:     novoTotalFiado,
                     tickets_fiado_gerados: fiadoJaGerados + novosTickets,
+                    // Tickets liberados imediatamente ao confirmar pagamento
                     ...(novosTickets > 0 ? {
-                        tickets_pendentes: ticketsPendentes + novosTickets,
-                        tickets_liberar_em: gt.tickets_liberar_em || liberarEm
+                        tickets: ticketsConfirmados + novosTickets
                     } : {}),
                     updated_at: new Date().toISOString()
                 }).eq('phone', phone);
             } else if (novosTickets > 0) {
                 await sb.from('game_tickets').insert({
                     phone,
-                    tickets: 0,
-                    tickets_pendentes: novosTickets,
+                    tickets: novosTickets,          // já confirmados imediatamente
+                    tickets_pendentes: 0,
                     total_gasto: 0,
                     total_gasto_fiado: novoTotalFiado,
-                    tickets_fiado_gerados: novosTickets,
-                    tickets_liberar_em: liberarEm
+                    tickets_fiado_gerados: novosTickets
                 });
             }
         }
