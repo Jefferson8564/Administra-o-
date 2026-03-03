@@ -1456,21 +1456,26 @@ async function executarPayDebt(phone, val) {
             if (gt) {
                 await sb.from('clientes').update({
                     total_gasto: novoTotalGasto,
-                    tickets: ticketsJaConfirmados + novosTickets,  // liberados na hora
+                    tickets: ticketsJaConfirmados + novosTickets,
+                    tickets_pendentes: 0,
                     updated_at: new Date().toISOString()
                 }).eq('phone', phone);
             } else {
-                // Cliente ainda não tem registro de tickets → cria
                 await sb.from('clientes').update({
-                    phone,
                     tickets: novosTickets,
                     tickets_pendentes: 0,
-                    total_gasto: novoTotalGasto
-                });
+                    total_gasto: novoTotalGasto,
+                    updated_at: new Date().toISOString()
+                }).eq('phone', phone);
             }
 
             if (novosTickets > 0) {
-                console.log(`🎟️ ${novosTickets} ticket(s) liberado(s) para ${phone} após pagamento de R$ ${val.toFixed(2)}`);
+                showToast({
+                    type: 'success',
+                    title: `🎟️ ${novosTickets} ticket${novosTickets > 1 ? 's' : ''} liberado${novosTickets > 1 ? 's' : ''}!`,
+                    body: `${c.name} atingiu o valor e ganhou ${novosTickets} ticket${novosTickets > 1 ? 's' : ''} ao confirmar o pagamento! 🎉`,
+                    duration: 6000
+                });
             }
         }
     } catch(e) { console.warn('Erro ao gerar tickets do fiado:', e); }
@@ -3302,6 +3307,31 @@ async function executarCompra(total, pedidoTexto) {
         const { data: c } = await sb.from("clientes").select("debt").eq("phone", compraClienteAtual.phone).single();
         await sb.from("clientes").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
     }
+
+    // ===== TICKETS: pagamento à vista → acumula em pendentes (libera no horário configurado) =====
+    if (compraPagamento !== 'FIADO') {
+        try {
+            const { data: cfgTk } = await sb.from('configs').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
+            const valorPorTicket = cfgTk ? Number(cfgTk.value) : 0;
+            if (valorPorTicket > 0) {
+                const phoneCliente = compraClienteAtual.phone;
+                const { data: gt } = await sb.from('clientes').select('tickets,tickets_pendentes,total_gasto').eq('phone', phoneCliente).maybeSingle();
+
+                const totalGastoAtual      = gt ? Number(gt.total_gasto || 0) : 0;
+                const novoTotalGasto       = totalGastoAtual + total;
+                const ticketsJaConfirmados = gt ? Number(gt.tickets || 0) : 0;
+                const ticketsTotais        = Math.floor(novoTotalGasto / valorPorTicket);
+                const novosPendentes       = Math.max(0, ticketsTotais - ticketsJaConfirmados);
+
+                await sb.from('clientes').update({
+                    total_gasto: novoTotalGasto,
+                    tickets_pendentes: novosPendentes,
+                    updated_at: new Date().toISOString()
+                }).eq('phone', phoneCliente);
+            }
+        } catch(e) { console.warn('Erro ao gerar tickets pendentes da compra admin:', e); }
+    }
+    // ===== FIM TICKETS COMPRA ADMIN =====
 
     // ===== ROTA ALEATÓRIA: mesmo comportamento do cardápio =====
     try {
