@@ -1019,10 +1019,11 @@ async function verificarExecucoesPerdidas() {
         const jaExecutouHoje = ultimaExec.startsWith(hoje);
         const horario = getHorarioRefazer();
         const [hh, mm] = horario.split(':').map(Number);
-        const agora = new Date();
-        const hojeAlvo = new Date(agora);
-        hojeAlvo.setHours(hh, mm, 0, 0);
-        const passouHorario = agora >= hojeAlvo;
+        // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
+        const agoraSP = horasBRT(new Date());
+        const hojeAlvoSP = new Date(agoraSP);
+        hojeAlvoSP.setHours(hh, mm, 0, 0);
+        const passouHorario = agoraSP >= hojeAlvoSP;
 
         if (passouHorario && !jaExecutouHoje) {
             console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
@@ -1038,9 +1039,11 @@ async function verificarExecucoesPerdidas() {
         const exec = cfg['exec' + slot] || '11:00';
         const [hh, mm] = exec.split(':').map(Number);
         const agora = new Date();
-        const hojeAlvo = new Date(agora);
+        // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
+        const agoraSP = horasBRT(agora);
+        const hojeAlvo = new Date(agoraSP);
         hojeAlvo.setHours(hh, mm, 0, 0);
-        const passouHorario = agora >= hojeAlvo;
+        const passouHorario = agoraSP >= hojeAlvo;
 
         const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
         const jaExecutouHoje = log.some(function(entry) { return entry.slot === slot && entry.ts && entry.ts.startsWith(hoje); });
@@ -1881,7 +1884,7 @@ async function loadOrders() {
     // Busca pedidos + rotas + clientes em paralelo
     const [{ data, error }, { data: rotasRaw }, { data: clientes }] = await Promise.all([
         sb.from("pedidos").select("*").order("created_at", { ascending: true }).limit(200),
-        sb.from("rotas").select("id,Rotas,hora_saida,paradas_template,paradas").order("hora_saida", { ascending: true }),
+        sb.from("rotas").select("id,nome_rota,paradas,status").order("created_at", { ascending: true }),
         sb.from("clientes").select("phone,delivery_lat,delivery_lon").not("delivery_lat","is",null).not("delivery_lon","is",null)
     ]);
 
@@ -1902,7 +1905,7 @@ async function loadOrders() {
     // Monta mapa phone → { rotaNome, posicao } usando paradas_template (ordem real na rota)
     const phoneParaRota = {}; // phone → { nome, posicao }
     todasRotas.forEach(r => {
-        const paradas = r.paradas_template || r.paradas || [];
+        const paradas = (r.paradas || []).filter(x => !x._meta);
         paradas.forEach((p, idx) => {
             if (!p.cliente_phone) return;
             if (!phoneParaRota[p.cliente_phone]) {
@@ -1953,7 +1956,7 @@ async function loadOrders() {
     const rotasOrdenadas = Object.keys(grupos).sort((a, b) => {
         const rA = todasRotas.find(r => r.nome === a);
         const rB = todasRotas.find(r => r.nome === b);
-        return (rA?.hora_saida || '').localeCompare(rB?.hora_saida || '');
+        return (getMetaRota(rA).hora_saida || '').localeCompare(getMetaRota(rB).hora_saida || '');
     });
     rotasOrdenadas.forEach(nome => {
         abas.push({ label: '🗺️ ' + nome, orders: grupos[nome], cor: '#1e8449' });
@@ -2315,10 +2318,12 @@ function agendarZerar(slot) {
     const exec = document.getElementById(`zerarExec${slot}`)?.value || cfg[`exec${slot}`] || '11:00';
     const [hh, mm] = exec.split(':').map(Number);
     const agora = new Date();
-    const alvo = new Date(agora);
-    alvo.setHours(hh, mm, 0, 0);
-    if (agora >= alvo) alvo.setDate(alvo.getDate() + 1);
-    const ms = alvo - agora;
+    // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
+    const agoraSP = horasBRT(agora);
+    const alvoSP = new Date(agoraSP);
+    alvoSP.setHours(hh, mm, 0, 0);
+    if (agoraSP >= alvoSP) alvoSP.setDate(alvoSP.getDate() + 1);
+    const ms = alvoSP - agoraSP;
     zerarTimers[slot-1] = setTimeout(async () => {
         await executarZerarJanela(slot);
         const cfgAtual = getConfigZerar();
@@ -2535,13 +2540,15 @@ function agendarAutoRefazer() {
     const horario = getHorarioRefazer();
     const [hh, mm] = horario.split(':').map(Number);
     const agora = new Date();
-    const hojeAlvo = new Date(agora);
+    // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
+    const agoraSP = horasBRT(agora);
+    const hojeAlvo = new Date(agoraSP);
     hojeAlvo.setHours(hh, mm, 0, 0);
-    const hojeAlvoFim = new Date(agora);
+    const hojeAlvoFim = new Date(agoraSP);
     hojeAlvoFim.setHours(hh + 2, mm, 0, 0); // janela de 2h após o horário
 
     // Se está dentro da janela (horário até horário+2h), verifica se já executou hoje
-    if (agora >= hojeAlvo && agora < hojeAlvoFim) {
+    if (agoraSP >= hojeAlvo && agoraSP < hojeAlvoFim) {
         const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
         let jaExecutouHoje = false;
         if (ultimaExec) {
@@ -2562,11 +2569,12 @@ function agendarAutoRefazer() {
         }
     }
 
-    // Agenda para o próximo disparo
-    const proximo = new Date(agora);
-    proximo.setHours(hh, mm, 0, 0);
-    if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
-    const msAte = proximo - agora;
+    // Agenda para o próximo disparo em SP
+    const proximoSP = new Date(agoraSP);
+    proximoSP.setHours(hh, mm, 0, 0);
+    if (agoraSP >= proximoSP) proximoSP.setDate(proximoSP.getDate() + 1);
+    // Converte o delta SP -> real (ambos são "espelhados", então o diff em ms é correto)
+    const msAte = proximoSP - agoraSP;
     autoRefazerTimer = setTimeout(async () => {
         await executarAutoRefazer();
         if (localStorage.getItem('autoRefazer_ativo') === '1') {
@@ -2816,8 +2824,8 @@ function cancelarPedidoAutoRefazer(execIndex, orderId, phone, total, name) {
 async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total, name) {
     closeToast();
 
-    // Remove o pedido
-    await sb.from("pedidos").delete().eq("id", orderId);
+    // Marca como cancelado (mantém histórico)
+    await sb.from("pedidos").update({ status: 'cancelado', entregue: false }).eq("id", orderId);
 
     // Estorna do fiado
     const { data: c } = await sb.from("clientes").select("debt").eq("phone", phone).single();
@@ -3333,9 +3341,59 @@ async function executarCompra(total, pedidoTexto) {
     }
     // ===== FIM TICKETS COMPRA ADMIN =====
 
+    // ===== ROTA FIXA: adiciona cliente nas paradas se estiver no template =====
+    try {
+        const cli = compraClienteAtual;
+        if (cli?.delivery_lat && cli?.delivery_lon) {
+            const TZ = 'America/Sao_Paulo';
+            const _agora = new Date();
+            const _hStr = _agora.toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+            const [_hh, _mm] = _hStr.split(':').map(Number);
+            const eParaAmanha = (_hh * 60 + _mm) >= (14 * 60 + 30);
+
+            // Só adiciona nas paradas de hoje se o pedido for de hoje
+            if (!eParaAmanha) {
+                const { data: rotasComCliente } = await sb.from('rotas')
+                    .select('id, paradas, status')
+                    .in('status', ['criada', 'aguardando']);
+
+                for (const rota of (rotasComCliente || [])) {
+                    const template = (rota.paradas || []).filter(x => x._meta);
+                    const estaNoTemplate = (rota.paradas || []).find(p => !p._meta && p.cliente_phone === cli.phone);
+                    if (!estaNoTemplate) continue;
+
+                    const paradasAtuais = (rota.paradas || []);
+                    const jaAtiva = paradasAtuais.find(p => !p._meta && p.cliente_phone === cli.phone && p.status !== undefined);
+                    if (jaAtiva) continue;
+
+                    const tmpl = paradasAtuais.find(p => !p._meta && p.cliente_phone === cli.phone);
+                    if (!tmpl) continue;
+
+                    const novaParada = {
+                        ...tmpl,
+                        coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
+                        endereco: tmpl.endereco || cli.delivery_address || '',
+                        nome: tmpl.nome || cli.name,
+                        status: 'pendente'
+                    };
+
+                    // Insere mantendo a ordem do template
+                    const semMeta = paradasAtuais.filter(p => !p._meta);
+                    const metaEntry = paradasAtuais.find(p => p._meta);
+                    const idxTemplate = semMeta.findIndex(p => p.cliente_phone === cli.phone);
+                    const novasParadas = [...semMeta];
+                    novasParadas[idxTemplate] = novaParada;
+                    const final = metaEntry ? [metaEntry, ...novasParadas] : novasParadas;
+                    await sb.from('rotas').update({ paradas: final }).eq('id', rota.id);
+                }
+            }
+        }
+    } catch(e) { console.warn('Rota fixa compra admin:', e); }
+    // ===== FIM ROTA FIXA =====
+
     // ===== ROTA ALEATÓRIA: mesmo comportamento do cardápio =====
     try {
-        const { data: raData } = await sb.from('rota_especial_gps')
+        const { data: raData } = await sb.from('gps')
             .select('valor').eq('chave', RA_CHAVE).maybeSingle();
         if (raData?.valor) {
             let raConfig = JSON.parse(raData.valor);
@@ -3373,7 +3431,7 @@ async function executarCompra(total, pedidoTexto) {
                                 status: 'pendente'
                             });
                             raConfig.clientes_fila = fila;
-                            await sb.from('rota_especial_gps').upsert(
+                            await sb.from('gps').upsert(
                                 { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
                                 { onConflict: 'chave' }
                             );
@@ -3672,8 +3730,8 @@ async function executarCancelamento(orderId) {
     const o = historicoMap[orderId];
     if (!o) return;
 
-    // Remove o pedido
-    await sb.from("pedidos").delete().eq("id", orderId);
+    // Marca como cancelado (mantém histórico, remove do status de entrega)
+    await sb.from("pedidos").update({ status: 'cancelado', entregue: false }).eq("id", orderId);
 
     const isFiado = (o.payment_method || '').toUpperCase() === 'FIADO';
 
@@ -3715,7 +3773,7 @@ async function executarCancelamento(orderId) {
     // Remove o cliente das paradas ativas de todas as rotas no banco
     try {
         const phoneCancel = o.customer_phone;
-        const { data: rotasAtivas } = await sb.from("rotas").select("id, paradas, paradas_template");
+        const { data: rotasAtivas } = await sb.from("rotas").select("id, paradas");
         for (const r of (rotasAtivas || [])) {
             const paradasAtuais = r.paradas || [];
             const novasParadas = paradasAtuais.filter(p => p.cliente_phone !== phoneCancel);
@@ -3789,10 +3847,10 @@ async function preencherClientesComPedido() {
     _atualizarBtnSelecionados();
 
     // Busca TODAS as rotas para saber quais clientes já estão em alguma rota
-    const { data: todasRotasRaw } = await sb.from("rotas").select("id, paradas_template");
+    const { data: todasRotasRaw } = await sb.from("rotas").select("id, paradas");
     const phonesEmQualquerRota = new Set();
     (todasRotasRaw || []).forEach(r => {
-        const template = r.paradas_template || [];
+        const template = (r.paradas || []).filter(x => !x._meta);
         template.forEach(p => {
             if (p.cliente_phone) phonesEmQualquerRota.add(p.cliente_phone);
         });
@@ -3892,11 +3950,11 @@ function _atualizarBtnSelecionados() {
 async function carregarRotasHoje() {
     const dia = diaHoje();
     const hoje = hojeStr(); // "2025-02-21"
-    const { data: todasRotasRaw } = await sb.from("rotas").select('*').order("hora_saida",{ascending:true});
-    const todasRotas = (todasRotasRaw||[]).map(r => ({ ...r, nome: r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
+    const { data: todasRotasRaw } = await sb.from("rotas").select('*').order("created_at",{ascending:true});
+    const todasRotas = (todasRotasRaw||[]).map(r => ({ ...r, nome: r['nome_rota'] || r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
 
     // Filtra rotas que têm o dia atual marcado (todas as rotas na tabela são normais)
-    const rotasDoDia = (todasRotas||[]).filter(r => r.dias_semana && r.dias_semana.includes(dia));
+    const rotasDoDia = (todasRotas||[]).filter(r => getDiasSemanaRota(r) && getDiasSemanaRota(r).includes(dia));
 
     // Calcula o status efetivo de cada rota baseado em se a ação foi HOJE
     rotasHoje = rotasDoDia.map(r => {
@@ -3911,16 +3969,16 @@ async function carregarRotasHoje() {
     // Para cada rota no status "criada", regenera as paradas ativas do dia automaticamente
     for (const r of rotasHoje) {
         if (r.status === 'criada') {
-            const template = r.paradas_template || r.paradas || [];
+            const template = (r.paradas || []).filter(x => !x._meta);
             if (template.length > 0) {
-                const ativas = await gerarParadasAtivas(template, r.hora_saida);
+                const ativas = await gerarParadasAtivas(template, getMetaRota(r).hora_saida);
                 await sb.from("rotas").update({ paradas: ativas }).eq("id", r.id);
                 r.paradas = ativas;
             }
         }
     }
 
-    filaRotas = rotasHoje.filter(r => r.status !== 'concluido').sort((a,b)=>(a.hora_saida||'00:00').localeCompare(b.hora_saida||'00:00'));
+    filaRotas = rotasHoje.filter(r => r.status !== 'concluido').sort((a,b)=>(getMetaRota(a).hora_saida||'00:00').localeCompare(getMetaRota(b).hora_saida||'00:00'));
     const emAndamento = rotasHoje.find(r => r.status === 'em_andamento');
     if (emAndamento) {
         rotaAtualId = emAndamento.id;
@@ -3947,7 +4005,7 @@ function renderRotasHoje() {
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div style="flex:1;">
                     <div style="font-weight:800;font-size:14px;">${r.nome}</div>
-                    <div style="font-size:11px;color:#9080b8;margin-top:2px;">⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:2px;">⏰ ${getMetaRota(r).hora_saida||'--'} · Raio: ${getMetaRota(r).raio_fabrica||20}m</div>
                     <div style="font-size:12px;font-weight:700;color:${cor};margin-top:4px;${pulse}">${labelStatus[r.status]||r.status}</div>
                     ${total>0?`<div style="font-size:11px;color:#9080b8;margin-top:2px;">👥 ${total} clientes · 📦 ${entregues} entregas hoje</div>`:''}
                 </div>
@@ -3991,6 +4049,17 @@ function getDiasSelecionados() {
     return [...document.querySelectorAll('[data-dia]')].filter(el=>el.dataset.ativo==='true').map(el=>el.dataset.dia);
 }
 
+
+// Extrai dias_semana do metadado salvo em paradas_template
+function getDiasSemanaRota(r) {
+    const pt = r.paradas || [];
+    const meta = pt.find(x => x._meta);
+    return meta ? (meta.dias_semana || []) : [];
+}
+function getMetaRota(r) {
+    const pt = r.paradas || [];
+    return pt.find(x => x._meta) || {};
+}
 async function criarRota() {
     const nome = document.getElementById('rotaNome').value.trim();
     const hora = document.getElementById('rotaHoraSaida').value;
@@ -4001,8 +4070,9 @@ async function criarRota() {
     // Tenta inserir com coluna 'nome' primeiro; se falhar, tenta 'Rotas' (legado)
     let nova, error;
     ({ data: nova, error } = await sb.from("rotas").insert({
-        rotas: nome, dias_semana:dias, hora_saida:hora, raio_fabrica:raio,
-        status:'criada', paradas:[], paradas_template:[]
+        nome_rota: nome,
+        status: 'criada',
+        paradas: [{ _meta: true, dias_semana: dias, hora_saida: hora, raio_fabrica: raio }]
     }).select().single());
     if (error||!nova) return showToast({type:'confirm',title:'❌ Erro ao criar rota',body: error?.message || 'Verifique sua conexão com o Supabase e tente novamente.',duration:6000});
     document.getElementById('novaRotaForm').style.display = 'none';
@@ -4019,7 +4089,7 @@ async function criarRota() {
 async function abrirParadasRota(rotaId) {
     const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
     if (!rRaw) return;
-    const r = { ...rRaw, nome: rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || 'Sem nome' };
+    const r = { ...rRaw, nome: rRaw['nome_rota'] || rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || 'Sem nome' };
     rotaAtualId = rotaId;
     // Garante que clientesCache está carregado
     if (!clientesCache || clientesCache.length === 0) {
@@ -4027,7 +4097,7 @@ async function abrirParadasRota(rotaId) {
         clientesCache = clients || [];
     }
     // Template = clientes fixos da rota (permanentes)
-    rotaParadas = r.paradas_template || r.paradas || [];
+    rotaParadas = (r.paradas || []).filter(x => !x._meta);
     document.getElementById('rotaAtualNomeLabel').textContent = r.nome;
     document.getElementById('addParadaRotaNome').textContent = r.nome;
     document.getElementById('addParadaBox').style.display = 'block';
@@ -4304,11 +4374,12 @@ async function adicionarParadasSelecionadas() {
 
     if (!adicionados) return showToast({type:'confirm',title:'ℹ️',body:'Nenhum cliente novo para adicionar.',duration:2500});
 
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
-    await sb.from("rotas").update({
-        paradas_template: rotaParadas,
-        paradas: paradasAtivas
-    }).eq("id", rotaAtualId);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
+    // Preserva metadado de dias_semana ao salvar paradas
+    const { data: _rotaMeta2 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
+    const _metaEntry2 = (_rotaMeta2?.paradas || []).find(x => x._meta);
+    const _ptComMeta2 = _metaEntry2 ? [_metaEntry2, ...rotaParadas] : rotaParadas;
+    await sb.from("rotas").update({ paradas: _ptComMeta2 }).eq("id", rotaAtualId);
 
     _paradaSelecionados = [];
     document.getElementById('paradaBusca').value = '';
@@ -4322,6 +4393,8 @@ async function adicionarParadasSelecionadas() {
 // Portanto, inclui pedidos de ontem 14h+ E pedidos de hoje até 13:59.
 // Se a rota sair após as 14h, também inclui pedidos de hoje a partir das 14h.
 async function gerarParadasAtivas(template, horaSaida) {
+    // Remove entradas de metadado (_meta) antes de processar o template
+    template = (template || []).filter(x => !x._meta);
     const hoje = hojeStr();
 
     // Calcula "ontem" em BRT
@@ -4334,9 +4407,9 @@ async function gerarParadasAtivas(template, horaSaida) {
     // Se a rota sai após 14h, aceita pedidos até a hora de saída.
     // Senão (rota de manhã), só aceita pedidos de hoje até 13:59 — após 14h são do dia seguinte.
     const _horaSaidaMin = horaSaida ? (parseInt(horaSaida) * 60 + parseInt((horaSaida.split(':')[1]||0))) : 0;
-    const _limiteHoje = _horaSaidaMin >= 14 * 60
+    const _limiteHoje = _horaSaidaMin >= (14 * 60 + 30)
         ? hoje + 'T' + (horaSaida || '23:59') + ':00-03:00'
-        : hoje + 'T13:59:59-03:00';
+        : hoje + 'T14:29:59-03:00';
 
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
@@ -4346,7 +4419,7 @@ async function gerarParadasAtivas(template, horaSaida) {
         sb.from("pedidos")
             .select("customer_phone, created_at")
             .in("customer_phone", phones)
-            .gte("created_at", ontem + 'T14:00:00-03:00')
+            .gte("created_at", ontem + 'T14:30:00-03:00')
             .lte("created_at", _limiteHoje),
         sb.from("clientes")
             .select("phone, delivery_lat, delivery_lon")
@@ -4533,8 +4606,12 @@ async function reordenarParada(fromIdx, toIdx) {
     arr.splice(toIdx, 0, moved);
     rotaParadas = arr;
     // Salva no banco
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
-    await sb.from("rotas").update({ paradas_template: rotaParadas, paradas: paradasAtivas }).eq("id", rotaAtualId);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
+    // Preserva metadado de dias_semana ao salvar paradas
+    const { data: _rotaMeta1 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
+    const _metaEntry1 = (_rotaMeta1?.paradas || []).find(x => x._meta);
+    const _ptComMeta1 = _metaEntry1 ? [_metaEntry1, ...rotaParadas] : rotaParadas;
+    await sb.from("rotas").update({ paradas: _ptComMeta1 }).eq("id", rotaAtualId);
     renderParadasList();
     showToast({ type: 'success', title: '✅ Ordem salva!', body: 'Clientes reordenados com sucesso.', duration: 2000 });
 }
@@ -4559,11 +4636,12 @@ function renderParadasAtivasList(paradas) {
 async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
     rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj?.hora_saida);
-    await sb.from("rotas").update({
-        paradas_template: rotaParadas,
-        paradas: paradasAtivas
-    }).eq("id", rotaAtualId);
+    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
+    // Preserva metadado de dias_semana ao salvar paradas
+    const { data: _rotaMeta3 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
+    const _metaEntry3 = (_rotaMeta3?.paradas || []).find(x => x._meta);
+    const _ptComMeta3 = _metaEntry3 ? [_metaEntry3, ...rotaParadas] : rotaParadas;
+    await sb.from("rotas").update({ paradas: _ptComMeta3 }).eq("id", rotaAtualId);
     renderParadasList();
     preencherClientesComPedido();
     showToast({type:'success',title:'✅ Removido!',body:'Cliente removido da rota.',duration:2000});
@@ -4581,7 +4659,7 @@ async function carregarRotasSalvas() {
         const {data:rotasRaw, error} = await sb.from("rotas").select('*').order("created_at",{ascending:false}).limit(50);
         if (error) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro: ${error.message}</div>`; return; }
         // Normaliza o campo nome (coluna pode chamar "Rotas" com maiúscula)
-        const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
+        const rotas = (rotasRaw||[]).map(r => ({ ...r, nome: r['nome_rota'] || r['rotas'] || r['nome'] || r['name'] || 'Sem nome' }));
         if (!rotas||rotas.length===0) { list.innerHTML='<div style="text-align:center;color:#9080b8;padding:20px;font-size:13px;">Nenhuma rota salva</div>'; return; }
     const corS={criada:'#f1c40f',aguardando:'#3498db',em_andamento:'#27ae60',concluido:'#95a5a6'};
     const labS={criada:'⏳ Criada',aguardando:'🏭 Aguardando',em_andamento:'🛵 Em andamento',concluido:'✅ Concluída'};
@@ -4621,15 +4699,15 @@ async function carregarRotasSalvas() {
     if (rotasNormais.length > 0) {
         htmlNormais = `<div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🗺️ Rotas Normais</div>` +
             rotasNormais.map(r=>{
-                const entregues=(r.paradas_template||r.paradas||[]).filter(p=>p.status==='entregue').length;
-                const total=(r.paradas_template||r.paradas||[]).length;
+                const entregues=(r.paradas||[]).filter(p=>!p._meta && p.status==='entregue').length;
+                const total=(r.paradas||[]).filter(p=>!p._meta).length;
                 const dur=(r.saida_em&&r.fim_em)?Math.round((parseDateUTC(r.fim_em)-parseDateUTC(r.saida_em))/60000)+' min':'--';
                 const cor=corS[r.status]||'#ccc';
                 return `<div style="background:#f8f9fa;border-radius:12px;padding:12px;margin-bottom:8px;border-left:4px solid ${cor};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                         <div style="flex:1;">
                             <div style="font-weight:700;font-size:13px;">${r.nome}</div>
-                            <div style="font-size:11px;color:#9080b8;margin-top:2px;">${(r.dias_semana||[]).join(' ')} · ⏰ ${r.hora_saida||'--'} · Raio: ${r.raio_fabrica||20}m</div>
+                            <div style="font-size:11px;color:#9080b8;margin-top:2px;">${(getDiasSemanaRota(r)||[]).join(' ')} · ⏰ ${getMetaRota(r).hora_saida||'--'} · Raio: ${getMetaRota(r).raio_fabrica||20}m</div>
                             <div style="margin-top:4px;font-size:11px;color:#777;">📦 ${total} paradas · ⏱️ ${dur}</div>
                         </div>
                         <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${cor}22;color:${cor};white-space:nowrap;">${labS[r.status]||r.status}</span>
@@ -4752,14 +4830,14 @@ async function executarExcluirRota(rotaId) {
 async function abrirEditarRota(rotaId) {
     const {data:rRaw} = await sb.from("rotas").select('*').eq("id",rotaId).single();
     if (!rRaw) return;
-    const r = { ...rRaw, nome: rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || '' };
+    const r = { ...rRaw, nome: rRaw['nome_rota'] || rRaw['rotas'] || rRaw['nome'] || rRaw['name'] || '' };
     rotaEditandoId = rotaId;
     document.getElementById('editRotaNome').value = r.nome || '';
-    document.getElementById('editRotaHora').value = r.hora_saida || '05:20';
-    document.getElementById('editRotaRaio').value = r.raio_fabrica || 20;
+    document.getElementById('editRotaHora').value = getMetaRota(r).hora_saida || '05:20';
+    document.getElementById('editRotaRaio').value = getMetaRota(r).raio_fabrica || 20;
     // Marca os dias
     document.querySelectorAll('[data-edit-dia]').forEach(el => {
-        const ativo = (r.dias_semana||[]).includes(el.dataset.editDia);
+        const ativo = (getDiasSemanaRota(r)||[]).includes(el.dataset.editDia || el.dataset.dia);
         el.dataset.ativo = ativo ? 'true' : 'false';
         el.style.border = ativo ? '2px solid #27ae60' : '2px solid #eee';
         el.style.background = ativo ? 'linear-gradient(135deg,#e8f5e9,#f1fff4)' : '#fafafa';
@@ -4787,7 +4865,11 @@ async function salvarEdicaoRota() {
     const dias = getDiasEditSelecionados();
     if (!nome) return showToast({type:'confirm',title:'⚠️',body:'Digite o nome da rota.',duration:2500});
     if (dias.length===0) return showToast({type:'confirm',title:'⚠️',body:'Selecione pelo menos um dia.',duration:2500});
-    await sb.from("rotas").update({rotas: nome, hora_saida:hora, raio_fabrica:raio, dias_semana:dias}).eq("id", rotaEditandoId);
+    // Preserva paradas existentes e atualiza metadado
+    const { data: rotaAtual2 } = await sb.from("rotas").select("paradas").eq("id", rotaEditandoId).single();
+    const ptEdit = (rotaAtual2?.paradas || []).filter(x => !x._meta);
+    ptEdit.unshift({ _meta: true, dias_semana: dias, hora_saida: hora, raio_fabrica: raio });
+    await sb.from("rotas").update({ nome_rota: nome, paradas: ptEdit }).eq("id", rotaEditandoId);
     document.getElementById('modalEditarRota').style.display = 'none';
     rotaEditandoId = null;
     await carregarRotasHoje();
@@ -4816,7 +4898,7 @@ async function loadRotaAleatoria() {
 }
 
 async function buscarConfigRA() {
-    const { data } = await sb.from('rota_especial_gps')
+    const { data } = await sb.from('gps')
         .select('valor').eq('chave', RA_CHAVE).maybeSingle();
     if (data?.valor) {
         try { raConfig = JSON.parse(data.valor); } catch(e) { raConfig = null; }
@@ -4907,7 +4989,7 @@ async function toggleDiaRA(btn, dia) {
 
 // ---------- SALVAR NO SUPABASE ----------
 async function _salvarRA() {
-    await sb.from('rota_especial_gps').upsert(
+    await sb.from('gps').upsert(
         { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
         { onConflict: 'chave' }
     );
@@ -5131,7 +5213,7 @@ async function atualizarStatusHomeRA() {
     if (!el) return;
     if (!raConfig) {
         // Tenta buscar rápido
-        const { data } = await sb.from('rota_especial_gps').select('valor').eq('chave', RA_CHAVE).maybeSingle();
+        const { data } = await sb.from('gps').select('valor').eq('chave', RA_CHAVE).maybeSingle();
         if (data?.valor) { try { raConfig = JSON.parse(data.valor); } catch(e) {} }
     }
     if (!raConfig || !raConfig.ativa) {
@@ -5151,7 +5233,7 @@ function iniciarRealtimeRA() {
     if (raRealtimeCh) { sb.removeChannel(raRealtimeCh); }
     raRealtimeCh = sb.channel('ra_adm_pedidos')
         // Escuta mudanças na própria config (quando entregador salva algo)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'rota_especial_gps',
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gps',
             filter: `chave=eq.${RA_CHAVE}` }, async () => {
             await buscarConfigRA();
             renderUIRotaAleatoria();
