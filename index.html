@@ -12,7 +12,9 @@
     <style>
         :root { --primary: #c75b24; --success: #25d366; --dark: #1a1a2e; --blue: #3498db; --danger: #e74c3c; --warning: #f1c40f; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #1c0e08; min-height: 100vh; color-scheme: dark; }
+        body { background: #1c0e08; min-height: 100vh; color-scheme: dark; overflow-x: hidden; }
+        html { overflow-x: hidden; }
+        * { box-sizing: border-box; }
 
         /* HEADER */
         .header { background: linear-gradient(135deg, #1a1a2e 0%, #2d1f0e 100%); padding: 18px 20px 14px; color: white; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
@@ -299,7 +301,7 @@
     </div></div>
 
     <!-- SEÇÕES INTERNAS -->
-    <div id="innerApp">
+    <div id="innerApp" style="overflow-x:hidden;">
         <div class="back-area" style="justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
@@ -958,7 +960,7 @@
         </div>
 
         <!-- ===== CONFIG JOGOS ===== -->
-        <div id="section-config-jogos" class="section" style="display:none;padding:20px 16px 40px;max-width:600px;margin:0 auto;">
+        <div id="section-config-jogos" class="section" style="display:none;padding:20px 16px 40px;max-width:600px;margin:0 auto;overflow-x:hidden;">
             <h2 style="font-size:20px;font-weight:900;color:#e8d8f8;margin-bottom:4px;">🎮 Configurações de Jogos</h2>
             <p style="font-size:12px;color:#9080b8;margin-bottom:22px;">Roleta, Foguete e Campo Minado</p>
 
@@ -1052,6 +1054,40 @@ const SUPABASE_URL = "https://vpeyqgijajywgswmezlh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ";
 const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== FUNÇÃO DE DIAGNÓSTICO DO SUPABASE =====
+async function diagnosticarSupabase() {
+    console.log('🔍 Iniciando diagnóstico do Supabase...');
+    try {
+        // Teste de leitura
+        const { data: readTest, error: readErr } = await sb.from('configs').select('*').limit(1);
+        if (readErr) {
+            console.error('❌ ERRO NA LEITURA:', readErr);
+            console.error('📋 Detalhes:', readErr.message, readErr.code);
+            return false;
+        }
+        console.log('✅ Leitura funciona OK');
+        
+        // Teste de escrita
+        const testKey = `test_${Date.now()}`;
+        const { error: writeErr } = await sb.from('configs').insert({ key: testKey, value: 'teste' });
+        if (writeErr) {
+            console.error('❌ ERRO NA ESCRITA:', writeErr);
+            console.error('📋 Detalhes:', writeErr.message, writeErr.code);
+            console.error('⚠️  PROVÁVEL CAUSA: RLS (Row Level Security) bloqueando escrita com chave anônima');
+            return false;
+        }
+        console.log('✅ Escrita funciona OK');
+        
+        // Limpeza do teste
+        await sb.from('configs').delete().eq('key', testKey);
+        console.log('✅ SUPABASE FUNCIONANDO CORRETAMENTE!');
+        return true;
+    } catch(e) {
+        console.error('❌ ERRO INESPERADO:', e);
+        return false;
+    }
+}
 
 // ===== FUSO HORÁRIO SÃO PAULO =====
 const TZ_SP = 'America/Sao_Paulo';
@@ -2407,11 +2443,33 @@ async function loadTemplates() {
 }
 
 async function salvarConfig(key, value) {
-    const { data: existing } = await sb.from("configs").select("id").eq("key", key).maybeSingle();
-    if (existing) {
-        await sb.from("configs").update({ value }).eq("key", key);
-    } else {
-        await sb.from("configs").insert({ key, value });
+    try {
+        const { data: existing, error: selectErr } = await sb.from("configs").select("id").eq("key", key).maybeSingle();
+        if (selectErr) {
+            console.error('❌ Erro ao buscar config:', selectErr);
+            mostrarToast(`❌ Erro ao buscar: ${selectErr.message}`);
+            return;
+        }
+        if (existing) {
+            const { error: updateErr } = await sb.from("configs").update({ value }).eq("key", key);
+            if (updateErr) {
+                console.error('❌ Erro ao atualizar config:', updateErr);
+                mostrarToast(`❌ Erro ao atualizar: ${updateErr.message}`);
+            } else {
+                console.log('✅ Config atualizada:', key);
+            }
+        } else {
+            const { error: insertErr } = await sb.from("configs").insert({ key, value });
+            if (insertErr) {
+                console.error('❌ Erro ao inserir config:', insertErr);
+                mostrarToast(`❌ Erro ao inserir: ${insertErr.message}`);
+            } else {
+                console.log('✅ Config inserida:', key);
+            }
+        }
+    } catch(e) {
+        console.error('❌ Erro inesperado em salvarConfig:', e);
+        mostrarToast(`❌ Erro: ${e.message}`);
     }
 }
 
@@ -5859,7 +5917,7 @@ function renderRoleta() {
 
         el.innerHTML += `
         <div style="background:#110820;border-radius:11px;padding:8px 10px;border:1px solid #2e1f4a;">
-            <div style="display:grid;grid-template-columns:34px 1fr auto 46px 26px;gap:5px;align-items:center;${p.tipo!=='nada'?'margin-bottom:7px;':''}">
+            <div style="display:grid;grid-template-columns:34px 1fr auto 46px;gap:5px;align-items:center;margin-bottom:6px;">
                 <input type="text" value="${p.emoji}" oninput="cfgRoleta[${i}].emoji=this.value"
                     style="padding:3px;border-radius:7px;background:#1a0f2e;color:#e8d8f8;border:1px solid #3e2f5a;font-size:15px;text-align:center;font-family:inherit;">
                 <input type="text" value="${p.nome}" oninput="cfgRoleta[${i}].nome=this.value"
@@ -5869,29 +5927,98 @@ function renderRoleta() {
                     ${opts}
                 </select>
                 <div style="display:flex;align-items:center;gap:2px;">
-                    <input type="number" value="${p.chance}" min="1" max="100" oninput="cfgRoleta[${i}].chance=+this.value"
+                    <input type="number" value="${p.chance}" min="1" max="100" oninput="cfgRoleta[${i}].chance=+this.value;atualizarValidadorRoleta()"
                         style="width:33px;padding:4px 2px;border-radius:7px;background:#1a0f2e;color:#fb923c;border:1px solid #3e2f5a;font-size:12px;font-weight:900;text-align:center;font-family:inherit;">
                     <span style="font-size:9px;color:#6b5e8a;">%</span>
                 </div>
-                <button onclick="cfgRoleta.splice(${i},1);renderRoleta()"
-                    style="padding:3px;border:none;border-radius:7px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;font-size:11px;font-family:inherit;line-height:1;">✕</button>
             </div>
-            ${p.tipo !== 'nada' ? `<div style="display:flex;align-items:center;gap:6px;padding-left:2px;">${extra}</div>` : ''}
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                ${p.tipo !== 'nada' ? `<div style="display:flex;align-items:center;gap:6px;padding-left:2px;flex:1;">${extra}</div>` : '<div></div>'}
+                <button onclick="cfgRoleta.splice(${i},1);renderRoleta();atualizarValidadorRoleta()"
+                    style="padding:4px 9px;border:none;border-radius:7px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;font-size:11px;font-family:inherit;line-height:1;flex-shrink:0;">✕ remover</button>
+            </div>
         </div>`;
     });
 
-    el.innerHTML += `<button onclick="cfgRoleta.push({emoji:'🎁',nome:'Novo Prêmio',tipo:'pessoal',codigo:'',chance:5});renderRoleta()"
+    el.innerHTML += `<button onclick="cfgRoleta.push({emoji:'🎁',nome:'Novo Prêmio',tipo:'pessoal',codigo:'',chance:5});renderRoleta();atualizarValidadorRoleta()"
         style="width:100%;margin-top:6px;padding:7px;border:1.5px dashed rgba(251,146,60,0.3);border-radius:10px;background:transparent;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Adicionar prêmio</button>`;
+    
+    // Atualizar validador após renderizar
+    atualizarValidadorRoleta();
+}
+
+// VALIDADOR DE PORCENTAGEM DA ROLETA
+function atualizarValidadorRoleta() {
+    const total = cfgRoleta.reduce((sum, p) => sum + (p.chance || 0), 0);
+    const validEl = document.getElementById('roletaValidador');
+    
+    if (!validEl) {
+        // Criar elemento se não existir
+        const container = document.getElementById('roletaPremiosList').parentElement;
+        const div = document.createElement('div');
+        div.id = 'roletaValidador';
+        div.style.cssText = 'margin:12px 0;padding:10px 12px;border-radius:10px;text-align:center;font-weight:700;border:2px solid;';
+        container.appendChild(div);
+        return atualizarValidadorRoleta();
+    }
+    
+    const isValid = total === 100;
+    validEl.style.borderColor = isValid ? '#4ade80' : '#ef4444';
+    validEl.style.background = isValid ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)';
+    validEl.style.color = isValid ? '#4ade80' : '#ef4444';
+    validEl.innerHTML = `${isValid ? '✅' : '⚠️'} Total: <strong>${total}%</strong> ${isValid ? '(Perfeito!)' : '(Deve ser 100%)'}`;
+}
+
+// Função original renderRoleta renomeada
+function renderRoletaOriginal() {
 }
 
 async function salvarRoleta() {
+    console.log('🔄 Iniciando salvarRoleta()...');
+    
+    // VALIDAR SE BATE 100%
+    const total = cfgRoleta.reduce((sum, p) => sum + (p.chance || 0), 0);
+    if (total !== 100) {
+        mostrarToast(`⚠️ A soma deve ser 100%! Atualmente: ${total}%`);
+        return;
+    }
+    
+    mostrarToast('⏳ Salvando Roleta...');
+    
     try {
-        await sb.from('jogos_configs').upsert(
-            { jogo: 'roleta', chave: 'premios', valor: JSON.stringify(cfgRoleta), descricao: 'Prêmios da roleta' },
-            { onConflict: 'jogo,chave' }
-        );
-        mostrarToast('✅ Roleta salva!');
-    } catch(e) { mostrarToast('❌ Erro ao salvar roleta'); }
+        const dados = {
+            jogo: 'roleta',
+            chave: 'premios',
+            valor: JSON.stringify(cfgRoleta),
+            descricao: 'Prêmios da roleta'
+        };
+        
+        console.log('📤 Enviando para Supabase:', dados);
+        
+        // Usar UPSERT simples sem maybeSingle
+        const { data, error } = await sb
+            .from('jogos_configs')
+            .upsert(dados, { onConflict: 'jogo,chave' });
+        
+        if (error) {
+            console.error('❌ ERRO ao salvar:', error);
+            mostrarToast(`❌ ERRO: ${error.message}`);
+            return;
+        }
+        
+        console.log('✅ Roleta salva com sucesso!', data);
+        mostrarToast('✅ Roleta salva com sucesso!');
+        
+        // Recarregar dados após salvar
+        setTimeout(() => {
+            console.log('🔄 Recarregando dados...');
+            location.reload();
+        }, 1500);
+        
+    } catch(e) {
+        console.error('❌ ERRO INESPERADO:', e);
+        mostrarToast(`❌ ERRO INESPERADO: ${e.message}`);
+    }
 }
 
 // ── FOGUETE ───────────────────────────────────────────────────────────
@@ -5916,13 +6043,37 @@ function renderFoguete() {
 }
 
 async function salvarFoguete() {
+    console.log('🔄 Iniciando salvarFoguete()...');
+    mostrarToast('⏳ Salvando Foguete...');
+    
     try {
-        await sb.from('jogos_configs').upsert(
-            { jogo: 'foguete', chave: 'faixas', valor: JSON.stringify(cfgFoguete), descricao: 'Faixas de crash do foguete' },
-            { onConflict: 'jogo,chave' }
-        );
-        mostrarToast('✅ Foguete salvo!');
-    } catch(e) { mostrarToast('❌ Erro ao salvar foguete'); }
+        const dados = {
+            jogo: 'foguete',
+            chave: 'faixas',
+            valor: JSON.stringify(cfgFoguete),
+            descricao: 'Faixas de crash do foguete'
+        };
+        
+        console.log('📤 Enviando para Supabase:', dados);
+        
+        const { data, error } = await sb
+            .from('jogos_configs')
+            .upsert(dados, { onConflict: 'jogo,chave' });
+        
+        if (error) {
+            console.error('❌ ERRO ao salvar:', error);
+            mostrarToast(`❌ ERRO: ${error.message}`);
+            return;
+        }
+        
+        console.log('✅ Foguete salvo com sucesso!', data);
+        mostrarToast('✅ Foguete salvo com sucesso!');
+        setTimeout(() => location.reload(), 1500);
+        
+    } catch(e) {
+        console.error('❌ ERRO INESPERADO:', e);
+        mostrarToast(`❌ ERRO: ${e.message}`);
+    }
 }
 
 // ── CAMPO MINADO ──────────────────────────────────────────────────────
@@ -5966,19 +6117,44 @@ function removerPremioMinado(i) {
 }
 
 async function salvarMinado() {
+    console.log('🔄 Iniciando salvarMinado()...');
+    mostrarToast('⏳ Salvando Campo Minado...');
+    
     cfgMinado.banner    = document.getElementById('minadoBanner').value.trim();
     cfgMinado.bombas    = +document.getElementById('minadoBombas').value;
     cfgMinado.armadilha = +document.getElementById('minadoArmadilha').value;
     // Ordena por acertos crescente
     cfgMinado.premios.sort((a,b) => a.acertos - b.acertos);
+    
     try {
-        await sb.from('jogos_configs').upsert(
-            { jogo: 'minado', chave: 'config', valor: JSON.stringify(cfgMinado), descricao: 'Configuração completa do Campo Minado' },
-            { onConflict: 'jogo,chave' }
-        );
-        mostrarToast('✅ Campo Minado salvo!');
+        const dados = {
+            jogo: 'minado',
+            chave: 'config',
+            valor: JSON.stringify(cfgMinado),
+            descricao: 'Configuração completa do Campo Minado'
+        };
+        
+        console.log('📤 Enviando para Supabase:', dados);
+        
+        const { data, error } = await sb
+            .from('jogos_configs')
+            .upsert(dados, { onConflict: 'jogo,chave' });
+        
+        if (error) {
+            console.error('❌ ERRO ao salvar:', error);
+            mostrarToast(`❌ ERRO: ${error.message}`);
+            return;
+        }
+        
+        console.log('✅ Campo Minado salvo com sucesso!', data);
+        mostrarToast('✅ Campo Minado salvo com sucesso!');
         renderPremiosMinado(); // rerender para refletir ordem
-    } catch(e) { mostrarToast('❌ Erro ao salvar'); }
+        setTimeout(() => location.reload(), 1500);
+        
+    } catch(e) { 
+        console.error('❌ ERRO INESPERADO:', e);
+        mostrarToast(`❌ ERRO: ${e.message}`);
+    }
 }
 
 function mostrarToast(msg) {
