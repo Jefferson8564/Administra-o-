@@ -1,11 +1,11 @@
 {
-  "name": "O Rei da Coxinha",
-  "short_name": "Rei da Coxinha",
-  "description": "Peça suas coxinhas favoritas!",
-  "start_url": "./Cardapio.html",
+  "name": "Rei da Coxinha — Admin",
+  "short_name": "Admin",
+  "description": "Painel administrativo",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a0a00",
-  "theme_color": "#f5c842",
+  "background_color": "#0d0720",
+  "theme_color": "#8b5cf6",
   "orientation": "portrait",
   "icons": [
     {
