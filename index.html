@@ -1045,6 +1045,63 @@
                 </div>
                 <button onclick="salvarDiamante()" style="width:100%;margin-top:14px;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#0369a1,#38bdf8);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">💾 Salvar</button>
             </div>
+
+            <!-- DAR MOEDAS MANUALMENTE -->
+            <div style="background:#1a0f2e;border-radius:20px;padding:20px 16px;margin-top:14px;border:1.5px solid rgba(139,92,246,0.3);">
+                <div style="font-size:13px;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🎁 Dar Moedas ao Cliente</div>
+                <div style="font-size:11px;color:#9080b8;margin-bottom:16px;">Adicione tickets ou diamantes manualmente para um cliente</div>
+
+                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">👤 Cliente</div>
+                <select id="darMoedasCliente" onchange="onSelecionarClienteMoeda()" style="width:100%;padding:11px 14px;border-radius:12px;background:#110820;color:#e8d8f8;border:1.5px solid #2e1f4a;font-size:14px;font-family:inherit;margin-bottom:14px;appearance:auto;">
+                    <option value="">— Selecione o cliente —</option>
+                </select>
+
+                <div id="darMoedasSaldoAtual" style="display:none;background:#110820;border-radius:12px;padding:10px 14px;margin-bottom:14px;display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;">
+                        <div>
+                            <div style="font-size:10px;color:#9080b8;margin-bottom:2px;">Tickets atuais</div>
+                            <div id="darMoedasTicketAtual" style="font-size:20px;font-weight:900;color:#fbbf24;">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px;color:#9080b8;margin-bottom:2px;">Diamantes atuais</div>
+                            <div id="darMoedasDiamanteAtual" style="font-size:20px;font-weight:900;color:#38bdf8;">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#fbbf24;margin-bottom:6px;">🎟️ Tickets</div>
+                        <input type="number" id="darMoedasQtdTicket" value="0" min="0" style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#fbbf24;border:1.5px solid #2e1f4a;font-size:20px;font-weight:900;text-align:center;font-family:inherit;">
+                    </div>
+                    <div>
+                        <div style="font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:6px;">💎 Diamantes</div>
+                        <input type="number" id="darMoedasQtdDiamante" value="0" min="0" style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#38bdf8;border:1.5px solid #2e1f4a;font-size:20px;font-weight:900;text-align:center;font-family:inherit;">
+                    </div>
+                </div>
+
+                <button onclick="confirmarDarMoedas()" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a78bfa);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">🎁 Dar Moedas</button>
+            </div>
+
+            <!-- LISTA DE CLIENTES COM MOEDAS -->
+            <div style="background:#1a0f2e;border-radius:20px;padding:20px 16px;margin-top:14px;border:1.5px solid rgba(34,197,94,0.3);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="font-size:13px;font-weight:900;color:#4ade80;text-transform:uppercase;letter-spacing:1px;">👥 Saldo dos Clientes</div>
+                    <button onclick="carregarSaldoClientes()" style="padding:5px 12px;border:none;border-radius:10px;background:rgba(34,197,94,0.15);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Atualizar</button>
+                </div>
+                <div style="font-size:11px;color:#9080b8;margin-bottom:14px;">Clientes com pelo menos 1 ticket ou diamante</div>
+
+                <!-- Filtro -->
+                <div style="display:flex;gap:6px;margin-bottom:12px;">
+                    <button onclick="filtroMoedas='todos';renderSaldoClientes()" id="filtroMoedasTodos" style="flex:1;padding:7px;border:none;border-radius:10px;background:rgba(255,255,255,0.12);color:#e8d8f8;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Todos</button>
+                    <button onclick="filtroMoedas='ticket';renderSaldoClientes()" id="filtroMoedasTicket" style="flex:1;padding:7px;border:none;border-radius:10px;background:rgba(251,191,36,0.1);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🎟️ Tickets</button>
+                    <button onclick="filtroMoedas='diamante';renderSaldoClientes()" id="filtroMoedasDiamante" style="flex:1;padding:7px;border:none;border-radius:10px;background:rgba(56,189,248,0.1);color:#38bdf8;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💎 Diamantes</button>
+                </div>
+
+                <div id="saldoClientesList" style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Toque em 🔄 para carregar</div>
+                </div>
+            </div>
         </div>
 
     </div><!-- /innerApp -->
@@ -5815,6 +5872,119 @@ async function openConfigMoedas() {
         if (cfgTk.data?.value) document.getElementById('valorTicket').value   = cfgTk.data.value;
         if (cfgDi.data?.value) document.getElementById('valorDiamante').value = cfgDi.data.value;
     } catch(e) { console.warn('openConfigMoedas:', e); }
+    // Carregar clientes no select de dar moedas
+    carregarClientesMoedas();
+}
+
+async function carregarClientesMoedas() {
+    try {
+        const { data: clientes } = await sb.from('clientes').select('name,phone').order('name');
+        const sel = document.getElementById('darMoedasCliente');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— Selecione o cliente —</option>';
+        (clientes || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.phone;
+            opt.textContent = c.name;
+            sel.appendChild(opt);
+        });
+    } catch(e) { console.warn('carregarClientesMoedas:', e); }
+}
+
+async function onSelecionarClienteMoeda() {
+    const phone = document.getElementById('darMoedasCliente').value;
+    const box = document.getElementById('darMoedasSaldoAtual');
+    if (!phone) { box.style.display = 'none'; return; }
+    try {
+        const { data: c } = await sb.from('clientes').select('tickets,diamantes').eq('phone', phone).maybeSingle();
+        document.getElementById('darMoedasTicketAtual').textContent   = c?.tickets   ?? 0;
+        document.getElementById('darMoedasDiamanteAtual').textContent = c?.diamantes ?? 0;
+        box.style.display = 'block';
+    } catch(e) { box.style.display = 'none'; }
+}
+
+let _saldoClientesCache = [];
+let filtroMoedas = 'todos';
+
+async function carregarSaldoClientes() {
+    const el = document.getElementById('saldoClientesList');
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
+    try {
+        const { data } = await sb.from('clientes')
+            .select('name,phone,tickets,diamantes')
+            .or('tickets.gt.0,diamantes.gt.0')
+            .order('name');
+        _saldoClientesCache = data || [];
+        renderSaldoClientes();
+    } catch(e) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:13px;">❌ Erro ao carregar</div>';
+    }
+}
+
+function renderSaldoClientes() {
+    const el = document.getElementById('saldoClientesList');
+    // atualizar estilo dos filtros
+    ['Todos','Ticket','Diamante'].forEach(f => {
+        const btn = document.getElementById('filtroMoedas' + f);
+        if (!btn) return;
+        const ativo = filtroMoedas === f.toLowerCase() || (f === 'Todos' && filtroMoedas === 'todos');
+        btn.style.background = ativo
+            ? (f === 'Ticket' ? 'rgba(251,191,36,0.3)' : f === 'Diamante' ? 'rgba(56,189,248,0.3)' : 'rgba(255,255,255,0.25)')
+            : (f === 'Ticket' ? 'rgba(251,191,36,0.1)' : f === 'Diamante' ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.08)');
+    });
+
+    let lista = _saldoClientesCache.filter(c => {
+        if (filtroMoedas === 'ticket')   return (c.tickets   || 0) > 0;
+        if (filtroMoedas === 'diamante') return (c.diamantes || 0) > 0;
+        return (c.tickets || 0) > 0 || (c.diamantes || 0) > 0;
+    });
+
+    if (!lista.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">😕 Nenhum cliente encontrado</div>';
+        return;
+    }
+
+    el.innerHTML = lista.map(c => `
+        <div style="background:#110820;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:800;color:#e8d8f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+                <div style="font-size:11px;color:#9080b8;margin-top:1px;">${c.phone}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+                ${(c.tickets||0) > 0 ? `<div style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:5px 10px;text-align:center;">
+                    <div style="font-size:16px;font-weight:900;color:#fbbf24;">${c.tickets}</div>
+                    <div style="font-size:9px;color:#9080b8;">🎟️</div>
+                </div>` : ''}
+                ${(c.diamantes||0) > 0 ? `<div style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:5px 10px;text-align:center;">
+                    <div style="font-size:16px;font-weight:900;color:#38bdf8;">${c.diamantes}</div>
+                    <div style="font-size:9px;color:#9080b8;">💎</div>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function confirmarDarMoedas() {
+    const phone   = document.getElementById('darMoedasCliente').value;
+    const tickets = parseInt(document.getElementById('darMoedasQtdTicket').value) || 0;
+    const diamantes = parseInt(document.getElementById('darMoedasQtdDiamante').value) || 0;
+    if (!phone) { mostrarToast('⚠️ Selecione um cliente'); return; }
+    if (tickets === 0 && diamantes === 0) { mostrarToast('⚠️ Informe ao menos 1 moeda'); return; }
+    try {
+        const { data: c } = await sb.from('clientes').select('tickets,diamantes,name').eq('phone', phone).maybeSingle();
+        const novosTickets   = (c?.tickets   || 0) + tickets;
+        const novosDiamantes = (c?.diamantes || 0) + diamantes;
+        await sb.from('clientes').update({ tickets: novosTickets, diamantes: novosDiamantes }).eq('phone', phone);
+        document.getElementById('darMoedasTicketAtual').textContent   = novosTickets;
+        document.getElementById('darMoedasDiamanteAtual').textContent = novosDiamantes;
+        document.getElementById('darMoedasQtdTicket').value   = 0;
+        document.getElementById('darMoedasQtdDiamante').value = 0;
+        const msgs = [];
+        if (tickets   > 0) msgs.push(`🎟️ +${tickets} ticket${tickets>1?'s':''}`);
+        if (diamantes > 0) msgs.push(`💎 +${diamantes} diamante${diamantes>1?'s':''}`);
+        mostrarToast(`✅ ${c?.name}: ${msgs.join(' · ')}`);
+        if (_saldoClientesCache.length) carregarSaldoClientes(); // atualizar lista
+    } catch(e) { mostrarToast('❌ Erro ao dar moedas: ' + e.message); }
 }
 
 async function salvarTicket() {
