@@ -240,6 +240,13 @@ if ('serviceWorker' in navigator) {
                 <div class="home-card-sub">Gerenciar produtos</div>
             </button>
         </div>
+        <div class="home-grid">
+            <button class="home-card" style="border-top:4px solid #9b59b6;" onclick="openSection('premios')">
+                <span class="home-card-icon">🏆</span>
+                <div class="home-card-label">Histórico de Prêmios</div>
+                <div class="home-card-sub">Prêmios ganhos nos jogos</div>
+            </button>
+        </div>
         
         <!-- DIVISOR CONFIGURAÇÕES -->
         <div class="config-divider">
@@ -685,6 +692,26 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <!-- ABA HISTÓRICO DE PAGAMENTOS -->
+        <!-- ABA HISTÓRICO DE PRÊMIOS -->
+        <div id="tab-premios" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <h3 style="color:#e8d8f8;font-size:18px;font-weight:900;">🏆 Histórico de Prêmios</h3>
+                <span id="premiosContador" style="background:#9b59b6;color:white;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;"></span>
+            </div>
+
+            <!-- Filtro por jogo -->
+            <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;">
+                <button onclick="filtroPremio='todos';renderPremios()" id="filtroPremioTodos" style="flex-shrink:0;padding:7px 14px;border:none;border-radius:10px;background:rgba(255,255,255,0.15);color:#e8d8f8;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Todos</button>
+                <button onclick="filtroPremio='roleta';renderPremios()" id="filtroPremioRoleta" style="flex-shrink:0;padding:7px 14px;border:none;border-radius:10px;background:rgba(251,146,60,0.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🎡 Roleta</button>
+                <button onclick="filtroPremio='foguete';renderPremios()" id="filtroPremioFoguete" style="flex-shrink:0;padding:7px 14px;border:none;border-radius:10px;background:rgba(96,165,250,0.1);color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🚀 Foguete</button>
+                <button onclick="filtroPremio='minado';renderPremios()" id="filtroPremioMinado" style="flex-shrink:0;padding:7px 14px;border:none;border-radius:10px;background:rgba(74,222,128,0.1);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💣 Campo Minado</button>
+            </div>
+
+            <div id="premiosList" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>
+            </div>
+        </div>
+
         <div id="tab-pagamentos" class="section">
             <div id="pagamentosContador" style="display:none;"></div>
             <div id="pagamentosTotalValor" style="display:none;"></div>
@@ -1306,6 +1333,7 @@ function openSection(section) {
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
+        premios:   { id: 'tab-premios',    title: '🏆 Histórico de Prêmios',    fn: loadHistoricoPremios },
         rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos },
         'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria },
@@ -2284,6 +2312,36 @@ async function executarCancelamentoPedido(orderId) {
     // Deleta o pedido do banco
     await sb.from("pedidos").delete().eq("id", orderId);
     delete ordersMap[orderId];
+
+    // ===== Remove o cliente das paradas ativas da rota =====
+    // (só remove da parada ativa, não do template — para que possa re-entrar se pedir de novo)
+    if (o.customer_phone) {
+        try {
+            const { data: rotasAtivas } = await sb.from('rotas')
+                .select('id, paradas')
+                .in('status', ['criada', 'aguardando']);
+
+            for (const rota of (rotasAtivas || [])) {
+                const paradasAtuais = rota.paradas || [];
+                // Verifica se este cliente está nas paradas ativas (com status definido)
+                const paradaAtiva = paradasAtuais.find(p => !p._meta && p.cliente_phone === o.customer_phone && p.status !== undefined);
+                if (!paradaAtiva) continue;
+
+                // Repõe a entrada do template (sem status) para que possa re-entrar ao pedir de novo
+                const tmplOriginal = paradasAtuais.find(p => !p._meta && p.cliente_phone === o.customer_phone);
+                const novasParadas = paradasAtuais.map(p => {
+                    if (!p._meta && p.cliente_phone === o.customer_phone) {
+                        // Volta ao estado de template (remove status, coords dinâmicas)
+                        const { status, ...semStatus } = p;
+                        return semStatus;
+                    }
+                    return p;
+                });
+                await sb.from('rotas').update({ paradas: novasParadas }).eq('id', rota.id);
+            }
+        } catch(e) { console.warn('Erro ao remover da rota:', e); }
+    }
+    // ===== FIM remoção da rota =====
 
     // Remove o card visualmente
     const wrap = document.getElementById('wrap_' + orderId);
@@ -3714,6 +3772,103 @@ async function executarCompra(total, pedidoTexto) {
 // Mapa seguro para dados dos pedidos do histórico
 const historicoMap = {};
 
+// ===== HISTÓRICO DE PRÊMIOS =====
+let _premiosCache = [];
+let filtroPremio = 'todos';
+
+async function loadHistoricoPremios() {
+    const el = document.getElementById('premiosList');
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
+    try {
+        const { data } = await sb.from('pedidos')
+            .select('id,customer_name,customer_phone,items,total,created_at,payment_method,status')
+            .ilike('items', '%🎮%')
+            .order('created_at', { ascending: false });
+        _premiosCache = data || [];
+        renderPremios();
+    } catch(e) {
+        el.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;font-size:13px;">❌ Erro ao carregar</div>';
+    }
+}
+
+function renderPremios() {
+    const el = document.getElementById('premiosList');
+    const contador = document.getElementById('premiosContador');
+
+    // Atualizar filtros visuais
+    ['Todos','Roleta','Foguete','Minado'].forEach(f => {
+        const btn = document.getElementById('filtroPremio' + f);
+        if (!btn) return;
+        const key = f.toLowerCase() === 'minado' ? 'minado' : f.toLowerCase();
+        const ativo = filtroPremio === key || (f === 'Todos' && filtroPremio === 'todos');
+        const cores = { Todos: 'rgba(255,255,255,0.25)', Roleta: 'rgba(251,146,60,0.35)', Foguete: 'rgba(96,165,250,0.35)', Minado: 'rgba(74,222,128,0.35)' };
+        btn.style.background = ativo ? cores[f] : btn.style.background.replace('0.35','0.1').replace('0.25','0.08');
+    });
+
+    let lista = _premiosCache.filter(p => {
+        const items = (p.items || '').toLowerCase();
+        if (filtroPremio === 'roleta')  return items.includes('roleta') || items.includes('🎡');
+        if (filtroPremio === 'foguete') return items.includes('foguete') || items.includes('🚀');
+        if (filtroPremio === 'minado')  return items.includes('campo minado') || items.includes('💣') || items.includes('minado');
+        return true;
+    });
+
+    contador.textContent = lista.length + ' prêmio' + (lista.length !== 1 ? 's' : '');
+
+    if (!lista.length) {
+        el.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">😕 Nenhum prêmio encontrado</div>';
+        return;
+    }
+
+    el.innerHTML = lista.map(p => {
+        const dt = new Date(p.created_at);
+        const dataStr = dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' })
+            + ' às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+
+        const items = (p.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+        const itemsHTML = items.map(it => `<div style="font-size:13px;color:#e8d8f8;margin-bottom:2px;">• ${it}</div>`).join('');
+
+        // Detectar jogo
+        const itemsLow = (p.items || '').toLowerCase();
+        let jogoTag = '';
+        if (itemsLow.includes('campo minado') || itemsLow.includes('minado')) {
+            jogoTag = '<span style="background:rgba(74,222,128,0.2);color:#4ade80;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">💣 Campo Minado</span>';
+        } else if (itemsLow.includes('roleta')) {
+            jogoTag = '<span style="background:rgba(251,146,60,0.2);color:#fb923c;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎡 Roleta</span>';
+        } else if (itemsLow.includes('foguete')) {
+            jogoTag = '<span style="background:rgba(96,165,250,0.2);color:#60a5fa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🚀 Foguete</span>';
+        } else {
+            jogoTag = '<span style="background:rgba(155,89,182,0.2);color:#a78bfa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎮 Jogo</span>';
+        }
+
+        const isCancelado = p.status === 'CANCELADO';
+        const totalColor = isCancelado ? '#5a4878' : '#9b59b6';
+
+        return `
+        <div style="background:#1a0f2e;border-radius:16px;padding:14px;border:1.5px solid rgba(155,89,182,0.25);${isCancelado ? 'opacity:0.6;' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                <div>
+                    <div style="font-size:15px;font-weight:900;color:#e8d8f8;">${p.customer_name}</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:1px;">${p.customer_phone || ''}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px;color:#9080b8;margin-bottom:4px;">${dataStr}</div>
+                    ${jogoTag}
+                </div>
+            </div>
+            <div style="background:#110820;border-radius:10px;padding:10px;margin-bottom:10px;">
+                ${itemsHTML}
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:16px;font-weight:900;color:${totalColor};">
+                    ${Number(p.total) > 0 ? 'R$ ' + Number(p.total).toFixed(2).replace('.', ',') : '🎁 Prêmio'}
+                </span>
+                ${isCancelado ? '<span style="font-size:11px;color:#e74c3c;font-weight:700;">❌ Cancelado</span>' : '<span style="font-size:11px;color:#4ade80;font-weight:700;">✅ Resgatado</span>'}
+            </div>
+        </div>`;
+    }).join('');
+}
+
 async function loadHistoricoPagamentos() {
     const list = document.getElementById('pagamentosList');
     list.style.display = 'grid';
@@ -4144,15 +4299,20 @@ async function executarCancelamento(orderId) {
         } catch(e) { console.warn('Erro ao estornar tickets/diamantes:', e); }
     }
 
-    // Remove o cliente das paradas ativas de todas as rotas no banco
+    // Remove o cliente do template das rotas que ainda NÃO estão em andamento
+    // Rotas em_andamento/aguardando: entregador é dono — ADM não toca nas paradas ativas
     try {
         const phoneCancel = o.customer_phone;
-        const { data: rotasAtivas } = await sb.from("rotas").select("id, paradas");
+        const { data: rotasAtivas } = await sb.from("rotas").select("id, paradas, status");
         for (const r of (rotasAtivas || [])) {
+            if (r.status === 'em_andamento' || r.status === 'aguardando') continue; // entregador comanda
             const paradasAtuais = r.paradas || [];
-            const novasParadas = paradasAtuais.filter(p => p.cliente_phone !== phoneCancel);
-            if (novasParadas.length !== paradasAtuais.length) {
-                await sb.from("rotas").update({ paradas: novasParadas }).eq("id", r.id);
+            const metaEntry = paradasAtuais.find(p => p._meta);
+            const semMeta = paradasAtuais.filter(p => !p._meta);
+            const novasSemMeta = semMeta.filter(p => p.cliente_phone !== phoneCancel);
+            if (novasSemMeta.length !== semMeta.length) {
+                const final = metaEntry ? [metaEntry, ...novasSemMeta] : novasSemMeta;
+                await sb.from("rotas").update({ paradas: final }).eq("id", r.id);
             }
         }
         // Remove também da memória local se a rota estiver carregada
@@ -4340,16 +4500,21 @@ async function carregarRotasHoje() {
         return r;
     });
 
-    // Para cada rota no status "criada", regenera as paradas ativas do dia automaticamente
+    // Para cada rota no status "criada" (ainda não saiu), regenera as paradas do dia
+    // Rotas em_andamento/aguardando NÃO são tocadas — quem comanda a entrega é o entregador
     for (const r of rotasHoje) {
         if (r.status === 'criada') {
+            const metaEntry = (r.paradas || []).find(x => x._meta);
             const template = (r.paradas || []).filter(x => !x._meta);
             if (template.length > 0) {
                 const ativas = await gerarParadasAtivas(template, getMetaRota(r).hora_saida);
-                await sb.from("rotas").update({ paradas: ativas }).eq("id", r.id);
-                r.paradas = ativas;
+                // Salva: [_meta (config permanente), ...paradas ativas do dia]
+                const paradasComMeta = metaEntry ? [metaEntry, ...ativas] : ativas;
+                await sb.from("rotas").update({ paradas: paradasComMeta }).eq("id", r.id);
+                r.paradas = paradasComMeta;
             }
         }
+        // em_andamento / aguardando / concluido → entregador é dono, ADM não toca
     }
 
     filaRotas = rotasHoje.filter(r => r.status !== 'concluido').sort((a,b)=>(getMetaRota(a).hora_saida||'00:00').localeCompare(getMetaRota(b).hora_saida||'00:00'));
@@ -4929,8 +5094,8 @@ async function adicionarParadasSelecionadas() {
 
     if (!adicionados) return showToast({type:'confirm',title:'ℹ️',body:'Nenhum cliente novo para adicionar.',duration:2500});
 
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
-    // Preserva metadado de dias_semana ao salvar paradas
+    // ADM só salva o template (_meta + lista de clientes fixos)
+    // O entregador é quem gera e controla as paradas ativas no momento da entrega
     const { data: _rotaMeta2 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
     const _metaEntry2 = (_rotaMeta2?.paradas || []).find(x => x._meta);
     const _ptComMeta2 = _metaEntry2 ? [_metaEntry2, ...rotaParadas] : rotaParadas;
@@ -5160,9 +5325,8 @@ async function reordenarParada(fromIdx, toIdx) {
     const [moved] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, moved);
     rotaParadas = arr;
-    // Salva no banco
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
-    // Preserva metadado de dias_semana ao salvar paradas
+    // ADM salva apenas o template (ordem dos clientes fixos)
+    // A ordem das paradas ativas é controlada pelo entregador
     const { data: _rotaMeta1 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
     const _metaEntry1 = (_rotaMeta1?.paradas || []).find(x => x._meta);
     const _ptComMeta1 = _metaEntry1 ? [_metaEntry1, ...rotaParadas] : rotaParadas;
@@ -5190,9 +5354,8 @@ function renderParadasAtivasList(paradas) {
 
 async function removerParada(paradaId) {
     rotaParadas = rotaParadas.filter(p => p.id !== paradaId);
-    rotaParadas.forEach((p, i) => { p.eta_min = Math.round((i + 1) * mediaMinPorParada); });
-    const paradasAtivas = await gerarParadasAtivas(rotaParadas, rotaAtualObj ? getMetaRota(rotaAtualObj).hora_saida : undefined);
-    // Preserva metadado de dias_semana ao salvar paradas
+    // ADM salva apenas o template — sem cliente removido
+    // Entregador é quem controla as paradas ativas
     const { data: _rotaMeta3 } = await sb.from("rotas").select("paradas").eq("id", rotaAtualId).single();
     const _metaEntry3 = (_rotaMeta3?.paradas || []).find(x => x._meta);
     const _ptComMeta3 = _metaEntry3 ? [_metaEntry3, ...rotaParadas] : rotaParadas;
