@@ -3783,9 +3783,13 @@ async function loadHistoricoPremios() {
             .select('id,customer_name,customer_phone,descricao,jogo,tickets_usados,diamantes_usados,created_at,cancelado')
             .order('created_at', { ascending: false });
         _premiosCache = data || [];
+        if (_premiosCache.length === 0) {
+            el.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">📭 Nenhum prêmio encontrado</div>';
+            return;
+        }
         renderPremios();
     } catch(e) {
-        console.error('loadHistoricoPremios:', e);
+        console.error('Erro ao carregar prêmios:', e);
         el.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;font-size:13px;">❌ Erro ao carregar</div>';
     }
 }
@@ -3886,53 +3890,340 @@ function renderPremios() {
 
 // ===== CANCELAR PRÊMIO =====
 function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
-    showToast({
-        type: 'confirm',
-        title: `❌ Cancelar prêmio de ${nome}?`,
-        body: 'O prêmio será marcado como cancelado e as moedas usadas serão devolvidas ao cliente.',
-        btn1: { label: 'Sim, cancelar', color: '#e74c3c', fn: () => executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) },
-        btn2: { label: 'Não', color: '#9080b8' }
+    // Mostrar modal de confirmação personalizado
+    const modal = document.createElement('div');
+    modal.id = 'modalCancelarPremio';
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-in-out;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #ff6b00;
+            border-radius: 16px;
+            padding: 32px 28px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 107, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        ">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 56px; margin-bottom: 16px;">⚠️</div>
+                <h2 style="
+                    color: #fff;
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin: 0 0 8px 0;
+                    font-family: 'Inter', sans-serif;
+                ">Cancelar prêmio?</h2>
+                <p style="
+                    color: #a0a0b8;
+                    font-size: 14px;
+                    margin: 0;
+                    line-height: 1.5;
+                    font-family: 'Inter', sans-serif;
+                ">
+                    Você tem certeza que deseja cancelar o prêmio de <strong style="color: #ffaa44;">${nome}</strong>?
+                </p>
+            </div>
+            
+            <div style="
+                background: rgba(255, 107, 0, 0.1);
+                border-left: 3px solid #ff6b00;
+                padding: 12px 14px;
+                border-radius: 8px;
+                margin-bottom: 24px;
+                font-size: 12px;
+                color: #ffaa44;
+                font-family: 'Inter', sans-serif;
+            ">
+                ✓ O prêmio será marcado como cancelado
+                ${(ticketsUsados > 0 || diamantesUsados > 0) ? '<br>✓ As moedas usadas serão devolvidas' : ''}
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button onclick="document.getElementById('modalCancelarPremio').remove();" style="
+                    flex: 1;
+                    padding: 12px 16px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1.5px solid rgba(255, 255, 255, 0.2);
+                    color: #fff;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-family: 'Inter', sans-serif;
+                " onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    ❌ Não
+                </button>
+                <button onclick="executarCancelarPremio('${id}','${(nome||'').replace(/'/g,"\\\'")}','${phone}',${ticketsUsados},${diamantesUsados}); document.getElementById('modalCancelarPremio').remove();" style="
+                    flex: 1;
+                    padding: 12px 16px;
+                    background: linear-gradient(135deg, #ff6b00 0%, #ff8c2a 100%);
+                    border: none;
+                    color: #fff;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-family: 'Inter', sans-serif;
+                    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 0, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 0, 0.4)'">
+                    ✓ Sim, cancelar
+                </button>
+            </div>
+        </div>
+        
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Fechar ao clicar fora
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
     });
 }
 
 async function executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
-    try {
-        mostrarToast('⏳ Cancelando prêmio...');
+    console.log('🗑️ Deletando prêmio:', { id, nome, phone, ticketsUsados, diamantesUsados });
 
-        // 1. Marcar como cancelado na tabela premios
-        const { error: updErr } = await sb.from('premios').update({ cancelado: true }).eq('id', id);
-        if (updErr) throw updErr;
+    try {
+        console.log('⏳ Iniciando exclusão no Supabase...');
+
+        // 1. DELETAR da tabela premios
+        const { error: delErr } = await sb.from('premios').delete().eq('id', id);
+        if (delErr) {
+            console.error('❌ Erro ao deletar prêmio:', delErr);
+            throw delErr;
+        }
+        console.log('✅ Prêmio deletado do Supabase');
 
         // 2. Devolver tickets/diamantes ao cliente
         let msgMoedas = '';
         const tk = Number(ticketsUsados || 0);
         const di = Number(diamantesUsados || 0);
         if (phone && (tk > 0 || di > 0)) {
+            console.log('💰 Devolvendo moedas:', { tk, di });
             const { data: c } = await sb.from('clientes').select('tickets,diamantes').eq('phone', phone).maybeSingle();
             if (c) {
                 const update = {};
                 if (tk > 0) update.tickets   = (Number(c.tickets   || 0) + tk);
                 if (di > 0) update.diamantes = (Number(c.diamantes || 0) + di);
-                await sb.from('clientes').update(update).eq('phone', phone);
+                const { error: upErr } = await sb.from('clientes').update(update).eq('phone', phone);
+                if (upErr) {
+                    console.error('❌ Erro ao devolver moedas:', upErr);
+                    throw upErr;
+                }
                 const partes = [];
                 if (tk > 0) partes.push(`🎟️ +${tk} ticket${tk>1?'s':''}`);
                 if (di > 0) partes.push(`💎 +${di} diamante${di>1?'s':''}`);
-                msgMoedas = partes.join(' + ') + ' devolvidos';
+                msgMoedas = partes.join(' + ');
+                console.log('✅ Moedas devolvidas:', msgMoedas);
             }
         }
 
-        // 3. Atualizar cache local
+        // 3. Atualizar cache local - remover do array
         const idx = _premiosCache.findIndex(p => p.id === id);
-        if (idx !== -1) _premiosCache[idx].cancelado = true;
+        if (idx !== -1) _premiosCache.splice(idx, 1);
         renderPremios();
+        console.log('✅ Cache e lista atualizados');
 
-        mostrarToast(msgMoedas ? `✅ Cancelado! ${msgMoedas}` : '✅ Prêmio cancelado!');
-        showToast({ type:'success', title: `🗑️ Prêmio de ${nome} cancelado`, body: msgMoedas || 'Marcado como cancelado.', duration: 6000 });
+        // Mostrar mensagem de sucesso bonita
+        mostrarSucessoCancelarPremio(nome, msgMoedas);
 
     } catch(e) {
-        console.error('Erro ao cancelar prêmio:', e);
-        mostrarToast(`❌ Erro: ${e.message}`);
+        console.error('❌ Erro ao deletar prêmio:', e);
+        mostrarErro(`Erro ao deletar: ${e.message}`);
     }
+}
+
+function mostrarSucessoCancelarPremio(nome, msgMoedas) {
+    const modal = document.createElement('div');
+    modal.id = 'modalSucesso';
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-in-out;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #22c55e;
+            border-radius: 16px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(34, 197, 94, 0.3);
+            animation: slideUp 0.3s ease-out;
+        ">
+            <div style="
+                font-size: 64px;
+                margin-bottom: 16px;
+                animation: bounce 0.6s ease-out;
+            ">🗑️</div>
+            
+            <h2 style="
+                color: #22c55e;
+                font-size: 22px;
+                font-weight: 700;
+                margin: 0 0 12px 0;
+                font-family: 'Inter', sans-serif;
+            ">Prêmio Deletado!</h2>
+            
+            <p style="
+                color: #a0a0b8;
+                font-size: 14px;
+                margin: 0 0 16px 0;
+                line-height: 1.5;
+                font-family: 'Inter', sans-serif;
+            ">
+                O prêmio de <strong style="color: #fff;">${nome}</strong> foi deletado do sistema.
+            </p>
+            
+            ${msgMoedas ? `
+            <div style="
+                background: rgba(34, 197, 94, 0.15);
+                border-left: 3px solid #22c55e;
+                padding: 12px 14px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 13px;
+                color: #86efac;
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+            ">
+                💰 ${msgMoedas} devolvidos ao cliente
+            </div>
+            ` : ''}
+            
+            <button onclick="document.getElementById('modalSucesso').remove();" style="
+                width: 100%;
+                padding: 12px 16px;
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                border: none;
+                color: #fff;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(34, 197, 94, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34, 197, 94, 0.4)'">
+                ✓ Entendido
+            </button>
+        </div>
+        
+        <style>
+            @keyframes bounce {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+        </style>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function mostrarErro(msg) {
+    const modal = document.createElement('div');
+    modal.id = 'modalErro';
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-in-out;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #ef4444;
+            border-radius: 16px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(239, 68, 68, 0.3);
+            animation: slideUp 0.3s ease-out;
+        ">
+            <div style="font-size: 56px; margin-bottom: 16px;">❌</div>
+            
+            <h2 style="
+                color: #ef4444;
+                font-size: 18px;
+                font-weight: 700;
+                margin: 0 0 12px 0;
+                font-family: 'Inter', sans-serif;
+            ">Erro ao Cancelar</h2>
+            
+            <p style="
+                color: #a0a0b8;
+                font-size: 14px;
+                margin: 0 0 20px 0;
+                line-height: 1.5;
+                font-family: 'Inter', sans-serif;
+            ">
+                ${msg}
+            </p>
+            
+            <button onclick="document.getElementById('modalErro').remove();" style="
+                width: 100%;
+                padding: 12px 16px;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                border: none;
+                color: #fff;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239, 68, 68, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239, 68, 68, 0.4)'">
+                Fechar
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 }
 // ===== FIM CANCELAR PRÊMIO =====
 
