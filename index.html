@@ -313,7 +313,7 @@ if ('serviceWorker' in navigator) {
     </div></div>
 
     <!-- SEÇÕES INTERNAS -->
-    <div id="innerApp" style="overflow-x:hidden;">
+    <div id="innerApp" style="overflow-x:hidden;overflow-y:auto;">
         <div class="back-area" style="justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
@@ -447,16 +447,11 @@ if ('serviceWorker' in navigator) {
             <!-- AUTO-ZERAR PEDIDOS -->
             <div id="autoZerarBox" style="display:none;background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
                 <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
-                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Apaga pedidos criados antes do horário limite definido</div>
+                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Sempre ativa — apaga pedidos antes do horário limite</div>
 
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);">⏰ Limpeza automática</div>
-                        <label class="switch">
-                            <input type="checkbox" id="zerarToggle1" onchange="salvarConfigZerar()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+                <!-- SEG - SÁB -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
+                    <div style="font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:10px;">📅 Segunda a Sábado</div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                         <div>
                             <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
@@ -471,10 +466,32 @@ if ('serviceWorker' in navigator) {
                                 onchange="atualizarPreviewJanela()">
                         </div>
                     </div>
-                    <div id="zerarPreview1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
-                    <div id="zerarStatus1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:10px;"></div>
-                    <button onclick="salvarConfigZerar()" style="width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
+                    <div id="zerarPreview1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;"></div>
+                    <div id="zerarStatus1" style="font-size:11px;color:#4ade80;"></div>
                 </div>
+
+                <!-- DOMINGO -->
+                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:12px;">
+                    <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:10px;">☀️ Domingo</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
+                            <input type="time" id="zerarAteDom" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela()">
+                        </div>
+                        <div>
+                            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
+                            <input type="time" id="zerarExecDom" value="12:00"
+                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                onchange="atualizarPreviewJanela()">
+                        </div>
+                    </div>
+                    <div id="zerarPreviewDom" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;"></div>
+                    <div id="zerarStatusDom" style="font-size:11px;color:#4ade80;"></div>
+                </div>
+
+                <button onclick="salvarConfigZerar()" style="width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
             </div>
         </div>
 
@@ -639,12 +656,9 @@ if ('serviceWorker' in navigator) {
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
                         <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px;">📅 Segunda a Sábado · sempre ativo</div>
                         <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
                     </div>
-                    <label class="switch" style="transform:scale(1.2);">
-                        <input type="checkbox" id="autoRefazerToggle" onchange="toggleAutoRefazer(this.checked)">
-                        <span class="slider"></span>
-                    </label>
                 </div>
                 <!-- Editor de horário -->
                 <div style="margin-top:12px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
@@ -655,7 +669,7 @@ if ('serviceWorker' in navigator) {
                         <button onclick="salvarHorarioRefazer()" style="padding:9px 14px;background:linear-gradient(135deg,#8e44ad,#6c3483);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💾 Salvar</button>
                     </div>
                 </div>
-                <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;display:none;">
+                <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;">
                     ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente no horário configurado.
                 </div>
                 <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
@@ -1078,43 +1092,6 @@ if ('serviceWorker' in navigator) {
                 <button onclick="salvarDiamante()" style="width:100%;margin-top:14px;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#0369a1,#38bdf8);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">💾 Salvar</button>
             </div>
 
-            <!-- DAR MOEDAS MANUALMENTE -->
-            <div style="background:#1a0f2e;border-radius:20px;padding:20px 16px;margin-top:14px;border:1.5px solid rgba(139,92,246,0.3);">
-                <div style="font-size:13px;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🎁 Dar Moedas ao Cliente</div>
-                <div style="font-size:11px;color:#9080b8;margin-bottom:16px;">Adicione tickets ou diamantes manualmente para um cliente</div>
-
-                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">👤 Cliente</div>
-                <select id="darMoedasCliente" onchange="onSelecionarClienteMoeda()" style="width:100%;padding:11px 14px;border-radius:12px;background:#110820;color:#e8d8f8;border:1.5px solid #2e1f4a;font-size:14px;font-family:inherit;margin-bottom:14px;appearance:auto;">
-                    <option value="">— Selecione o cliente —</option>
-                </select>
-
-                <div id="darMoedasSaldoAtual" style="display:none;background:#110820;border-radius:12px;padding:10px 14px;margin-bottom:14px;display:none;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;">
-                        <div>
-                            <div style="font-size:10px;color:#9080b8;margin-bottom:2px;">Tickets atuais</div>
-                            <div id="darMoedasTicketAtual" style="font-size:20px;font-weight:900;color:#fbbf24;">—</div>
-                        </div>
-                        <div>
-                            <div style="font-size:10px;color:#9080b8;margin-bottom:2px;">Diamantes atuais</div>
-                            <div id="darMoedasDiamanteAtual" style="font-size:20px;font-weight:900;color:#38bdf8;">—</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-                    <div>
-                        <div style="font-size:11px;font-weight:700;color:#fbbf24;margin-bottom:6px;">🎟️ Tickets</div>
-                        <input type="number" id="darMoedasQtdTicket" value="0" min="0" style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#fbbf24;border:1.5px solid #2e1f4a;font-size:20px;font-weight:900;text-align:center;font-family:inherit;">
-                    </div>
-                    <div>
-                        <div style="font-size:11px;font-weight:700;color:#38bdf8;margin-bottom:6px;">💎 Diamantes</div>
-                        <input type="number" id="darMoedasQtdDiamante" value="0" min="0" style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#38bdf8;border:1.5px solid #2e1f4a;font-size:20px;font-weight:900;text-align:center;font-family:inherit;">
-                    </div>
-                </div>
-
-                <button onclick="confirmarDarMoedas()" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a78bfa);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">🎁 Dar Moedas</button>
-            </div>
-
             <!-- LISTA DE CLIENTES COM MOEDAS -->
             <div style="background:#1a0f2e;border-radius:20px;padding:20px 16px;margin-top:14px;border:1.5px solid rgba(34,197,94,0.3);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1264,43 +1241,45 @@ async function initAdmin() {
 async function verificarExecucoesPerdidas() {
     const hoje = new Date().toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo' });
 
-    // Auto-Refazer
-    if (localStorage.getItem('autoRefazer_ativo') === '1') {
+    // Auto-Refazer (sempre ativo, só seg-sab)
+    {
         const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec') || '';
         const jaExecutouHoje = ultimaExec.startsWith(hoje);
         const horario = getHorarioRefazer();
         const [hh, mm] = horario.split(':').map(Number);
-        // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
         const agoraSP = horasBRT(new Date());
+        const diaSemana = agoraSP.getDay(); // 0=dom
         const hojeAlvoSP = new Date(agoraSP);
         hojeAlvoSP.setHours(hh, mm, 0, 0);
         const passouHorario = agoraSP >= hojeAlvoSP;
-
-        if (passouHorario && !jaExecutouHoje) {
+        // Só executa recuperação se for seg-sab
+        if (passouHorario && !jaExecutouHoje && diaSemana !== 0) {
             console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
             await executarAutoRefazer();
         }
         agendarAutoRefazer();
     }
 
-    // Auto-Zerar
-    const cfg = getConfigZerar();
-    if (cfg.ativo) {
+    // Auto-Zerar (sempre ativo)
+    {
+        const cfg  = getConfigZerar();
         const exec = cfg.exec || '12:00';
-        const [hh, mm] = exec.split(':').map(Number);
-        const agoraSP = horasBRT(new Date());
+        const diaSemana = horasBRT(new Date()).getDay(); // 0=dom
+        const execAtual = diaSemana === 0 ? (cfg.execDom || '12:00') : exec;
+        const [hh, mm] = execAtual.split(':').map(Number);
+        const agoraSP  = horasBRT(new Date());
         const hojeAlvo = new Date(agoraSP);
         hojeAlvo.setHours(hh, mm, 0, 0);
         const passouHorario = agoraSP >= hojeAlvo;
-
         const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
+        const hoje = agoraSP.toLocaleDateString('pt-BR');
         const jaExecutouHoje = log.some(entry => entry.ts && entry.ts.startsWith(hoje));
-
         if (passouHorario && !jaExecutouHoje) {
             console.log('[AutoZerar] Execucao perdida detectada, executando agora');
-            await executarZerarJanela();
+            await executarZerarJanela(diaSemana === 0 ? 'domingo' : 'normal');
         }
         agendarZerar();
+        agendarZerarDom();
     }
 }
 
@@ -1319,7 +1298,7 @@ function openSection(section) {
     document.getElementById('innerApp').style.display = 'block';
     document.getElementById('mainHeader').style.display = 'none';
     document.getElementById('headerSalgados').style.display = section === 'pedidos' ? 'block' : 'none';
-    document.querySelectorAll('#innerApp .section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('#innerApp .section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
     const map = {
         salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
         clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
@@ -2407,44 +2386,36 @@ async function executarMudarParaFiado(orderId) {
 
 // ===== AUTO-ZERAR PEDIDOS =====
 let zerarTimer = null;
+let zerarTimerDom = null;
 
 function carregarConfigZerar() {
     try {
         const cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
-        const exec  = cfg.exec  || '12:00';
-        const ate   = cfg.ate   || '12:00';
-        const ativo = cfg.ativo || false;
-
-        const elExec = document.getElementById('zerarExec1');
-        const elAte  = document.getElementById('zerarAte1');
-        const elTog  = document.getElementById('zerarToggle1');
-        if (elExec) elExec.value   = exec;
-        if (elAte)  elAte.value    = ate;
-        if (elTog)  elTog.checked  = ativo;
-
+        const el = (id) => document.getElementById(id);
+        if (el('zerarExec1'))   el('zerarExec1').value   = cfg.exec    || '12:00';
+        if (el('zerarAte1'))    el('zerarAte1').value    = cfg.ate     || '12:00';
+        if (el('zerarExecDom')) el('zerarExecDom').value = cfg.execDom || '12:00';
+        if (el('zerarAteDom'))  el('zerarAteDom').value  = cfg.ateDom  || '12:00';
         atualizarPreviewJanela();
-        atualizarStatusZerar(ativo, exec);
-        if (ativo) agendarZerar();
+        atualizarStatusZerar();
+        agendarZerar();
+        agendarZerarDom();
     } catch(e) { console.warn('carregarConfigZerar', e); }
 }
 
 function salvarConfigZerar() {
     const cfg = getConfigZerar();
-    const exec  = document.getElementById('zerarExec1')?.value || '12:00';
-    const ate   = document.getElementById('zerarAte1')?.value  || '12:00';
-    const ativo = document.getElementById('zerarToggle1')?.checked || false;
-
-    cfg.exec  = exec;
-    cfg.ate   = ate;
-    cfg.ativo = ativo;
-
+    cfg.exec    = document.getElementById('zerarExec1')?.value    || '12:00';
+    cfg.ate     = document.getElementById('zerarAte1')?.value     || '12:00';
+    cfg.execDom = document.getElementById('zerarExecDom')?.value  || '12:00';
+    cfg.ateDom  = document.getElementById('zerarAteDom')?.value   || '12:00';
+    cfg.ativo   = true; // sempre ligado
     localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
     atualizarPreviewJanela();
-    atualizarStatusZerar(ativo, exec);
-    if (ativo) agendarZerar();
-    else { if (zerarTimer) { clearTimeout(zerarTimer); zerarTimer = null; } }
-
-    showToast({ type:'success', title:'✅ Configuração salva!', body: ativo ? 'Executará todo dia às ' + exec : 'Limpeza desativada.', duration: 3000 });
+    atualizarStatusZerar();
+    agendarZerar();
+    agendarZerarDom();
+    showToast({ type:'success', title:'✅ Configuração salva!', body:'Limpeza automática ativa.', duration: 3000 });
 }
 
 function getConfigZerar() {
@@ -2452,51 +2423,114 @@ function getConfigZerar() {
 }
 
 function atualizarPreviewJanela() {
-    const el   = document.getElementById('zerarPreview1');
-    if (!el) return;
-    const ate  = document.getElementById('zerarAte1')?.value  || '--:--';
-    const exec = document.getElementById('zerarExec1')?.value || '--:--';
-    el.textContent = '🗑️ Apaga todos os pedidos anteriores a ' + ate + ' de hoje · disparo às ' + exec;
+    const cfg = getConfigZerar();
+    const ate    = document.getElementById('zerarAte1')?.value    || cfg.ate    || '--:--';
+    const exec   = document.getElementById('zerarExec1')?.value   || cfg.exec   || '--:--';
+    const ateDom = document.getElementById('zerarAteDom')?.value  || cfg.ateDom || '--:--';
+    const execDom= document.getElementById('zerarExecDom')?.value || cfg.execDom|| '--:--';
+    const el1 = document.getElementById('zerarPreview1');
+    const el2 = document.getElementById('zerarPreviewDom');
+    if (el1) el1.textContent = '🗑️ Apaga pedidos anteriores a ' + ate + ' · disparo às ' + exec;
+    if (el2) el2.textContent = '🗑️ Apaga pedidos anteriores a ' + ateDom + ' · disparo às ' + execDom;
 }
 
-function atualizarStatusZerar(ativo, execHora) {
-    const el = document.getElementById('zerarStatus1');
-    if (!el) return;
-    if (!ativo) { el.textContent = 'Desativado'; return; }
-    const [hh, mm] = execHora.split(':').map(Number);
+function atualizarStatusZerar() {
+    const cfg     = getConfigZerar();
+    const exec    = document.getElementById('zerarExec1')?.value    || cfg.exec    || '12:00';
+    const execDom = document.getElementById('zerarExecDom')?.value  || cfg.execDom || '12:00';
     const agoraSP = horasBRT(new Date());
-    const alvo = new Date(agoraSP);
-    alvo.setHours(hh, mm, 0, 0);
-    if (agoraSP >= alvo) alvo.setDate(alvo.getDate() + 1);
-    const diff = alvo - agoraSP;
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    el.textContent = '✅ Ativo · Executa às ' + execHora + ' · faltam ' + h + 'h ' + m + 'min';
+    const diasNomes = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+
+    const _proxExec = (hora, soDomingo) => {
+        const [hh, mm] = hora.split(':').map(Number);
+        const alvo = new Date(agoraSP);
+        alvo.setHours(hh, mm, 0, 0);
+        let t = 0;
+        while (t++ < 8) {
+            const dia = alvo.getDay();
+            const valido = soDomingo ? dia === 0 : dia !== 0;
+            if (valido && alvo > agoraSP) break;
+            alvo.setDate(alvo.getDate() + 1);
+            alvo.setHours(hh, mm, 0, 0);
+        }
+        const diff = alvo - agoraSP;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const dia = diasNomes[alvo.getDay()];
+        return `✅ Próxima: ${dia} às ${hora} · faltam ${h}h ${m}min`;
+    };
+
+    const el1 = document.getElementById('zerarStatus1');
+    const el2 = document.getElementById('zerarStatusDom');
+    if (el1) el1.textContent = _proxExec(exec,    false);
+    if (el2) el2.textContent = _proxExec(execDom, true);
 }
 
 function agendarZerar() {
     if (zerarTimer) { clearTimeout(zerarTimer); zerarTimer = null; }
-    const cfg = getConfigZerar();
-    if (!cfg.ativo) return;
+    const cfg  = getConfigZerar();
     const exec = document.getElementById('zerarExec1')?.value || cfg.exec || '12:00';
     const [hh, mm] = exec.split(':').map(Number);
-    const agoraSP = horasBRT(new Date());
-    const alvoSP  = new Date(agoraSP);
-    alvoSP.setHours(hh, mm, 0, 0);
-    if (agoraSP >= alvoSP) alvoSP.setDate(alvoSP.getDate() + 1);
-    const ms = alvoSP - agoraSP;
+    const agoraSP  = horasBRT(new Date());
+
+    // Encontra o próximo seg-sab no horário configurado
+    const alvo = new Date(agoraSP);
+    alvo.setHours(hh, mm, 0, 0);
+    // Avança até que o alvo seja seg-sab E ainda não passou
+    let tentativas = 0;
+    while (tentativas++ < 8) {
+        const dia = alvo.getDay(); // 0=dom, 6=sab
+        if (dia !== 0 && alvo > agoraSP) break; // seg-sab e no futuro
+        alvo.setDate(alvo.getDate() + 1);
+        alvo.setHours(hh, mm, 0, 0);
+        if (alvo.getDay() === 0) { alvo.setDate(alvo.getDate() + 1); alvo.setHours(hh, mm, 0, 0); } // pula domingo
+    }
+
+    const ms = alvo - agoraSP;
+    const diasNomes = ['dom','seg','ter','qua','qui','sex','sáb'];
+    console.log(`[AutoZerar] Próxima limpeza seg-sáb: ${diasNomes[alvo.getDay()]} ${alvo.toLocaleTimeString('pt-BR')} (${Math.round(ms/60000)}min)`);
+
     zerarTimer = setTimeout(async () => {
-        await executarZerarJanela();
-        // Reagenda para o próximo dia mantendo o estado do toggle
-        const cfgAtual = getConfigZerar();
-        if (cfgAtual.ativo) agendarZerar();
+        await executarZerarJanela('normal');
+        agendarZerar();
     }, ms);
-    atualizarStatusZerar(true, exec);
+
+    atualizarStatusZerar();
 }
 
-async function executarZerarJanela() {
+function agendarZerarDom() {
+    if (zerarTimerDom) { clearTimeout(zerarTimerDom); zerarTimerDom = null; }
+    const cfg  = getConfigZerar();
+    const exec = document.getElementById('zerarExecDom')?.value || cfg.execDom || '12:00';
+    const [hh, mm] = exec.split(':').map(Number);
+    const agoraSP  = horasBRT(new Date());
+
+    // Encontra o próximo domingo no horário configurado
+    const alvo = new Date(agoraSP);
+    alvo.setHours(hh, mm, 0, 0);
+    // Avança até domingo no futuro
+    let tentativas = 0;
+    while (tentativas++ < 8) {
+        if (alvo.getDay() === 0 && alvo > agoraSP) break; // domingo e no futuro
+        alvo.setDate(alvo.getDate() + 1);
+        alvo.setHours(hh, mm, 0, 0);
+    }
+
+    const ms = alvo - agoraSP;
+    const dataStr = alvo.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'2-digit' });
+    console.log(`[AutoZerar] Próxima limpeza domingo: ${dataStr} às ${exec} (${Math.round(ms/60000)}min)`);
+
+    zerarTimerDom = setTimeout(async () => {
+        await executarZerarJanela('domingo');
+        agendarZerarDom();
+    }, ms);
+
+    atualizarStatusZerar();
+}
+
+async function executarZerarJanela(tipo) {
     const cfg = getConfigZerar();
-    const ateHora = cfg.ate || '12:00';
+    const ateHora = (tipo === 'domingo') ? (cfg.ateDom || '12:00') : (cfg.ate || '12:00');
 
     const agora = new Date();
     const [ateH, ateM] = ateHora.split(':').map(Number);
@@ -2678,40 +2712,40 @@ function carregarSelecoes() {
 function salvarHorarioRefazer() {
     const horario = document.getElementById('autoRefazerHorario')?.value || '03:00';
     localStorage.setItem('autoRefazer_horario', horario);
-    // Re-agenda se estiver ativo
-    if (localStorage.getItem('autoRefazer_ativo') === '1') {
-        if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
-        agendarAutoRefazer();
-    }
+    if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
+    agendarAutoRefazer();
     atualizarBannerAgendamento();
-    showToast({ type:'success', title:'✅ Horário salvo!', body:`Pedidos automáticos às ${horario}`, duration:3000 });
+    showToast({ type:'success', title:'✅ Horário salvo!', body:`Pedidos automáticos às ${horario} (seg-sáb)`, duration:3000 });
 }
 
 function getHorarioRefazer() {
     return localStorage.getItem('autoRefazer_horario') || '03:00';
 }
 
-// ---- Toggle automático ----
-function toggleAutoRefazer(ativo) {
-    localStorage.setItem('autoRefazer_ativo', ativo ? '1' : '0');
-    atualizarBannerAgendamento();
-    if (ativo) {
-        agendarAutoRefazer();
-    } else {
-        if (autoRefazerTimer) { clearTimeout(autoRefazerTimer); autoRefazerTimer = null; }
-    }
-}
-
 function atualizarBannerAgendamento() {
-    const ativo = localStorage.getItem('autoRefazer_ativo') === '1';
     const horario = getHorarioRefazer();
-    const toggle = document.getElementById('autoRefazerToggle');
-    const status = document.getElementById('agendamentoStatus');
-    const info = document.getElementById('agendamentoInfo');
-    const ultimo = document.getElementById('agendamentoUltimo');
     const horarioInput = document.getElementById('autoRefazerHorario');
-    if (toggle) toggle.checked = ativo;
+    const status  = document.getElementById('agendamentoStatus');
+    const ultimo  = document.getElementById('agendamentoUltimo');
     if (horarioInput) horarioInput.value = horario;
+
+    // Próximo dia seg-sab no horário
+    const [hh, mm] = horario.split(':').map(Number);
+    const agoraSP  = horasBRT(new Date());
+    const alvo = new Date(agoraSP);
+    alvo.setHours(hh, mm, 0, 0);
+    let t = 0;
+    while (t++ < 8) {
+        if (alvo.getDay() !== 0 && alvo > agoraSP) break;
+        alvo.setDate(alvo.getDate() + 1);
+        alvo.setHours(hh, mm, 0, 0);
+    }
+    const diff = alvo - agoraSP;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const diasNomes = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+    if (status) status.textContent = `✅ Ativo · Próximo: ${diasNomes[alvo.getDay()]} às ${horario} · faltam ${h}h ${m}min`;
+
     const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
     const temHistorico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]').length > 0;
     if (ultimaExec) {
@@ -2721,69 +2755,34 @@ function atualizarBannerAgendamento() {
         ultimo.innerHTML = `<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
         ultimo.style.display = 'block';
     }
-    if (ativo) {
-        const [hh, mm] = horario.split(':').map(Number);
-        const agora = new Date();
-        const proximo = new Date(agora);
-        proximo.setHours(hh, mm, 0, 0);
-        if (agora >= proximo) proximo.setDate(proximo.getDate() + 1);
-        const diff = proximo - agora;
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        status.textContent = `✅ Ativado · Próximo disparo em ${h}h ${m}min (às ${horario})`;
-        info.style.display = 'block';
-    } else {
-        status.textContent = `⏸️ Desativado · Ative para lançar pedidos automaticamente às ${horario}`;
-        info.style.display = 'none';
-    }
 }
 
 function agendarAutoRefazer() {
     if (autoRefazerTimer) clearTimeout(autoRefazerTimer);
     const horario = getHorarioRefazer();
     const [hh, mm] = horario.split(':').map(Number);
-    const agora = new Date();
-    // Usa horário de SP para comparar corretamente independente do fuso do dispositivo
-    const agoraSP = horasBRT(agora);
-    const hojeAlvo = new Date(agoraSP);
-    hojeAlvo.setHours(hh, mm, 0, 0);
-    const hojeAlvoFim = new Date(agoraSP);
-    hojeAlvoFim.setHours(hh + 2, mm, 0, 0); // janela de 2h após o horário
+    const agoraSP  = horasBRT(new Date());
 
-    // Se está dentro da janela (horário até horário+2h), verifica se já executou hoje
-    if (agoraSP >= hojeAlvo && agoraSP < hojeAlvoFim) {
-        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
-        let jaExecutouHoje = false;
-        if (ultimaExec) {
-            try {
-                const partes = ultimaExec.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                if (partes) {
-                    const dataExec = new Date(`${partes[3]}-${partes[2]}-${partes[1]}T${horario}:00`);
-                    jaExecutouHoje = dataExec >= hojeAlvo;
-                }
-            } catch(e) {}
-        }
-        if (!jaExecutouHoje) {
-            setTimeout(async () => {
-                await executarAutoRefazer();
-                if (localStorage.getItem('autoRefazer_ativo') === '1') agendarAutoRefazer();
-            }, 1000);
-            return;
-        }
+    // Próximo seg-sab no horário configurado
+    const alvo = new Date(agoraSP);
+    alvo.setHours(hh, mm, 0, 0);
+    let t = 0;
+    while (t++ < 8) {
+        if (alvo.getDay() !== 0 && alvo > agoraSP) break; // seg-sab e no futuro
+        alvo.setDate(alvo.getDate() + 1);
+        alvo.setHours(hh, mm, 0, 0);
     }
 
-    // Agenda para o próximo disparo em SP
-    const proximoSP = new Date(agoraSP);
-    proximoSP.setHours(hh, mm, 0, 0);
-    if (agoraSP >= proximoSP) proximoSP.setDate(proximoSP.getDate() + 1);
-    // Converte o delta SP -> real (ambos são "espelhados", então o diff em ms é correto)
-    const msAte = proximoSP - agoraSP;
+    const msAte = alvo - agoraSP;
     autoRefazerTimer = setTimeout(async () => {
-        await executarAutoRefazer();
-        if (localStorage.getItem('autoRefazer_ativo') === '1') {
-            agendarAutoRefazer();
+        const diaNaHora = horasBRT(new Date()).getDay();
+        if (diaNaHora !== 0) { // garante que não executa no domingo
+            await executarAutoRefazer();
         }
+        agendarAutoRefazer();
     }, msAte);
+
+    atualizarBannerAgendamento();
 }
 
 async function executarAutoRefazer() {
@@ -3780,13 +3779,13 @@ async function loadHistoricoPremios() {
     const el = document.getElementById('premiosList');
     el.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
     try {
-        const { data } = await sb.from('pedidos')
-            .select('id,customer_name,customer_phone,items,total,created_at,payment_method,status')
-            .ilike('items', '%🎮%')
+        const { data } = await sb.from('premios')
+            .select('id,customer_name,customer_phone,descricao,jogo,tickets_usados,diamantes_usados,created_at,cancelado')
             .order('created_at', { ascending: false });
         _premiosCache = data || [];
         renderPremios();
     } catch(e) {
+        console.error('loadHistoricoPremios:', e);
         el.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;font-size:13px;">❌ Erro ao carregar</div>';
     }
 }
@@ -3806,10 +3805,10 @@ function renderPremios() {
     });
 
     let lista = _premiosCache.filter(p => {
-        const items = (p.items || '').toLowerCase();
-        if (filtroPremio === 'roleta')  return items.includes('roleta') || items.includes('🎡');
-        if (filtroPremio === 'foguete') return items.includes('foguete') || items.includes('🚀');
-        if (filtroPremio === 'minado')  return items.includes('campo minado') || items.includes('💣') || items.includes('minado');
+        const jogo = (p.jogo || '').toLowerCase();
+        if (filtroPremio === 'roleta')  return jogo === 'roleta';
+        if (filtroPremio === 'foguete') return jogo === 'foguete';
+        if (filtroPremio === 'minado')  return jogo === 'minado' || jogo === 'campo minado';
         return true;
     });
 
@@ -3825,27 +3824,36 @@ function renderPremios() {
         const dataStr = dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' })
             + ' às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
-        const items = (p.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
-        const itemsHTML = items.map(it => `<div style="font-size:13px;color:#e8d8f8;margin-bottom:2px;">• ${it}</div>`).join('');
+        const linhas = (p.descricao || '').split('\n').filter(Boolean);
+        const itemsHTML = linhas.map(it => `<div style="font-size:13px;color:#e8d8f8;margin-bottom:2px;">• ${it}</div>`).join('');
 
-        // Detectar jogo
-        const itemsLow = (p.items || '').toLowerCase();
+        // Tag do jogo via coluna dedicada
+        const jogoKey = (p.jogo || '').toLowerCase();
         let jogoTag = '';
-        if (itemsLow.includes('campo minado') || itemsLow.includes('minado')) {
+        if (jogoKey === 'minado' || jogoKey === 'campo minado') {
             jogoTag = '<span style="background:rgba(74,222,128,0.2);color:#4ade80;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">💣 Campo Minado</span>';
-        } else if (itemsLow.includes('roleta')) {
+        } else if (jogoKey === 'roleta') {
             jogoTag = '<span style="background:rgba(251,146,60,0.2);color:#fb923c;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎡 Roleta</span>';
-        } else if (itemsLow.includes('foguete')) {
+        } else if (jogoKey === 'foguete') {
             jogoTag = '<span style="background:rgba(96,165,250,0.2);color:#60a5fa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🚀 Foguete</span>';
         } else {
             jogoTag = '<span style="background:rgba(155,89,182,0.2);color:#a78bfa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎮 Jogo</span>';
         }
 
-        const isCancelado = p.status === 'CANCELADO';
-        const totalColor = isCancelado ? '#5a4878' : '#9b59b6';
+        // Moedas usadas
+        const tk = Number(p.tickets_usados || 0);
+        const di = Number(p.diamantes_usados || 0);
+        const moedasHTML = (tk > 0 || di > 0)
+            ? `<div style="display:flex;gap:6px;margin-top:6px;">
+                ${tk > 0 ? `<span style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:#fbbf24;">🎟️ ${tk} usado${tk>1?'s':''}</span>` : ''}
+                ${di > 0 ? `<span style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:#38bdf8;">💎 ${di} usado${di>1?'s':''}</span>` : ''}
+               </div>`
+            : '';
+
+        const isCancelado = p.cancelado === true;
 
         return `
-        <div style="background:#1a0f2e;border-radius:16px;padding:14px;border:1.5px solid rgba(155,89,182,0.25);${isCancelado ? 'opacity:0.6;' : ''}">
+        <div style="background:#1a0f2e;border-radius:16px;padding:14px;border:1.5px solid rgba(155,89,182,0.25);${isCancelado ? 'opacity:0.55;' : ''}">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                 <div>
                     <div style="font-size:15px;font-weight:900;color:#e8d8f8;">${p.customer_name}</div>
@@ -3858,16 +3866,75 @@ function renderPremios() {
             </div>
             <div style="background:#110820;border-radius:10px;padding:10px;margin-bottom:10px;">
                 ${itemsHTML}
+                ${moedasHTML}
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:16px;font-weight:900;color:${totalColor};">
-                    ${Number(p.total) > 0 ? 'R$ ' + Number(p.total).toFixed(2).replace('.', ',') : '🎁 Prêmio'}
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                <span style="font-size:13px;font-weight:700;color:${isCancelado ? '#5a4878' : '#9b59b6'};">
+                    ${isCancelado ? '❌ Cancelado' : '✅ Resgatado'}
                 </span>
-                ${isCancelado ? '<span style="font-size:11px;color:#e74c3c;font-weight:700;">❌ Cancelado</span>' : '<span style="font-size:11px;color:#4ade80;font-weight:700;">✅ Resgatado</span>'}
+                ${isCancelado
+                    ? ''
+                    : `<button onclick="confirmarCancelarPremio('${p.id}','${(p.customer_name||'').replace(/'/g,"\\'")}','${p.customer_phone||''}',${tk},${di})"
+                        style="padding:7px 14px;border:1.5px solid rgba(231,76,60,0.3);border-radius:12px;background:rgba(231,76,60,0.12);color:#e74c3c;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+                        ❌ Cancelar Prêmio
+                      </button>`
+                }
             </div>
         </div>`;
     }).join('');
 }
+
+// ===== CANCELAR PRÊMIO =====
+function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
+    showToast({
+        type: 'confirm',
+        title: `❌ Cancelar prêmio de ${nome}?`,
+        body: 'O prêmio será marcado como cancelado e as moedas usadas serão devolvidas ao cliente.',
+        btn1: { label: 'Sim, cancelar', color: '#e74c3c', fn: () => executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) },
+        btn2: { label: 'Não', color: '#9080b8' }
+    });
+}
+
+async function executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
+    try {
+        mostrarToast('⏳ Cancelando prêmio...');
+
+        // 1. Marcar como cancelado na tabela premios
+        const { error: updErr } = await sb.from('premios').update({ cancelado: true }).eq('id', id);
+        if (updErr) throw updErr;
+
+        // 2. Devolver tickets/diamantes ao cliente
+        let msgMoedas = '';
+        const tk = Number(ticketsUsados || 0);
+        const di = Number(diamantesUsados || 0);
+        if (phone && (tk > 0 || di > 0)) {
+            const { data: c } = await sb.from('clientes').select('tickets,diamantes').eq('phone', phone).maybeSingle();
+            if (c) {
+                const update = {};
+                if (tk > 0) update.tickets   = (Number(c.tickets   || 0) + tk);
+                if (di > 0) update.diamantes = (Number(c.diamantes || 0) + di);
+                await sb.from('clientes').update(update).eq('phone', phone);
+                const partes = [];
+                if (tk > 0) partes.push(`🎟️ +${tk} ticket${tk>1?'s':''}`);
+                if (di > 0) partes.push(`💎 +${di} diamante${di>1?'s':''}`);
+                msgMoedas = partes.join(' + ') + ' devolvidos';
+            }
+        }
+
+        // 3. Atualizar cache local
+        const idx = _premiosCache.findIndex(p => p.id === id);
+        if (idx !== -1) _premiosCache[idx].cancelado = true;
+        renderPremios();
+
+        mostrarToast(msgMoedas ? `✅ Cancelado! ${msgMoedas}` : '✅ Prêmio cancelado!');
+        showToast({ type:'success', title: `🗑️ Prêmio de ${nome} cancelado`, body: msgMoedas || 'Marcado como cancelado.', duration: 6000 });
+
+    } catch(e) {
+        console.error('Erro ao cancelar prêmio:', e);
+        mostrarToast(`❌ Erro: ${e.message}`);
+    }
+}
+// ===== FIM CANCELAR PRÊMIO =====
 
 async function loadHistoricoPagamentos() {
     const list = document.getElementById('pagamentosList');
@@ -6040,9 +6107,95 @@ async function openConfigMoedas() {
         if (cfgTk.data?.value) document.getElementById('valorTicket').value   = cfgTk.data.value;
         if (cfgDi.data?.value) document.getElementById('valorDiamante').value = cfgDi.data.value;
     } catch(e) { console.warn('openConfigMoedas:', e); }
-    // Carregar clientes no select de dar moedas
     carregarClientesMoedas();
 }
+
+// ===== SALGADOS NA SEÇÃO DE MOEDAS =====
+let _salgadosMoedasCache = [];
+let _salgadoEditId = null;
+
+async function carregarSalgadosMoedas() {
+    const el = document.getElementById('salgadosMoedasList');
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
+    try {
+        const { data } = await sb.from('cardapio').select('*').order('created_at', { ascending: true });
+        _salgadosMoedasCache = data || [];
+        renderSalgadosMoedas();
+    } catch(e) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:13px;">❌ Erro ao carregar</div>';
+    }
+}
+
+function renderSalgadosMoedas() {
+    const el = document.getElementById('salgadosMoedasList');
+    if (!_salgadosMoedasCache.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Nenhum produto cadastrado</div>';
+        return;
+    }
+    el.innerHTML = _salgadosMoedasCache.map(p => {
+        const disponivel = p.available !== false;
+        const imgHtml = p.image_url
+            ? `<img src="${p.image_url}" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;">`
+            : `<div style="width:42px;height:42px;border-radius:10px;background:#1a0f2e;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🥟</div>`;
+        const nomeEscaped = p.name.replace(/'/g, "\'");
+        return `<div style="display:flex;align-items:center;gap:10px;background:#110820;border-radius:14px;padding:10px 12px;border:1px solid ${disponivel ? 'rgba(199,91,36,0.25)' : 'rgba(100,100,120,0.2)'};opacity:${disponivel ? '1' : '0.55'};">
+            ${imgHtml}
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:800;color:#e8d8f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+                <div style="font-size:14px;font-weight:900;color:#fb923c;margin-top:1px;">R$ ${Number(p.price).toFixed(2).replace('.',',')}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <button onclick="abrirSalgadoEdit('${p.id}','${nomeEscaped}',${p.price})" style="padding:6px 10px;border:none;border-radius:10px;background:rgba(199,91,36,0.15);color:#fb923c;font-size:13px;cursor:pointer;font-family:inherit;">✏️</button>
+                <label class="switch">
+                    <input type="checkbox" ${disponivel ? 'checked' : ''} onchange="toggleSalgadoMoedas('${p.id}', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function abrirSalgadoEdit(id, nome, preco) {
+    _salgadoEditId = id;
+    document.getElementById('salgadoEditNome').textContent = '✏️ ' + nome;
+    document.getElementById('salgadoEditPreco').value = preco;
+    document.getElementById('salgadoEditBox').style.display = 'block';
+    document.getElementById('salgadoEditBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function fecharSalgadoEdit() {
+    _salgadoEditId = null;
+    document.getElementById('salgadoEditBox').style.display = 'none';
+    document.getElementById('salgadoEditPreco').value = '';
+}
+
+async function salvarSalgadoPreco() {
+    if (!_salgadoEditId) return;
+    const preco = parseFloat(document.getElementById('salgadoEditPreco').value);
+    if (!preco || preco <= 0) { mostrarToast('⚠️ Informe um preço válido'); return; }
+    try {
+        mostrarToast('⏳ Salvando...');
+        const { error } = await sb.from('cardapio').update({ price: preco }).eq('id', _salgadoEditId);
+        if (error) throw error;
+        const idx = _salgadosMoedasCache.findIndex(p => p.id === _salgadoEditId);
+        if (idx !== -1) _salgadosMoedasCache[idx].price = preco;
+        fecharSalgadoEdit();
+        renderSalgadosMoedas();
+        mostrarToast('✅ Preço atualizado!');
+    } catch(e) { mostrarToast(`❌ Erro: ${e.message}`); }
+}
+
+async function toggleSalgadoMoedas(id, valor) {
+    try {
+        const { error } = await sb.from('cardapio').update({ available: valor }).eq('id', id);
+        if (error) throw error;
+        const idx = _salgadosMoedasCache.findIndex(p => p.id === id);
+        if (idx !== -1) _salgadosMoedasCache[idx].available = valor;
+        renderSalgadosMoedas();
+        mostrarToast(valor ? '✅ Produto ativado' : '🚫 Produto desativado');
+    } catch(e) { mostrarToast(`❌ Erro: ${e.message}`); carregarSalgadosMoedas(); }
+}
+// ===== FIM SALGADOS NA SEÇÃO DE MOEDAS =====
 
 async function carregarClientesMoedas() {
     try {
@@ -6059,16 +6212,67 @@ async function carregarClientesMoedas() {
     } catch(e) { console.warn('carregarClientesMoedas:', e); }
 }
 
+let _ajusteMoedasAtual = { tickets: 0, diamantes: 0 };
+
 async function onSelecionarClienteMoeda() {
     const phone = document.getElementById('darMoedasCliente').value;
     const box = document.getElementById('darMoedasSaldoAtual');
     if (!phone) { box.style.display = 'none'; return; }
     try {
         const { data: c } = await sb.from('clientes').select('tickets,diamantes').eq('phone', phone).maybeSingle();
-        document.getElementById('darMoedasTicketAtual').textContent   = c?.tickets   ?? 0;
-        document.getElementById('darMoedasDiamanteAtual').textContent = c?.diamantes ?? 0;
+        const tk = c?.tickets   ?? 0;
+        const di = c?.diamantes ?? 0;
+        _ajusteMoedasAtual = { tickets: tk, diamantes: di };
+        document.getElementById('darMoedasTicketAtual').textContent   = tk;
+        document.getElementById('darMoedasDiamanteAtual').textContent = di;
+        document.getElementById('darMoedasQtdTicket').value   = '';
+        document.getElementById('darMoedasQtdDiamante').value = '';
+        document.getElementById('diffTicket').textContent   = '';
+        document.getElementById('diffDiamante').textContent = '';
         box.style.display = 'block';
     } catch(e) { box.style.display = 'none'; }
+}
+
+function calcularDiferencaMoedas() {
+    const tkInput = document.getElementById('darMoedasQtdTicket').value;
+    const diInput = document.getElementById('darMoedasQtdDiamante').value;
+
+    const diffTkEl = document.getElementById('diffTicket');
+    const diffDiEl = document.getElementById('diffDiamante');
+
+    if (tkInput !== '') {
+        const correto = parseInt(tkInput);
+        const diff = correto - _ajusteMoedasAtual.tickets;
+        if (diff === 0) {
+            diffTkEl.textContent = '✓ Sem alteração';
+            diffTkEl.style.color = '#9080b8';
+        } else if (diff > 0) {
+            diffTkEl.textContent = `+${diff} ticket${diff>1?'s':''} serão adicionados`;
+            diffTkEl.style.color = '#4ade80';
+        } else {
+            diffTkEl.textContent = `${diff} ticket${Math.abs(diff)>1?'s':''} serão removidos`;
+            diffTkEl.style.color = '#f87171';
+        }
+    } else {
+        diffTkEl.textContent = '';
+    }
+
+    if (diInput !== '') {
+        const correto = parseInt(diInput);
+        const diff = correto - _ajusteMoedasAtual.diamantes;
+        if (diff === 0) {
+            diffDiEl.textContent = '✓ Sem alteração';
+            diffDiEl.style.color = '#9080b8';
+        } else if (diff > 0) {
+            diffDiEl.textContent = `+${diff} diamante${diff>1?'s':''} serão adicionados`;
+            diffDiEl.style.color = '#4ade80';
+        } else {
+            diffDiEl.textContent = `${diff} diamante${Math.abs(diff)>1?'s':''} serão removidos`;
+            diffDiEl.style.color = '#f87171';
+        }
+    } else {
+        diffDiEl.textContent = '';
+    }
 }
 
 let _saldoClientesCache = [];
@@ -6091,7 +6295,6 @@ async function carregarSaldoClientes() {
 
 function renderSaldoClientes() {
     const el = document.getElementById('saldoClientesList');
-    // atualizar estilo dos filtros
     ['Todos','Ticket','Diamante'].forEach(f => {
         const btn = document.getElementById('filtroMoedas' + f);
         if (!btn) return;
@@ -6113,46 +6316,152 @@ function renderSaldoClientes() {
     }
 
     el.innerHTML = lista.map(c => `
-        <div style="background:#110820;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <div style="flex:1;min-width:0;">
-                <div style="font-size:14px;font-weight:800;color:#e8d8f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-                <div style="font-size:11px;color:#9080b8;margin-top:1px;">${c.phone}</div>
+        <div style="background:#110820;border-radius:14px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:800;color:#e8d8f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+                    <div style="font-size:11px;color:#9080b8;margin-top:1px;">${c.phone}</div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                    <div style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:5px 10px;text-align:center;min-width:42px;">
+                        <div style="font-size:16px;font-weight:900;color:#fbbf24;">${c.tickets||0}</div>
+                        <div style="font-size:9px;color:#9080b8;">🎟️</div>
+                    </div>
+                    <div style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:5px 10px;text-align:center;min-width:42px;">
+                        <div style="font-size:16px;font-weight:900;color:#38bdf8;">${c.diamantes||0}</div>
+                        <div style="font-size:9px;color:#9080b8;">💎</div>
+                    </div>
+                    <button onclick="abrirAjusteInline('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.tickets||0},${c.diamantes||0})"
+                        style="padding:6px 10px;border:none;border-radius:10px;background:rgba(139,92,246,0.2);color:#a78bfa;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">⚖️</button>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
-                ${(c.tickets||0) > 0 ? `<div style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:5px 10px;text-align:center;">
-                    <div style="font-size:16px;font-weight:900;color:#fbbf24;">${c.tickets}</div>
-                    <div style="font-size:9px;color:#9080b8;">🎟️</div>
-                </div>` : ''}
-                ${(c.diamantes||0) > 0 ? `<div style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:5px 10px;text-align:center;">
-                    <div style="font-size:16px;font-weight:900;color:#38bdf8;">${c.diamantes}</div>
-                    <div style="font-size:9px;color:#9080b8;">💎</div>
-                </div>` : ''}
+            <!-- Painel de ajuste inline -->
+            <div id="ajuste_${c.phone}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#fbbf24;margin-bottom:4px;">🎟️ Deveria ter</div>
+                        <input type="number" id="ajTk_${c.phone}" min="0" placeholder="${c.tickets||0}"
+                            oninput="calcDiffInline('${c.phone}',${c.tickets||0},${c.diamantes||0})"
+                            style="width:100%;padding:8px;border-radius:10px;background:#1a0f2e;color:#fbbf24;border:1.5px solid rgba(251,191,36,0.4);font-size:20px;font-weight:900;text-align:center;font-family:inherit;box-sizing:border-box;">
+                        <div id="dTk_${c.phone}" style="font-size:11px;font-weight:700;margin-top:4px;text-align:center;min-height:14px;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:#38bdf8;margin-bottom:4px;">💎 Deveria ter</div>
+                        <input type="number" id="ajDi_${c.phone}" min="0" placeholder="${c.diamantes||0}"
+                            oninput="calcDiffInline('${c.phone}',${c.tickets||0},${c.diamantes||0})"
+                            style="width:100%;padding:8px;border-radius:10px;background:#1a0f2e;color:#38bdf8;border:1.5px solid rgba(56,189,248,0.4);font-size:20px;font-weight:900;text-align:center;font-family:inherit;box-sizing:border-box;">
+                        <div id="dDi_${c.phone}" style="font-size:11px;font-weight:700;margin-top:4px;text-align:center;min-height:14px;"></div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="fecharAjusteInline('${c.phone}')"
+                        style="flex:1;padding:9px;border:none;border-radius:10px;background:#1a0f2e;color:#9080b8;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Cancelar</button>
+                    <button onclick="salvarAjusteInline('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.tickets||0},${c.diamantes||0})"
+                        style="flex:2;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#5b21b6,#a78bfa);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⚖️ Aplicar Ajuste</button>
+                </div>
             </div>
         </div>
     `).join('');
 }
 
-async function confirmarDarMoedas() {
-    const phone   = document.getElementById('darMoedasCliente').value;
-    const tickets = parseInt(document.getElementById('darMoedasQtdTicket').value) || 0;
-    const diamantes = parseInt(document.getElementById('darMoedasQtdDiamante').value) || 0;
-    if (!phone) { mostrarToast('⚠️ Selecione um cliente'); return; }
-    if (tickets === 0 && diamantes === 0) { mostrarToast('⚠️ Informe ao menos 1 moeda'); return; }
+function abrirAjusteInline(phone, nome, tk, di) {
+    // Fecha todos os outros painéis abertos
+    document.querySelectorAll('[id^="ajuste_"]').forEach(el => el.style.display = 'none');
+    const painel = document.getElementById('ajuste_' + phone);
+    if (painel) {
+        painel.style.display = 'block';
+        const tkEl = document.getElementById('ajTk_' + phone);
+        const diEl = document.getElementById('ajDi_' + phone);
+        if (tkEl) tkEl.value = '';
+        if (diEl) diEl.value = '';
+        const dTk = document.getElementById('dTk_' + phone);
+        const dDi = document.getElementById('dDi_' + phone);
+        if (dTk) dTk.textContent = '';
+        if (dDi) dDi.textContent = '';
+        painel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function fecharAjusteInline(phone) {
+    const painel = document.getElementById('ajuste_' + phone);
+    if (painel) painel.style.display = 'none';
+}
+
+function calcDiffInline(phone, tkAtual, diAtual) {
+    const tkVal = document.getElementById('ajTk_' + phone).value;
+    const diVal = document.getElementById('ajDi_' + phone).value;
+    const dTkEl = document.getElementById('dTk_' + phone);
+    const dDiEl = document.getElementById('dDi_' + phone);
+
+    if (tkVal !== '' && dTkEl) {
+        const diff = parseInt(tkVal) - tkAtual;
+        if (diff === 0) { dTkEl.textContent = '✓ Sem alteração'; dTkEl.style.color = '#9080b8'; }
+        else if (diff > 0) { dTkEl.textContent = `+${diff} serão adicionados`; dTkEl.style.color = '#4ade80'; }
+        else { dTkEl.textContent = `${diff} serão removidos`; dTkEl.style.color = '#f87171'; }
+    } else if (dTkEl) dTkEl.textContent = '';
+
+    if (diVal !== '' && dDiEl) {
+        const diff = parseInt(diVal) - diAtual;
+        if (diff === 0) { dDiEl.textContent = '✓ Sem alteração'; dDiEl.style.color = '#9080b8'; }
+        else if (diff > 0) { dDiEl.textContent = `+${diff} serão adicionados`; dDiEl.style.color = '#4ade80'; }
+        else { dDiEl.textContent = `${diff} serão removidos`; dDiEl.style.color = '#f87171'; }
+    } else if (dDiEl) dDiEl.textContent = '';
+}
+
+async function salvarAjusteInline(phone, nome, tkAtual, diAtual) {
+    const tkVal = document.getElementById('ajTk_' + phone).value;
+    const diVal = document.getElementById('ajDi_' + phone).value;
+    if (tkVal === '' && diVal === '') { mostrarToast('⚠️ Informe ao menos um valor'); return; }
+
+    const novosTk = tkVal !== '' ? parseInt(tkVal) : tkAtual;
+    const novosDi = diVal !== '' ? parseInt(diVal) : diAtual;
+    const diffTk  = novosTk - tkAtual;
+    const diffDi  = novosDi - diAtual;
+    if (diffTk === 0 && diffDi === 0) { mostrarToast('ℹ️ Nenhuma alteração'); return; }
+
     try {
-        const { data: c } = await sb.from('clientes').select('tickets,diamantes,name').eq('phone', phone).maybeSingle();
-        const novosTickets   = (c?.tickets   || 0) + tickets;
-        const novosDiamantes = (c?.diamantes || 0) + diamantes;
-        await sb.from('clientes').update({ tickets: novosTickets, diamantes: novosDiamantes }).eq('phone', phone);
-        document.getElementById('darMoedasTicketAtual').textContent   = novosTickets;
-        document.getElementById('darMoedasDiamanteAtual').textContent = novosDiamantes;
-        document.getElementById('darMoedasQtdTicket').value   = 0;
-        document.getElementById('darMoedasQtdDiamante').value = 0;
+        await sb.from('clientes').update({ tickets: novosTk, diamantes: novosDi }).eq('phone', phone);
         const msgs = [];
-        if (tickets   > 0) msgs.push(`🎟️ +${tickets} ticket${tickets>1?'s':''}`);
-        if (diamantes > 0) msgs.push(`💎 +${diamantes} diamante${diamantes>1?'s':''}`);
+        if (diffTk !== 0) msgs.push(`🎟️ ${diffTk > 0 ? '+' : ''}${diffTk}`);
+        if (diffDi !== 0) msgs.push(`💎 ${diffDi > 0 ? '+' : ''}${diffDi}`);
+        mostrarToast(`✅ ${nome}: ${msgs.join(' · ')}`);
+        await carregarSaldoClientes();
+    } catch(e) { mostrarToast('❌ Erro: ' + e.message); }
+}
+
+async function confirmarDarMoedas() {
+    const phone  = document.getElementById('darMoedasCliente').value;
+    const tkInput = document.getElementById('darMoedasQtdTicket').value;
+    const diInput = document.getElementById('darMoedasQtdDiamante').value;
+    if (!phone) { mostrarToast('⚠️ Selecione um cliente'); return; }
+    if (tkInput === '' && diInput === '') { mostrarToast('⚠️ Informe o saldo correto em pelo menos um campo'); return; }
+
+    const novosTk = tkInput !== '' ? parseInt(tkInput) : _ajusteMoedasAtual.tickets;
+    const novosDi = diInput !== '' ? parseInt(diInput) : _ajusteMoedasAtual.diamantes;
+    const diffTk  = novosTk - _ajusteMoedasAtual.tickets;
+    const diffDi  = novosDi - _ajusteMoedasAtual.diamantes;
+
+    if (diffTk === 0 && diffDi === 0) { mostrarToast('ℹ️ Nenhuma alteração necessária'); return; }
+
+    try {
+        const { data: c } = await sb.from('clientes').select('name').eq('phone', phone).maybeSingle();
+        await sb.from('clientes').update({ tickets: novosTk, diamantes: novosDi }).eq('phone', phone);
+
+        // Atualizar UI
+        _ajusteMoedasAtual = { tickets: novosTk, diamantes: novosDi };
+        document.getElementById('darMoedasTicketAtual').textContent   = novosTk;
+        document.getElementById('darMoedasDiamanteAtual').textContent = novosDi;
+        document.getElementById('darMoedasQtdTicket').value   = '';
+        document.getElementById('darMoedasQtdDiamante').value = '';
+        document.getElementById('diffTicket').textContent   = '';
+        document.getElementById('diffDiamante').textContent = '';
+
+        const msgs = [];
+        if (diffTk !== 0) msgs.push(`🎟️ ${diffTk > 0 ? '+' : ''}${diffTk} ticket${Math.abs(diffTk)>1?'s':''}`);
+        if (diffDi !== 0) msgs.push(`💎 ${diffDi > 0 ? '+' : ''}${diffDi} diamante${Math.abs(diffDi)>1?'s':''}`);
         mostrarToast(`✅ ${c?.name}: ${msgs.join(' · ')}`);
-        if (_saldoClientesCache.length) carregarSaldoClientes(); // atualizar lista
-    } catch(e) { mostrarToast('❌ Erro ao dar moedas: ' + e.message); }
+        if (_saldoClientesCache.length) carregarSaldoClientes();
+    } catch(e) { mostrarToast('❌ Erro: ' + e.message); }
 }
 
 async function salvarTicket() {
