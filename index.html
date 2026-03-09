@@ -4618,11 +4618,24 @@ function calcDistM(lat1, lon1, lat2, lon2) {
 }
 
 function diaHoje() { return new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).replace('.','').replace(/^./,c=>c.toUpperCase()); }
+
+// Horário de virada do dia: domingo = 08:00, seg-sáb = 14:30
+// Igual ao entregador — garante que os dois apps usam a mesma janela
+function _getViradaAdm(diaSemana) {
+    return diaSemana === 0 ? [8, 0] : [14, 30];
+}
 async function loadRotasPanel() {
     const { data: clients } = await sb.from("clientes").select("*").order("name");
     clientesCache = clients || [];
     await preencherClientesComPedido();
     await calcularMediaEta();
+
+    // Poll automático: recarrega a cada 5 min para capturar a virada das 14:30
+    // sem precisar o admin fechar e reabrir o painel
+    if (window._rotasPollInterval) clearInterval(window._rotasPollInterval);
+    window._rotasPollInterval = setInterval(async () => {
+        await carregarRotasHoje();
+    }, 5 * 60 * 1000);
     await carregarRotasHoje();
     await carregarRotasSalvas();
 }
@@ -4814,6 +4827,18 @@ function renderRotasHoje() {
         const meta = getMetaRota(r);
         const pulse = r.status==='aguardando' ? 'animation:aguardandoPulse 1.5s ease-in-out infinite;' : '';
         const progresso = total > 0 ? Math.round((entregues/total)*100) : 0;
+        const hora = meta.hora_saida || '';
+
+        // Countdown de reinício — só para rotas concluídas com hora_saida definida
+        const countdownHtml = (r.status === 'concluido' && hora)
+            ? `<div style="margin:0 16px 12px;display:flex;align-items:center;gap:8px;background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:8px 12px;">
+                <span style="font-size:14px;">🔄</span>
+                <div>
+                    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#9080b8;margin-bottom:1px;">Reinicia às ${hora}</div>
+                    <div class="adm-rota-countdown" data-hora="${hora}" style="font-size:15px;font-weight:700;color:#f5c842;font-family:monospace;">--:--</div>
+                </div>
+               </div>`
+            : '';
 
         return `<div style="background:#1a0f2e;border:2px solid ${cor}33;border-radius:20px;overflow:hidden;">
             <!-- Topo colorido -->
@@ -4847,7 +4872,7 @@ function renderRotasHoje() {
                         <div style="font-size:10px;color:#9080b8;">entregas</div>
                     </div>
                     <div style="text-align:center;">
-                        <div style="font-size:18px;font-weight:900;color:#e8d8f8;">${meta.hora_saida||'--'}</div>
+                        <div style="font-size:18px;font-weight:900;color:#e8d8f8;">${hora||'--'}</div>
                         <div style="font-size:10px;color:#9080b8;">saída</div>
                     </div>
                 </div>
@@ -4859,11 +4884,51 @@ function renderRotasHoje() {
                     </div>
                 </div>` : ''}
             </div>
+            ${countdownHtml}
         </div>`;
     }).join('');
+
+    // Inicia os countdowns após renderizar
+    _iniciarCountdownsAdm();
 }
 
 // Controle de presença nas paradas
+
+// Countdown de reinício de rotas — igual ao entregador
+let _countdownAdmInterval = null;
+function _iniciarCountdownsAdm() {
+    if (_countdownAdmInterval) { clearInterval(_countdownAdmInterval); _countdownAdmInterval = null; }
+    function tick() {
+        const agora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+        document.querySelectorAll('.adm-rota-countdown').forEach(el => {
+            const hora = el.dataset.hora;
+            if (!hora) return;
+            const [hh, mm] = hora.split(':').map(Number);
+            // Sempre aponta para o próximo dia (rota reinicia amanhã)
+            const alvo = new Date(agora);
+            alvo.setDate(alvo.getDate() + 1);
+            alvo.setHours(hh, mm, 0, 0);
+            const diffSeg = Math.max(0, Math.floor((alvo - agora) / 1000));
+            const horas   = Math.floor(diffSeg / 3600);
+            const minutos = Math.floor((diffSeg % 3600) / 60);
+            const segs    = diffSeg % 60;
+            if (horas > 0) {
+                el.textContent = `${String(horas).padStart(2,'0')}h ${String(minutos).padStart(2,'0')}m`;
+                el.style.color = '#f5c842';
+            } else if (minutos > 0) {
+                el.textContent = `${String(minutos).padStart(2,'0')}m ${String(segs).padStart(2,'0')}s`;
+                el.style.color = '#f5c842';
+            } else {
+                el.textContent = diffSeg === 0 ? 'Iniciando!' : `${String(segs).padStart(2,'0')}s`;
+                el.style.color = '#22c55e';
+            }
+        });
+    }
+    tick();
+    if (document.querySelectorAll('.adm-rota-countdown').length > 0) {
+        _countdownAdmInterval = setInterval(tick, 1000);
+    }
+}
 
 function toggleNovaRota() {
     const f = document.getElementById('novaRotaForm');
@@ -5245,31 +5310,37 @@ async function adicionarParadasSelecionadas() {
 async function gerarParadasAtivas(template, horaSaida) {
     // Remove entradas de metadado (_meta) antes de processar o template
     template = (template || []).filter(x => !x._meta);
+
+    // Calcula virada do dia igual ao entregador (domingo=08:00, seg-sáb=14:30)
+    const agoraSP = horasBRT(new Date());
+    const [vh, vm] = _getViradaAdm(agoraSP.getDay());
+
+    // "Hoje" começa na virada — se ainda não passou, "hoje" ainda é ontem
+    const inicioJanela = new Date(agoraSP);
+    if (agoraSP.getHours() < vh || (agoraSP.getHours() === vh && agoraSP.getMinutes() < vm)) {
+        inicioJanela.setDate(inicioJanela.getDate() - 1);
+    }
+    inicioJanela.setHours(vh, vm, 0, 0);
+
     const hoje = hojeStr();
 
-    // Calcula "ontem" em BRT
-    const _ontemD = new Date();
-    _ontemD.setDate(_ontemD.getDate() - 1);
-    const _pOntem = _partesSP(_ontemD);
-    const ontem = `${_pOntem.year}-${_pOntem.month}-${_pOntem.day}`;
-
-    // Limite superior do pedido de hoje:
-    // Se a rota sai após 14h, aceita pedidos até a hora de saída.
-    // Senão (rota de manhã), só aceita pedidos de hoje até 13:59 — após 14h são do dia seguinte.
+    // Limite superior: se a rota sai após a virada, aceita pedidos até hora_saida
+    // Senão, aceita só até o horário de virada (exclusivo)
     const _horaSaidaMin = horaSaida ? (parseInt(horaSaida) * 60 + parseInt((horaSaida.split(':')[1]||0))) : 0;
-    const _limiteHoje = _horaSaidaMin >= (14 * 60 + 30)
+    const _viradaMin = vh * 60 + vm;
+    const _limiteHoje = _horaSaidaMin >= _viradaMin
         ? hoje + 'T' + (horaSaida || '23:59') + ':00-03:00'
-        : hoje + 'T14:29:59-03:00';
+        : hoje + `T${String(vh).padStart(2,'0')}:${String(vm-1<0?59:vm-1).padStart(2,'0')}:59-03:00`;
 
     const phones = template.map(p => p.cliente_phone).filter(Boolean);
     if (!phones.length) return [];
 
-    // Busca pedidos (ontem 14h até limite de hoje) E endereços em paralelo
+    // Busca pedidos (desde a virada até o limite) e endereços em paralelo
     const [pedidosRes, clientesRes] = await Promise.all([
         sb.from("pedidos")
             .select("customer_phone, created_at")
             .in("customer_phone", phones)
-            .gte("created_at", ontem + 'T14:30:00-03:00')
+            .gte("created_at", inicioJanela.toISOString())
             .lte("created_at", _limiteHoje),
         sb.from("clientes")
             .select("phone, delivery_lat, delivery_lon")
@@ -5287,7 +5358,9 @@ async function gerarParadasAtivas(template, horaSaida) {
     let ordem = 0;
     return template
         .filter(p => phonesComPedido.has(p.cliente_phone) && phonesComEndereco.has(p.cliente_phone))
-        .map(p => ({
+        .map(({ coords: _, ...p }) => ({
+            // coords removido intencionalmente: o entregador busca delivery_lat/lon
+            // direto da tabela clientes, garantindo sempre o endereço mais recente
             ...p,
             status: 'pendente',
             eta_min: Math.round((++ordem) * mediaMinPorParada)
