@@ -1124,6 +1124,10 @@ function _partesSP(d) {
   return Object.fromEntries(fmt.formatToParts(d || new Date()).filter(x => x.type !== 'literal').map(x => [x.type, x.value]));
 }
 
+function _getViradaHoraMin(diaSemana) {
+  return diaSemana === 0 ? [8, 0] : [14, 30];
+}
+
 /**
  * Retorna ISO string com offset correto de São Paulo (ex: "2025-03-01T14:05:00-03:00").
  * O offset é calculado dinamicamente, então funciona mesmo após mudanças de horário de verão.
@@ -3567,7 +3571,8 @@ async function executarCompra(total, pedidoTexto) {
             const _agora = new Date();
             const _hStr = _agora.toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
             const [_hh, _mm] = _hStr.split(':').map(Number);
-            const eParaAmanha = (_hh * 60 + _mm) >= (14 * 60 + 30);
+            const [_vh, _vm] = _getViradaHoraMin(_agora.getDay());
+            const eParaAmanha = (_hh * 60 + _mm) >= (_vh * 60 + _vm);
 
             // Só adiciona nas paradas de hoje se o pedido for de hoje
             if (!eParaAmanha) {
@@ -3589,7 +3594,6 @@ async function executarCompra(total, pedidoTexto) {
 
                     const novaParada = {
                         ...tmpl,
-                        coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
                         endereco: tmpl.endereco || cli.delivery_address || '',
                         nome: tmpl.nome || cli.name,
                         status: 'pendente'
