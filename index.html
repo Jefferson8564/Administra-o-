@@ -14,18 +14,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #1c0e08; min-height: 100vh; color-scheme: dark; overflow-x: hidden; }
         html { overflow-x: hidden; }
-        * { box-sizing: border-box; }
 
-        /* HEADER */
-        .header { background: linear-gradient(135deg, #1a1a2e 0%, #2d1f0e 100%); padding: 18px 20px 14px; color: white; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
-        .header-fiado-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; display: block; }
-        .header-fiado-valor { font-size: 22px; font-weight: 900; color: #ff6b6b; letter-spacing: 0.5px; }
+        
+        .header { background: #2e2e2e; padding: 18px 20px 14px; color: white; display: flex; align-items: center; justify-content: center; position: fixed; top: 8px; left: 8px; right: 8px; z-index: 100; box-shadow: 0 4px 18px rgba(0,0,0,0.4); border-radius: 22px; }
+        .header-fiado-label { font-size: 13px; opacity: 0.55; text-transform: uppercase; letter-spacing: 2px; display: block; font-weight: 700; font-family: 'Segoe UI', system-ui, sans-serif; margin-bottom: 2px; text-align: center; }
+        .header-fiado-valor { font-size: 32px; font-weight: 900; color: #60a5fa; letter-spacing: -0.5px; font-family: 'Segoe UI', system-ui, sans-serif; display: block; text-align: center; }
         .header-fiado-valor.zero { color: #2ecc71; }
 
-
-        /* ===== ANTI-CHROME COLOR OVERRIDE ===== */
+        
         :root { color-scheme: dark; }
-        * { -webkit-tap-highlight-color: transparent; }
         input, select, textarea, button {
             color-scheme: dark;
             -webkit-appearance: none;
@@ -49,14 +46,14 @@
             background: #150b25;
             color: #e8d8f8;
         }
-        /* Scrollbar dark */
+        
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #1c0e08; }
         ::-webkit-scrollbar-thumb { background: #4a2d7a; border-radius: 4px; }
-        /* ===== FIM ANTI-CHROME ===== */
+        
 
-        /* HOME */
-        #homeScreen { display: none; padding: 20px 15px; max-width: 600px; margin: 0 auto; background: #1c0e08; }
+        
+        #homeScreen { display: none; padding: 90px 15px 20px; max-width: 600px; margin: 0 auto; background: #1c0e08; }
         .home-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
         .home-card { background: #1a0f2e; border-radius: 24px; padding: 24px 16px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none; width: 100%; }
         .home-card:active { transform: scale(0.96); }
@@ -67,26 +64,26 @@
         .home-card.card-blue { border-top: 4px solid var(--blue); }
         .home-card.card-red { border-top: 4px solid var(--danger); }
         .home-card.card-green { border-top: 4px solid var(--success); }
+
         
-        /* HOME GRID 2 COLUNAS (para lado a lado) */
         .home-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
         
-        /* DIVISOR CONFIGURAÇÕES */
         .config-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 15px 0; }
         .config-divider-line { flex: 1; height: 3px; background: linear-gradient(90deg, transparent, #8b5cf6, transparent); border-radius: 2px; }
         .config-divider-text { color: #8b5cf6; font-weight: 700; font-size: 14px; }
-        
+
         .home-store-btn { margin-top: 20px; display: block; text-align: center; text-decoration: none; background: linear-gradient(135deg, #1a1a2e, #c75b24); color: white; padding: 14px; border-radius: 18px; font-weight: 700; font-size: 15px; }
 
-        /* INNER */
-        #innerApp { display: none; }
+        
+        #innerApp { display: none; padding-top: 80px; }
         .section { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
         .section.active { display: block; }
         .back-area { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #1a0f2e; border-bottom: 1px solid #2e1f4a; }
         .back-btn { background: #110820; border: none; border-radius: 12px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 14px; color: #e8d8f8; }
         .back-section-title { font-weight: 700; color: #c75b24; font-size: 16px; }
 
-        /* CARDS */
+        
         .card-box { background: #1a0f2e; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.35); }
         .card-box h4 { color: var(--primary); margin-bottom: 12px; }
         .input-text { width: 100%; padding: 12px; border: 1.5px solid #2e1f4a; border-radius: 12px; margin-bottom: 10px; font-size: 15px; background: #110820; color: #e8d8f8; }
@@ -103,19 +100,17 @@
         .btn-block { width: 100%; }
         .btn-sm { padding: 7px 12px; font-size: 12px; }
 
-        /* PRODUCT ITEM */
+        
         .prod-item { display: flex; justify-content: space-between; align-items: center; background: #150b25; padding: 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid #2e1f4a; }
         .prod-item img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; margin-right: 10px; }
 
-        /* CLIENT */
+        
         .client-card { background: #1a0f2e; border: 1px solid #2e1f4a; padding: 14px; border-radius: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
         .saldo-positivo { color: var(--blue); font-weight: bold; }
         .saldo-devedor { color: var(--danger); font-weight: bold; }
 
-        /* FIADO BANNER */
-
-        /* ORDER */
-        /* SWIPE ORDER CARDS */
+        
+        
         .order-wrap { position: relative; margin-bottom: 8px; border-radius: 18px; overflow: hidden; }
         .order-card {
             background: #1a0f2e;
@@ -128,7 +123,7 @@
             box-shadow: 0 2px 12px rgba(0,0,0,0.07);
             user-select: none; -webkit-user-select: none;
         }
-        
+
         .order-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .order-card-name { font-size: 15px; font-weight: 800; color: #e8d8f8; }
         .order-card-time { font-size: 11px; color: #9080b8; font-weight: 500; }
@@ -141,7 +136,7 @@
         .badge-pago  { background: #1a3025; color: #27ae60; }
         .order-fiado-btn { margin-top: 10px; width: 100%; padding: 9px; background: #2d1f0e; border: 1.5px solid #e67e22; color: #e67e22; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
-        /* SWITCH */
+        
         .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -149,7 +144,7 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(16px); }
 
-        /* TOAST NOTIFICATION */
+        
         #toastContainer { position: fixed; top: 12px; left: 0; right: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; pointer-events: none; padding: 0 12px; }
         .toast { width: 100%; max-width: 420px; background: rgba(30,30,40,0.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 22px; box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2); padding: 14px 16px 10px; pointer-events: all; transform: translateY(-130%) scale(0.9); opacity: 0; transition: transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.3s ease; overflow: hidden; color: white; }
         .toast.show { transform: translateY(0) scale(1); opacity: 1; }
@@ -172,6 +167,20 @@
         @keyframes roPulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(155,89,182,0.5);} 50%{opacity:0.7;box-shadow:0 0 0 6px rgba(155,89,182,0);} }
         .ra-dot-ativa { background: #9b59b6 !important; animation: roPulse 1.5s ease-in-out infinite; }
         .ra-dot-fora   { background: #95a5a6 !important; }
+    
+        
+        .u-lbl { font-size:10px;font-weight:700;color:#9080b8; }
+        .u-lbl-sm { font-size:11px;font-weight:700;color:#9080b8; }
+        .u-lbl-mb { font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px; }
+        .u-lbl-mb5 { font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px; }
+        .u-row-sb { display:flex;justify-content:space-between;align-items:center; }
+        .u-row-sb-mb { display:flex;justify-content:space-between;align-items:center;margin-bottom:16px; }
+        .u-modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center; }
+        .u-modal-panel { background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px; }
+        .u-close-btn { background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8; }
+        .u-dia-btn { text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s; }
+        .u-dia-label { font-size:10px;font-weight:700;color:#9080b8; }
+        .u-time-input { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none; }
     </style>
 <script>
 if ('serviceWorker' in navigator) {
@@ -186,24 +195,18 @@ if ('serviceWorker' in navigator) {
 <div id="adminApp" style="display:none;">
 
     <div class="header" id="mainHeader">
-        <div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
             <span class="header-fiado-label">💸 Total a Receber</span>
             <span class="header-fiado-valor zero" id="headerFiadoValor"
                 style="cursor:pointer;user-select:none;-webkit-user-select:none;"
-                onmousedown="iniciarLongPress(event)"
-                onmouseup="cancelarLongPress()"
-                onmouseleave="cancelarLongPress()"
-                ontouchstart="iniciarLongPress(event)"
-                ontouchend="cancelarLongPress()"
-                ontouchmove="cancelarLongPress()">R$ 0,00</span>
+                onclick="abrirModalEditarSaldoCliente()">R$ 0,00</span>
         </div>
-        <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:white; text-decoration:none;">← Loja</a>
     </div>
 
     <!-- HOME: cards de navegação -->
     <div id="homeScreen">
         <div style="padding: 18px 0 12px; text-align:center; color:#666; font-size:14px; font-weight:600;">Selecione uma opção</div>
-        
+
         <!-- 1º LUGAR: Histórico de Pedidos/Vendas (fullwidth) -->
         <div class="home-grid">
             <button class="home-card card-red" onclick="openSection('pedidos')">
@@ -212,7 +215,7 @@ if ('serviceWorker' in navigator) {
                 <div class="home-card-sub">Histórico & vendas</div>
             </button>
         </div>
-        
+
         <!-- 2º LUGAR: Clientes e Compra no Nome (lado a lado) -->
         <div class="home-grid-2col">
             <button class="home-card card-blue" onclick="openSection('clientes')">
@@ -226,7 +229,7 @@ if ('serviceWorker' in navigator) {
                 <div class="home-card-sub">Pedido pelo admin</div>
             </button>
         </div>
-        
+
         <!-- 3º LUGAR: Histórico de Pagamento e Salgados (lado a lado) -->
         <div class="home-grid-2col">
             <button class="home-card" style="border-top:4px solid #2980b9;" onclick="openSection('pagamentos')">
@@ -247,14 +250,14 @@ if ('serviceWorker' in navigator) {
                 <div class="home-card-sub">Prêmios ganhos nos jogos</div>
             </button>
         </div>
-        
+
         <!-- DIVISOR CONFIGURAÇÕES -->
         <div class="config-divider">
             <div class="config-divider-line"></div>
             <div class="config-divider-text">⚙️ CONFIGURAÇÕES</div>
             <div class="config-divider-line"></div>
         </div>
-        
+
         <!-- ABAIXO DO DIVISOR: Configs lado a lado -->
         <div class="home-grid-2col">
             <button class="home-card" style="border-top:4px solid #8e44ad;" onclick="openSection('refazer')">
@@ -282,13 +285,8 @@ if ('serviceWorker' in navigator) {
                 <div class="home-card-label">Endereços dos Clientes</div>
                 <div class="home-card-sub">Cadastrar localização de cada cliente</div>
             </button>
-            <button class="home-card" style="border-top:4px solid #22c55e;" onclick="openSection('controle-vendas')">
-                <span class="home-card-icon">📈</span>
-                <div class="home-card-label">Controle de Vendas</div>
-                <div class="home-card-sub" id="homeControleVendasSub">Lucro do mês</div>
-            </button>
         </div>
-        
+
         <!-- DIVISOR JOGOS -->
         <div class="config-divider" style="margin-top:24px;">
             <div class="config-divider-line" style="background:linear-gradient(90deg,transparent,#f59e0b,transparent);"></div>
@@ -308,8 +306,7 @@ if ('serviceWorker' in navigator) {
             </button>
         </div>
 
-        <a href="https://jefferson8564.github.io/orei-coxinha/" target="_blank" class="home-store-btn">🍗 Ir para a Loja</a>
-        <a href="https://wa.me/" target="_blank" class="home-store-btn" style="margin-top:10px; background:linear-gradient(135deg, #128C7E, #25d366);">💬 Ir para o WhatsApp</a>
+
     </div></div>
 
     <!-- SEÇÕES INTERNAS -->
@@ -323,45 +320,12 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <!-- CABEÇALHO SALGADOS (só na aba pedidos) -->
-        <div id="headerSalgados" style="display:none; background:linear-gradient(135deg,#1a1a2e 0%,#2d1f0e 100%); padding:10px 15px; color:white; box-shadow:0 2px 10px rgba(0,0,0,0.25); position:relative; overflow:hidden; cursor:pointer; user-select:none; -webkit-user-select:none;" onclick="abrirModalExcluir()">
+        <div id="headerSalgados" style="display:none; background:linear-gradient(135deg,#1a1a2e 0%,#2d1f0e 100%); padding:10px 15px; color:white; box-shadow:0 2px 10px rgba(0,0,0,0.25); position:relative; overflow:hidden; user-select:none; -webkit-user-select:none;">
             <div id="orderSummaryGrid" style="display:flex; flex-wrap:nowrap; gap:4px;">
                 <span style="color:rgba(255,255,255,0.4); font-size:13px;">Carregando...</span>
             </div>
-            <div id="summaryHoldBar" style="position:absolute; bottom:0; left:0; height:3px; width:0%; background:#f1c40f;"></div>
         </div>
 
-
-        <!-- ABA CONTROLE DE VENDAS -->
-        <div id="tab-controle-vendas" class="section">
-
-            <!-- Banner lucro do mês -->
-            <div id="cvBannerMes" style="background:linear-gradient(135deg,#14532d,#15803d);border-radius:22px;padding:20px;margin-bottom:16px;box-shadow:0 4px 20px rgba(34,197,94,0.25);">
-                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">💰 Lucro do Mês</div>
-                <div id="cvLucroMesValor" style="font-size:34px;font-weight:900;color:#4ade80;">R$ 0,00</div>
-                <div id="cvLucroMesSub" style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;"></div>
-            </div>
-
-            <!-- Cards de resumo -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
-                <div style="background:#1a0f2e;border-radius:16px;padding:12px;text-align:center;">
-                    <div style="font-size:10px;color:#9080b8;margin-bottom:4px;">📦 Vendido</div>
-                    <div id="cvTotalVendas" style="font-size:17px;font-weight:900;color:#e8d8f8;">R$ 0</div>
-                </div>
-                <div style="background:#1a0f2e;border-radius:16px;padding:12px;text-align:center;">
-                    <div style="font-size:10px;color:#9080b8;margin-bottom:4px;">💸 Custo</div>
-                    <div id="cvTotalCusto" style="font-size:17px;font-weight:900;color:#f87171;">R$ 0</div>
-                </div>
-                <div style="background:#1a0f2e;border-radius:16px;padding:12px;text-align:center;">
-                    <div style="font-size:10px;color:#9080b8;margin-bottom:4px;">📊 Margem</div>
-                    <div id="cvMargem" style="font-size:17px;font-weight:900;color:#fbbf24;">0%</div>
-                </div>
-            </div>
-
-            <!-- Título produtos -->
-            <div style="font-size:14px;font-weight:800;color:#e8d8f8;margin-bottom:10px;">🍕 Custo por Produto</div>
-            <div id="cvProdutosList" style="display:flex;flex-direction:column;gap:10px;"></div>
-
-        </div>
 
         <div id="tab-prods" class="section">
             <div class="card-box">
@@ -385,15 +349,13 @@ if ('serviceWorker' in navigator) {
             <div id="adminProductList"></div>
         </div>
 
-
-
         <div id="tab-clients" class="section">
             <div class="card-box">
                 <h4>➕ Novo Cliente</h4>
                 <input type="text" id="newCName" class="input-text" placeholder="Nome Completo">
                 <div class="input-prefix-container">
                     <span>819</span>
-                    <input type="tel" id="newCPhone" class="input-text" placeholder="Restante do número" maxlength="8">
+                    <input type="tel" id="newCPhone" class="input-text" placeholder="Cole o número do WhatsApp" oninput="normalizarTelefone(this)">
                 </div>
                 <button onclick="adminAddClient()" class="btn btn-blue btn-block">Cadastrar</button>
             </div>
@@ -409,25 +371,25 @@ if ('serviceWorker' in navigator) {
                 😕 Nenhum cliente encontrado
             </div>
 
-            <!-- INATIVOS -->
+            <div id="clientList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
 
-            <div id="clientList"></div>
+            <!-- Modal detalhe do cliente -->
+            <div id="modalDetalheCliente" class="u-modal-overlay">
+                <div class="u-modal-panel">
+                    <div class="u-row-sb-mb">
+                        <div id="detalheClienteHeader" style="display:flex;align-items:center;gap:12px;"></div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <a id="detalheWppBtn" href="#" target="_blank" style="background:#25d366;border:none;border-radius:10px;padding:6px 12px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;">📲</a>
+                            <button onclick="fecharDetalheCliente()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+                        </div>
+                    </div>
+                    <div id="detalheClienteBody"></div>
+                </div>
+            </div>
         </div>
 
         <div id="tab-orders" class="section">
 
-            <!-- MODAL: clientes do período -->
-            <div id="modalExcluirClientes" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:flex-end; justify-content:center;">
-                <div style="background:#150b25; border-radius:24px 24px 0 0; width:100%; max-width:600px; max-height:80vh; overflow-y:auto; padding:20px 18px 30px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <h3 style="color:#1a1a2e; font-size:17px;">👤 Remover da contagem</h3>
-                        <button onclick="fecharModalExcluir()" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
-                    </div>
-                    <p style="font-size:12px; color:#9080b8; margin-bottom:14px;">Marque os clientes para remover os pedidos deles do cabeçalho</p>
-                    <div id="excluirClientesList" style="display:flex; flex-direction:column; gap:8px;"></div>
-                    <button onclick="aplicarExclusoes()" style="margin-top:16px; width:100%; padding:13px; background:linear-gradient(135deg,#1a1a2e,#c75b24); color:white; border:none; border-radius:14px; font-weight:800; font-size:15px; cursor:pointer;">✅ Aplicar</button>
-                </div>
-            </div>
 
             <!-- ABAS DE ROTAS -->
             <div id="rotaTabsBar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
@@ -456,13 +418,13 @@ if ('serviceWorker' in navigator) {
                         <div>
                             <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
                             <input type="time" id="zerarAte1" value="12:00"
-                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                class="u-time-input"
                                 onchange="atualizarPreviewJanela()">
                         </div>
                         <div>
                             <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
                             <input type="time" id="zerarExec1" value="12:00"
-                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                class="u-time-input"
                                 onchange="atualizarPreviewJanela()">
                         </div>
                     </div>
@@ -477,13 +439,13 @@ if ('serviceWorker' in navigator) {
                         <div>
                             <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário limite</div>
                             <input type="time" id="zerarAteDom" value="12:00"
-                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                class="u-time-input"
                                 onchange="atualizarPreviewJanela()">
                         </div>
                         <div>
                             <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🚀 Executar às</div>
                             <input type="time" id="zerarExecDom" value="12:00"
-                                style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none;"
+                                class="u-time-input"
                                 onchange="atualizarPreviewJanela()">
                         </div>
                     </div>
@@ -552,7 +514,7 @@ if ('serviceWorker' in navigator) {
             <!-- Modal do pedido salvo -->
             <div id="modalPedidoSalvoCliente" style="display:none;position:fixed;inset:0;background:rgba(10,10,20,0.75);backdrop-filter:blur(4px);z-index:4000;align-items:flex-end;justify-content:center;">
                 <div style="background:#150b25;width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px 20px;animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <div class="u-row-sb-mb">
                         <h3 style="font-size:17px;font-weight:800;">⭐ Pedido Salvo</h3>
                         <button onclick="fecharModalPedidoSalvo()" style="background:#110820;border:none;border-radius:10px;padding:7px 13px;font-weight:800;cursor:pointer;font-size:16px;color:#e8d8f8;">✕</button>
                     </div>
@@ -596,7 +558,6 @@ if ('serviceWorker' in navigator) {
                 <!-- Área rolável: produtos -->
                 <div style="flex:1;overflow-y:auto;padding:15px 15px 0;">
                     <div id="compraPedidoSalvoBox" style="display:none;"></div>
-
 
                     <!-- Produtos -->
                     <div id="compraProdList"></div>
@@ -643,7 +604,7 @@ if ('serviceWorker' in navigator) {
             <div style="background:#1a0f2e; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="color:#8e44ad; font-size:17px;">📋 Histórico de Execuções</h3>
-                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" style="background:#110820; border:none; border-radius:10px; padding:6px 12px; font-weight:bold; cursor:pointer; color:#e8d8f8;">✕</button>
+                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" class="u-close-btn">✕</button>
                 </div>
                 <div id="historicoExecList"></div>
             </div>
@@ -705,7 +666,6 @@ if ('serviceWorker' in navigator) {
             </div>
         </div>
 
-        <!-- ABA HISTÓRICO DE PAGAMENTOS -->
         <!-- ABA HISTÓRICO DE PRÊMIOS -->
         <div id="tab-premios" class="section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
@@ -782,15 +742,15 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <!-- Modal cadastrar/editar endereço -->
-        <div id="modalEndereco" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-            <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
+        <div id="modalEndereco" class="u-modal-overlay">
+            <div class="u-modal-panel">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                     <h3 style="color:#e67e22;font-size:17px;">📍 Endereço de Entrega</h3>
-                    <button onclick="fecharModalEndereco()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
+                    <button onclick="fecharModalEndereco()" class="u-close-btn">✕</button>
                 </div>
                 <div id="modalEnderecoNome" style="font-size:15px;font-weight:800;color:#e8d8f8;margin-bottom:16px;"></div>
                 <input type="text" id="enderecoTexto" class="input-text" placeholder="Rua, número, bairro... (opcional)">
-                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📌 Coordenadas</div>
+                <div class="u-lbl-mb">📌 Coordenadas</div>
                 <div style="position:relative;margin-bottom:6px;">
                     <input type="text" id="enderecoCoords" class="input-text"
                         placeholder="-8,2181191, -34,9332629"
@@ -811,7 +771,7 @@ if ('serviceWorker' in navigator) {
         <div id="tab-rotas" class="section">
 
             <!-- CABEÇALHO COM BOTÃO NOVA ROTA -->
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="u-row-sb-mb">
                 <div style="font-size:18px;font-weight:900;color:#e8d8f8;">🗺️ Rotas</div>
                 <button onclick="toggleNovaRota()" id="btnToggleNovaRota"
                     style="display:flex;align-items:center;gap:6px;padding:9px 16px;
@@ -831,54 +791,58 @@ if ('serviceWorker' in navigator) {
                 <input type="text" id="rotaNome" class="input-text" placeholder="Nome da rota (ex: Rota Manhã)">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">⏰ Saída</div>
+                        <div class="u-lbl-mb">⏰ Saída</div>
                         <input type="time" id="rotaHoraSaida" class="input-text" style="margin-bottom:0;" value="05:20">
                     </div>
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📍 Raio (m)</div>
+                        <div class="u-lbl-mb">📍 Raio (m)</div>
                         <input type="number" id="rotaRaio" class="input-text" style="margin-bottom:0;" value="20">
                     </div>
                 </div>
                 <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:8px;">📅 Dias</div>
                 <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;">
-                    <div onclick="toggleDia(this,'Dom')" data-dia="Dom" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Dom</div></div>
-                    <div onclick="toggleDia(this,'Seg')" data-dia="Seg" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Seg</div></div>
-                    <div onclick="toggleDia(this,'Ter')" data-dia="Ter" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Ter</div></div>
-                    <div onclick="toggleDia(this,'Qua')" data-dia="Qua" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qua</div></div>
-                    <div onclick="toggleDia(this,'Qui')" data-dia="Qui" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qui</div></div>
-                    <div onclick="toggleDia(this,'Sex')" data-dia="Sex" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sex</div></div>
-                    <div onclick="toggleDia(this,'Sáb')" data-dia="Sáb" style="text-align:center;padding:9px 2px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sáb</div></div>
+                    <div onclick="toggleDia(this,'Dom')" data-dia="Dom" class="u-dia-btn"><div class="u-lbl">Dom</div></div>
+                    <div onclick="toggleDia(this,'Seg')" data-dia="Seg" class="u-dia-btn"><div class="u-lbl">Seg</div></div>
+                    <div onclick="toggleDia(this,'Ter')" data-dia="Ter" class="u-dia-btn"><div class="u-lbl">Ter</div></div>
+                    <div onclick="toggleDia(this,'Qua')" data-dia="Qua" class="u-dia-btn"><div class="u-lbl">Qua</div></div>
+                    <div onclick="toggleDia(this,'Qui')" data-dia="Qui" class="u-dia-btn"><div class="u-lbl">Qui</div></div>
+                    <div onclick="toggleDia(this,'Sex')" data-dia="Sex" class="u-dia-btn"><div class="u-lbl">Sex</div></div>
+                    <div onclick="toggleDia(this,'Sáb')" data-dia="Sáb" class="u-dia-btn"><div class="u-lbl">Sáb</div></div>
                 </div>
                 <button onclick="criarRota()" class="btn btn-success btn-block" style="padding:13px;font-size:15px;">➕ Criar Rota</button>
             </div>
 
             <!-- GERENCIAR CLIENTES FIXOS DA ROTA -->
-            <div id="addParadaBox" style="display:none;background:#1a0f2e;border:2px solid rgba(39,174,96,0.3);border-radius:20px;padding:18px;margin-bottom:16px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div id="addParadaBox" style="display:none;position:fixed;inset:0;z-index:999;background:#0d0720;overflow-y:auto;flex-direction:column;">
+                <!-- Header fixo da tela cheia -->
+                <div style="position:sticky;top:0;z-index:10;background:#1a0f2e;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(139,92,246,0.2);box-shadow:0 2px 12px rgba(0,0,0,0.4);">
+                    <button onclick="fecharAddParada()" style="background:#2a1a45;border:none;border-radius:12px;padding:8px 14px;font-size:14px;font-weight:800;cursor:pointer;color:#e8d8f8;display:flex;align-items:center;gap:6px;">← Voltar</button>
                     <div style="font-size:15px;font-weight:900;color:#e8d8f8;">👥 <span id="addParadaRotaNome" style="color:#22c55e;"></span></div>
-                    <button onclick="fecharAddParada()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;color:#e8d8f8;">✕</button>
                 </div>
-                <div style="font-size:12px;color:#9080b8;margin-bottom:12px;padding:10px;background:#0d0720;border-radius:12px;border-left:3px solid #3b82f6;">
-                    💡 Clientes aqui entram automaticamente na entrega quando fizerem pedido no dia.
-                </div>
-                <div style="margin-bottom:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <div style="font-size:12px;font-weight:700;color:#9080b8;">➕ Adicionar clientes</div>
-                        <span id="paradaSelCount" style="font-size:11px;font-weight:800;color:#22c55e;background:#1a3025;padding:2px 10px;border-radius:20px;display:none;">0 selecionados</span>
+
+                <div style="padding:16px;">
+                    <div style="font-size:12px;color:#9080b8;margin-bottom:12px;padding:10px;background:#110820;border-radius:12px;border-left:3px solid #3b82f6;">
+                        💡 Clientes aqui entram automaticamente na entrega quando fizerem pedido no dia.
                     </div>
-                    <input id="paradaBusca" type="text" placeholder="🔍 Buscar..." oninput="filtrarListaClientes()"
-                        style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:2px solid #2e1f4a;background:#0d0720;color:#e8d8f8;font-size:13px;margin-bottom:8px;outline:none;">
-                    <div id="paradaClienteLista" style="max-height:220px;overflow-y:auto;border-radius:14px;border:2px solid #1e1040;background:#0d0720;"></div>
-                    <button onclick="adicionarParadasSelecionadas()" id="btnAdicionarSelecionados"
-                        style="display:none;width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">
-                        ✅ Adicionar selecionados
-                    </button>
-                </div>
-                <div style="border-top:1px solid rgba(139,92,246,0.2);padding-top:12px;">
-                    <div style="font-size:12px;font-weight:700;color:#9080b8;margin-bottom:8px;">📋 Clientes desta rota</div>
-                    <div id="rotaParadasList" style="display:flex;flex-direction:column;gap:8px;"></div>
-                    <div id="rotaResumoEta" style="margin-top:10px;padding:10px;background:#1a3025;border-radius:12px;border:1px solid #22c55e;font-size:13px;color:#e8d8f8;display:none;">
-                        <strong>📊 Resumo:</strong> <span id="rotaResumoTexto"></span>
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <div style="font-size:12px;font-weight:700;color:#9080b8;">➕ Adicionar clientes</div>
+                            <span id="paradaSelCount" style="font-size:11px;font-weight:800;color:#22c55e;background:#1a3025;padding:2px 10px;border-radius:20px;display:none;">0 selecionados</span>
+                        </div>
+                        <input id="paradaBusca" type="text" placeholder="🔍 Buscar..." oninput="filtrarListaClientes()"
+                            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:2px solid #2e1f4a;background:#0d0720;color:#e8d8f8;font-size:13px;margin-bottom:8px;outline:none;">
+                        <div id="paradaClienteLista" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px;border-radius:14px;border:2px solid #1e1040;background:#110820;"></div>
+                        <button onclick="adicionarParadasSelecionadas()" id="btnAdicionarSelecionados"
+                            style="display:none;width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">
+                            ✅ Adicionar selecionados
+                        </button>
+                    </div>
+                    <div style="border-top:1px solid rgba(139,92,246,0.2);padding-top:12px;">
+                        <div style="font-size:12px;font-weight:700;color:#9080b8;margin-bottom:8px;">📋 Clientes desta rota</div>
+                        <div id="rotaParadasList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                        <div id="rotaResumoEta" style="margin-top:10px;padding:10px;background:#1a3025;border-radius:12px;border:1px solid #22c55e;font-size:13px;color:#e8d8f8;display:none;">
+                            <strong>📊 Resumo:</strong> <span id="rotaResumoTexto"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -956,18 +920,18 @@ if ('serviceWorker' in navigator) {
                 <!-- Horário início e fim -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">⏰ Horário de início</div>
+                        <div class="u-lbl-mb">⏰ Horário de início</div>
                         <input type="time" id="raHoraInicio" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="07:00">
                     </div>
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">🏁 Horário de fim</div>
+                        <div class="u-lbl-mb">🏁 Horário de fim</div>
                         <input type="time" id="raHoraFim" class="input-text" style="margin-bottom:0;font-size:18px;font-weight:800;" value="11:00">
                     </div>
                 </div>
 
                 <!-- Raio da fábrica -->
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📍 Raio de saída da fábrica (metros)</div>
+                    <div class="u-lbl-mb">📍 Raio de saída da fábrica (metros)</div>
                     <div style="position:relative;display:flex;align-items:center;">
                         <input type="number" id="raRaioFabrica" class="input-text" style="margin-bottom:0;padding-right:50px;" value="100" min="10" max="1000">
                         <span style="position:absolute;right:14px;font-size:13px;font-weight:700;color:#9080b8;">m</span>
@@ -1031,7 +995,7 @@ if ('serviceWorker' in navigator) {
 
                 <!-- Banner -->
                 <div style="margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📢 Texto do banner</div>
+                    <div class="u-lbl-mb">📢 Texto do banner</div>
                     <input type="text" id="minadoBanner"
                         style="width:100%;padding:10px 12px;border-radius:12px;background:#110820;color:#e8d8f8;border:1.5px solid #2e1f4a;font-size:13px;font-family:inherit;box-sizing:border-box;">
                 </div>
@@ -1039,12 +1003,12 @@ if ('serviceWorker' in navigator) {
                 <!-- Bombas e armadilha -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">💣 Total de bombas</div>
+                        <div class="u-lbl-mb">💣 Total de bombas</div>
                         <input type="number" id="minadoBombas" min="1" max="20"
                             style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#ef4444;border:1.5px solid #2e1f4a;font-size:18px;font-weight:900;text-align:center;font-family:inherit;">
                     </div>
                     <div>
-                        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">🎯 Armadilha a partir de</div>
+                        <div class="u-lbl-mb">🎯 Armadilha a partir de</div>
                         <input type="number" id="minadoArmadilha" min="1" max="15"
                             style="width:100%;padding:10px;border-radius:12px;background:#110820;color:#f59e0b;border:1.5px solid #2e1f4a;font-size:18px;font-weight:900;text-align:center;font-family:inherit;">
                         <div style="font-size:10px;color:#6b5e8a;margin-top:4px;text-align:center;">células restantes</div>
@@ -1057,6 +1021,29 @@ if ('serviceWorker' in navigator) {
                 <button onclick="adicionarPremioMinado()" style="width:100%;padding:10px;border:1.5px dashed rgba(80,220,80,0.3);border-radius:12px;background:transparent;color:#4ade80;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px;">+ Adicionar prêmio</button>
 
                 <button onclick="salvarMinado()" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#166534,#4ade80);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">💾 Salvar Campo Minado</button>
+            </div>
+
+            <!-- RASPADINHA -->
+            <div style="background:#1a0f2e;border-radius:20px;padding:18px 16px;margin-top:14px;border:1.5px solid rgba(255,215,0,0.25);">
+                <div style="font-size:13px;font-weight:900;color:#fbbf24;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🎴 Raspadinha — Prêmios</div>
+                <div style="font-size:11px;color:#9080b8;margin-bottom:14px;">Configure os 5 prêmios e a chance (%) de cada um. A soma deve ser 100%.</div>
+
+                <!-- Mensagem de marketing -->
+                <div style="background:#110820;border-radius:14px;padding:12px 14px;border:1px solid rgba(255,215,0,0.2);margin-bottom:14px;">
+                    <div style="font-size:11px;font-weight:700;color:#fbbf24;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">📣 Mensagem de destaque</div>
+                    <div style="font-size:10px;color:#9080b8;margin-bottom:8px;">Aparece no topo da raspadinha para o cliente. Ex: "Ganhe até R$ 20 de desconto!"</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <input type="text" id="raspadinhaEmoji" value="🤑" maxlength="4"
+                            style="width:46px;padding:8px;border-radius:10px;background:#1a0f2e;color:#fbbf24;border:1px solid rgba(255,215,0,0.3);font-size:20px;text-align:center;font-family:inherit;">
+                        <input type="text" id="raspadinhaMsgDestaque" placeholder="Ex: Ganhe até R$ 20 de desconto na raspagem!"
+                            style="flex:1;padding:9px 12px;border-radius:10px;background:#1a0f2e;color:#e8d8f8;border:1px solid rgba(255,215,0,0.3);font-size:13px;font-family:inherit;">
+                    </div>
+                    <div style="font-size:10px;color:#6b5e8a;">Preview: <span id="raspadinhaMsgPreview" style="color:#ffd700;"></span></div>
+                </div>
+
+                <div id="raspadinhaPremiosList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+                <div id="raspadinhaValidador" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;"></div>
+                <button onclick="salvarRaspadinha()" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#92400e,#fbbf24);color:white;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">💾 Salvar Raspadinha</button>
             </div>
         </div>
 
@@ -1121,41 +1108,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ADMIN_NUM = "81996603348";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ===== FUNÇÃO DE DIAGNÓSTICO DO SUPABASE =====
-async function diagnosticarSupabase() {
-    console.log('🔍 Iniciando diagnóstico do Supabase...');
-    try {
-        // Teste de leitura
-        const { data: readTest, error: readErr } = await sb.from('configs').select('*').limit(1);
-        if (readErr) {
-            console.error('❌ ERRO NA LEITURA:', readErr);
-            console.error('📋 Detalhes:', readErr.message, readErr.code);
-            return false;
-        }
-        console.log('✅ Leitura funciona OK');
-        
-        // Teste de escrita
-        const testKey = `test_${Date.now()}`;
-        const { error: writeErr } = await sb.from('configs').insert({ key: testKey, value: 'teste' });
-        if (writeErr) {
-            console.error('❌ ERRO NA ESCRITA:', writeErr);
-            console.error('📋 Detalhes:', writeErr.message, writeErr.code);
-            console.error('⚠️  PROVÁVEL CAUSA: RLS (Row Level Security) bloqueando escrita com chave anônima');
-            return false;
-        }
-        console.log('✅ Escrita funciona OK');
-        
-        // Limpeza do teste
-        await sb.from('configs').delete().eq('key', testKey);
-        console.log('✅ SUPABASE FUNCIONANDO CORRETAMENTE!');
-        return true;
-    } catch(e) {
-        console.error('❌ ERRO INESPERADO:', e);
-        return false;
-    }
-}
-
-// ===== FUSO HORÁRIO SÃO PAULO =====
+// FUSO HORÁRIO SÃO PAULO
 const TZ_SP = 'America/Sao_Paulo';
 
 /**
@@ -1278,17 +1231,15 @@ async function verificarExecucoesPerdidas() {
             console.log('[AutoZerar] Execucao perdida detectada, executando agora');
             await executarZerarJanela(diaSemana === 0 ? 'domingo' : 'normal');
         }
-        agendarZerar();
-        agendarZerarDom();
+        // agendamento já feito por carregarConfigZerar()
     }
 }
-
 
 async function updateFiadoHeader() {
     const { data } = await sb.from("clientes").select("debt");
     const total = (data || []).filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
     const el = document.getElementById('headerFiadoValor');
-    el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    el.textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
     el.className = 'header-fiado-valor' + (total > 0 ? '' : ' zero');
 }
 
@@ -1302,7 +1253,7 @@ function openSection(section) {
     const map = {
         salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
         clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
-        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); setTimeout(initSummaryHold, 100); carregarConfigZerar(); } },
+        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); carregarConfigZerar(); } },
         mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {
             document.getElementById('editTemplate').value = msgTemplate;
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
@@ -1316,7 +1267,6 @@ function openSection(section) {
         rotas: { id: 'tab-rotas', title: '🗺️ Painel de Rotas', fn: loadRotasPanel },
         enderecos: { id: 'tab-enderecos', title: '📍 Endereços dos Clientes', fn: loadEnderecos },
         'rota-aleatoria': { id: 'tab-rota-aleatoria', title: '🎲 Rota Aleatória', fn: loadRotaAleatoria },
-        'controle-vendas': { id: 'tab-controle-vendas', title: '📈 Controle de Vendas', fn: loadControleVendas },
     };
 
     // Seções simples (direto por ID, sem tab)
@@ -1343,13 +1293,21 @@ function openSection(section) {
     s.fn();
 }
 
-
-// ===== BOTÃO FÍSICO DE VOLTAR (Android) =====
+// BOTÃO FÍSICO DE VOLTAR (Android)
 // Estado inicial para que o back button tenha um estado anterior
 history.replaceState({ page: 'home' }, '');
 
 window.addEventListener('popstate', function(e) {
     const state = e.state;
+
+    // 0. Fechar tela cheia de seleção de clientes da rota
+    const addParada = document.getElementById('addParadaBox');
+    if (addParada && addParada.style.display === 'flex') {
+        addParada.style.display = 'none';
+        document.getElementById('rotaAtualBox').style.display = 'none';
+        if (rotaAtualObj) rotaAtualId = rotaAtualObj.id; else rotaAtualId = null;
+        return;
+    }
 
     // 1. Fechar qualquer modal visível primeiro
     const modais = [
@@ -1389,8 +1347,7 @@ window.addEventListener('popstate', function(e) {
         return;
     }
 });
-// ===== FIM BOTÃO FÍSICO =====
-
+// FIM BOTÃO FÍSICO
 function toggleAutoZerarBox() {
     // Só abre se estiver na aba de pedidos
     const box = document.getElementById('autoZerarBox');
@@ -1513,67 +1470,146 @@ async function toggleAvailable(id, value) {
 }
 
 // CLIENTES
+let _clientesAdminCache = [];
+
 async function loadAdminClients() {
     const { data: rawData } = await sb.from("clientes").select("*").order("name");
-    const data = (rawData || []).sort((a, b) => {
-        if (b.debt > 0 && a.debt <= 0) return 1;
-        if (a.debt > 0 && b.debt <= 0) return -1;
-        return b.debt - a.debt;
+    _clientesAdminCache = (rawData || []).sort((a, b) => {
+        const rank = c => c.debt < 0 ? 0 : c.debt > 0 ? 1 : 2;
+        if (rank(a) !== rank(b)) return rank(a) - rank(b);
+        // Dentro do mesmo grupo, ordena pelo valor absoluto decrescente
+        return Math.abs(b.debt) - Math.abs(a.debt);
     });
-    const list = document.getElementById('clientList');
-    const total = (data || []).filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
 
+    const total = _clientesAdminCache.filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
     const el = document.getElementById('headerFiadoValor');
-    el.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    el.textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
     el.className = 'header-fiado-valor' + (total > 0 ? '' : ' zero');
-    if (!data || data.length === 0) { list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente</div>'; return; }
-    list.innerHTML = data.map(c => `
-        <div class="client-card" data-name="${c.name.toLowerCase()}">
-            <div style="display:flex;justify-content:space-between;align-items:start;">
-                <div><strong>${c.name}</strong><br><small style="color:#9080b8;">${c.phone}</small></div>
-                <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <small>PAGAR DEPOIS</small>
-                        <label class="switch"><input type="checkbox" ${c.fiado === false ? '' : 'checked'} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
-                    </div>
-                    <button onclick="deleteClient('${c.phone}')" class="btn btn-danger btn-sm">🗑️</button>
-                </div>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-                <div class="${c.debt > 0 ? 'saldo-devedor' : 'saldo-positivo'}" style="font-size:17px;">
-                    ${c.debt > 0 ? 'Débito: R$ ' + c.debt.toFixed(2) : c.debt < 0 ? 'Crédito: R$ ' + Math.abs(c.debt).toFixed(2) : 'Saldo: R$ 0,00'}
-                </div>
-                ${c.debt > 0 ? `<button class="btn btn-success btn-sm" onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})">📱 Cobrar</button>` : ''}
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;" placeholder="Valor a lançar">
-                <button onclick="payDebt('${c.phone}')" class="btn btn-success">OK</button>
-            </div>
-        </div>`).join('');
 
-    // Limpa pesquisa ao recarregar
+    renderGridClientes(_clientesAdminCache);
+
     const searchInput = document.getElementById('clientSearchInput');
-    if (searchInput) { searchInput.value = ''; filterClients(''); }
+    if (searchInput) { searchInput.value = ''; }
+}
+
+function renderGridClientes(lista) {
+    const list = document.getElementById('clientList');
+    if (!lista || lista.length === 0) {
+        list.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:20px;">Nenhum cliente</div>';
+        return;
+    }
+    list.innerHTML = lista.map(c => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : c.name.slice(0,2).toUpperCase();
+        const nomeExibido = partes[0];
+        const temDebito  = c.debt > 0;
+        const temCredito = c.debt < 0;
+        const bgGradient = temDebito
+            ? 'linear-gradient(135deg,#c0392b,#922b21)'
+            : temCredito
+                ? 'linear-gradient(135deg,#2980b9,#1a5276)'
+                : 'linear-gradient(135deg,#6c3483,#4a235a)';
+        const valorLabel = temDebito
+            ? `<div style="font-size:10px;font-weight:900;color:#ff6b6b;margin-top:2px;">R$ ${c.debt.toFixed(2).replace('.',',')}</div>`
+            : temCredito
+                ? `<div style="font-size:10px;font-weight:900;color:#5dade2;margin-top:2px;">R$ ${Math.abs(c.debt).toFixed(2).replace('.',',')}</div>`
+                : '';
+        return `<div data-name="${c.name.toLowerCase()}"
+            onclick="abrirDetalheCliente('${c.phone}')"
+            style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+            padding:14px 6px 10px;border-radius:18px;cursor:pointer;
+            background:#1a0f2e;border:2px solid ${temDebito ? 'rgba(231,76,60,0.35)' : temCredito ? 'rgba(52,152,219,0.35)' : 'rgba(139,92,246,0.2)'};
+            box-shadow:0 3px 12px rgba(0,0,0,0.35);transition:transform 0.12s;-webkit-tap-highlight-color:transparent;"
+            onmousedown="this.style.transform='scale(0.93)'" onmouseup="this.style.transform='scale(1)'"
+            ontouchstart="this.style.transform='scale(0.93)'" ontouchend="this.style.transform='scale(1)'">
+            ${renderAvatar(c.phone, iniciais, bgGradient)}
+            <div style="font-size:11px;font-weight:700;color:#e8d8f8;text-align:center;line-height:1.2;">${nomeExibido}</div>
+            ${valorLabel}
+        </div>`;
+    }).join('');
 }
 
 function filterClients(query) {
     const q = query.toLowerCase().trim();
-    const cards = document.querySelectorAll('#clientList .client-card');
-    let visibleCount = 0;
-    cards.forEach(card => {
-        const name = card.getAttribute('data-name') || '';
-        const match = name.includes(q);
-        card.style.display = match ? '' : 'none';
-        if (match) visibleCount++;
-    });
+    if (!q) { renderGridClientes(_clientesAdminCache); return; }
+    const filtrados = _clientesAdminCache.filter(c => c.name.toLowerCase().includes(q));
+    renderGridClientes(filtrados);
     const emptyMsg = document.getElementById('clientSearchEmpty');
-    if (emptyMsg) emptyMsg.style.display = (visibleCount === 0 && q.length > 0) ? 'block' : 'none';
+    if (emptyMsg) emptyMsg.style.display = filtrados.length === 0 ? 'block' : 'none';
+}
+
+function abrirDetalheCliente(phone) {
+    const c = _clientesAdminCache.find(x => x.phone === phone);
+    if (!c) return;
+    const partes = c.name.trim().split(' ').filter(Boolean);
+    const iniciais = partes.length >= 2
+        ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+        : c.name.slice(0,2).toUpperCase();
+    const temDebito  = c.debt > 0;
+    const temCredito = c.debt < 0;
+    const bgGradient = temDebito
+        ? 'linear-gradient(135deg,#c0392b,#922b21)'
+        : temCredito
+            ? 'linear-gradient(135deg,#2980b9,#1a5276)'
+            : 'linear-gradient(135deg,#6c3483,#4a235a)';
+
+    document.getElementById('detalheClienteHeader').innerHTML = `
+        ${renderAvatar(c.phone, iniciais, bgGradient, 46)}
+        <div>
+            <div style="font-size:16px;font-weight:900;color:#e8d8f8;">${c.name}</div>
+            <div style="font-size:12px;color:#9080b8;">📱 ${c.phone}</div>
+        </div>`;
+
+    const saldoHtml = temDebito
+        ? `<div style="font-size:22px;font-weight:900;color:#ff6b6b;">Débito: R$ ${c.debt.toFixed(2).replace('.',',')}</div>`
+        : temCredito
+            ? `<div style="font-size:22px;font-weight:900;color:#5dade2;">Crédito: R$ ${Math.abs(c.debt).toFixed(2).replace('.',',')}</div>`
+            : `<div style="font-size:15px;color:#9080b8;">Saldo zerado ✅</div>`;
+
+    document.getElementById('detalheClienteBody').innerHTML = `
+        <div style="background:#110820;border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
+            ${saldoHtml}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#110820;border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+            <span style="font-size:13px;font-weight:700;color:#9080b8;">Pagar Depois</span>
+            <label class="switch"><input type="checkbox" ${c.fiado === false ? '' : 'checked'} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;flex:1;" placeholder="Valor a lançar">
+            <button onclick="payDebt('${c.phone}')" class="btn btn-success" style="white-space:nowrap;">✅ Lançar</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+            ${temDebito ? `<button onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})" class="btn btn-success btn-block">📱 Cobrar no WhatsApp</button>` : ''}
+            <button onclick="deleteClient('${c.phone}')" class="btn btn-danger ${temDebito ? '' : 'btn-block'}">🗑️</button>
+        </div>`;
+
+    const modal = document.getElementById('modalDetalheCliente');
+    document.getElementById('detalheWppBtn').href = `https://wa.me/55${phone}`;
+    modal.style.display = 'flex';
+    modal.onclick = e => { if (e.target === modal) fecharDetalheCliente(); };
+}
+
+function fecharDetalheCliente() {
+    document.getElementById('modalDetalheCliente').style.display = 'none';
+}
+
+function normalizarTelefone(input) {
+    // Remove tudo que não é dígito
+    const soDigitos = input.value.replace(/\D/g, '');
+    // Pega sempre os últimos 8 dígitos
+    const ultimos8 = soDigitos.slice(-8);
+    input.value = ultimos8;
 }
 
 async function adminAddClient() {
     const name = document.getElementById('newCName').value.trim();
-    const partial = document.getElementById('newCPhone').value.replace(/\D/g,'');
-    if (!name || partial.length < 8) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha o nome e o número completo (819 + 8 dígitos).' }); return; }
+    const raw = document.getElementById('newCPhone').value;
+    // Remove tudo que não é dígito e pega os últimos 8
+    const partial = raw.replace(/\D/g, '').slice(-8);
+    if (!name) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha o nome do cliente.' }); return; }
+    if (partial.length < 8) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Número inválido. Cole o número completo do WhatsApp.' }); return; }
     const phone = "819" + partial;
     await sb.from("clientes").upsert({ name, phone, fiado: true, debt: 0 });
     document.getElementById('newCName').value = '';
@@ -1619,7 +1655,7 @@ async function executarPayDebt(phone, val) {
 
     // Pagamento registrado diretamente no saldo do cliente (clientes.debt)
 
-    // ===== TICKETS E DIAMANTES DO FIADO =====
+    // TICKETS E DIAMANTES DO FIADO
     // Quando o ADM quita o fiado, tickets e diamantes são liberados IMEDIATAMENTE.
     try {
         const [cfgTk, cfgDi] = await Promise.all([
@@ -1659,9 +1695,9 @@ async function executarPayDebt(phone, val) {
                 body: `${c.name} ganhou ao confirmar o pagamento! 🎉`, duration: 6000 });
         }
     } catch(e) { console.warn('Erro ao gerar tickets/diamantes do fiado:', e); }
-    // ===== FIM TICKETS/DIAMANTES FIADO =====
-
+    // FIM TICKETS/DIAMANTES FIADO
     if (input) input.value = '';
+    fecharDetalheCliente();
     loadAdminClients();
 
     // Monta o comprovante usando o template configurável
@@ -1718,6 +1754,7 @@ async function deleteClient(phone) {
 async function executarDeleteClient(phone) {
     closeToast();
     await sb.from("clientes").delete().eq("phone", phone);
+    fecharDetalheCliente();
     loadAdminClients();
     showToast({ type: 'success', title: '✅ Cliente removido!', body: 'O cliente foi removido com sucesso.', duration: 4000 });
 }
@@ -1726,7 +1763,6 @@ function cobrarCliente(phone, name, debt) {
     const texto = msgCobranca.replace('{nome}', name).replace('{valor}', debt.toFixed(2).replace('.', ','));
     window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
 }
-
 
 // PEDIDOS
 const ordersMap = {};
@@ -1759,19 +1795,19 @@ function abreviarNome(nome) {
     return n.substring(0, 3);
 }
 
+// Cache por tipo: { cox: [{nome, qtd}, ...], cat: [...], ... }
+let _summaryDetalhes = {};
+
 async function loadOrderSummary() {
     const grid = document.getElementById('orderSummaryGrid');
     if (!grid) return;
 
-    // Janela: das 12h BRT de hoje/ontem até agora
-    const agoraBRT = agoraISO(); // ex: "2025-02-23T23:05:00-03:00"
+    const agoraBRT = agoraISO();
     const horaBRT = parseInt(agoraBRT.substring(11, 13));
-    const dataBRT = agoraBRT.substring(0, 10); // "2025-02-23"
+    const dataBRT = agoraBRT.substring(0, 10);
 
-    // Calcula data de início: 12h do dia atual BRT, ou 12h do dia anterior se agora < 12h
     let dataInicio;
     if (horaBRT < 12) {
-        // dia anterior em BRT
         const dOntem = new Date(new Date(dataBRT + 'T12:00:00-03:00').getTime() - 86400000);
         const pOntem = _partesSP(dOntem);
         dataInicio = `${pOntem.year}-${pOntem.month}-${pOntem.day}T12:00:00-03:00`;
@@ -1780,30 +1816,38 @@ async function loadOrderSummary() {
     }
 
     const { data } = await sb.from("pedidos")
-        .select("items")
+        .select("items, customer_name")
         .gte("created_at", dataInicio);
 
     const contagem = {};
-    let totalGeral = 0;
+    _summaryDetalhes = {};
 
     (data || []).forEach(o => {
+        const cliente = o.customer_name || '?';
+        const porTipo = {};
         const linhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
         linhas.forEach(linha => {
-            // Formato esperado: "2x Coxinha de Frango" ou "Coxinha de Frango"
             const match = linha.match(/^(\d+)[xX]\s*(.+)$/);
             if (match) {
                 const qtd = parseInt(match[1]);
-                const nome = abreviarNome(match[2]);
-                contagem[nome] = (contagem[nome] || 0) + qtd;
-                totalGeral += qtd;
+                const tipo = abreviarNome(match[2]);
+                contagem[tipo] = (contagem[tipo] || 0) + qtd;
+                porTipo[tipo] = (porTipo[tipo] || 0) + qtd;
             } else {
-                // Sem quantidade, conta como 1
-                const nome = abreviarNome(linha);
-                contagem[nome] = (contagem[nome] || 0) + 1;
-                totalGeral += 1;
+                const tipo = abreviarNome(linha);
+                contagem[tipo] = (contagem[tipo] || 0) + 1;
+                porTipo[tipo] = (porTipo[tipo] || 0) + 1;
             }
         });
+        Object.entries(porTipo).forEach(([tipo, qtd]) => {
+            if (!_summaryDetalhes[tipo]) _summaryDetalhes[tipo] = [];
+            _summaryDetalhes[tipo].push({ nome: cliente, qtd });
+        });
     });
+
+    Object.keys(_summaryDetalhes).forEach(t =>
+        _summaryDetalhes[t].sort((a, b) => b.qtd - a.qtd)
+    );
 
     renderSummaryGrid(contagem);
 }
@@ -1811,176 +1855,56 @@ async function loadOrderSummary() {
 function renderSummaryGrid(contagem) {
     const grid = document.getElementById('orderSummaryGrid');
     if (!grid) return;
-    // Ordem fixa: cox, cat, cha, sal, que — sempre exibe todos mesmo com zero
     const ordem = ['cox', 'cat', 'cha', 'sal', 'que'];
     const cores = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
-    grid.innerHTML = ordem.map(nome => {
-        const qtd = contagem[nome] || 0;
-        const cor = cores[nome];
-        const opacidade = qtd === 0 ? '0.35' : '1';
-        return `<div style="background:rgba(255,255,255,0.08); border-radius:10px; padding:7px 0; display:flex; flex-direction:column; align-items:center; gap:2px; border-bottom:3px solid ${cor}; opacity:${opacidade}; flex:1;">
-            <span style="font-size:20px; font-weight:900; color:${cor}; line-height:1;">${qtd}</span>
-            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.75;">${nome}</span>
+    grid.innerHTML = ordem.map(tipo => {
+        const qtd = contagem[tipo] || 0;
+        const cor = cores[tipo];
+        const op = qtd === 0 ? '0.35' : '1';
+        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${tipo}')` : ''}"
+            style="background:rgba(255,255,255,0.08);border-radius:10px;padding:7px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid ${cor};opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
+            <span style="font-size:20px;font-weight:900;color:${cor};line-height:1;">${qtd}</span>
+            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.75;">${tipo}</span>
         </div>`;
     }).join('');
 }
 
-// --- Dados do período para o modal ---
-let _summaryOrders = []; // pedidos do período completo
+function abrirSummaryDetalhe(tipo) {
+    const lista = _summaryDetalhes[tipo] || [];
+    if (!lista.length) return;
+    const cores = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
+    const nomes = { cox:'Coxinha de Frango', cat:'Coxinha Catupiry', cha:'Coxinha Charque', sal:'Enroladinho', que:'Risole de Queijo' };
+    const cor = cores[tipo] || '#888';
+    const total = lista.reduce((s, c) => s + c.qtd, 0);
 
-// Hold 3s no cabeçalho
-let _holdTimer = null;
-let _holdAnimFrame = null;
-let _holdStart = null;
-const HOLD_MS = 3000;
-
-function initSummaryHold() {
-    const box = document.getElementById('headerSalgados');
-    const bar = document.getElementById('summaryHoldBar');
-    if (!box) return;
-
-    function startHold(e) {
-        _holdStart = Date.now();
-        bar.style.transition = 'none';
-        bar.style.width = '0%';
-        bar.style.background = '#f1c40f';
-
-        function animate() {
-            const elapsed = Date.now() - _holdStart;
-            const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
-            bar.style.width = pct + '%';
-            if (pct < 100) {
-                _holdAnimFrame = requestAnimationFrame(animate);
-            } else {
-                bar.style.width = '0%';
-                abrirModalExcluir();
-            }
-        }
-        _holdAnimFrame = requestAnimationFrame(animate);
+    let modal = document.getElementById('modalSummaryDetalhe');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalSummaryDetalhe';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:4000;display:flex;align-items:flex-end;justify-content:center;';
+        modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+        document.body.appendChild(modal);
     }
 
-    function cancelHold() {
-        cancelAnimationFrame(_holdAnimFrame);
-        const bar = document.getElementById('summaryHoldBar');
-        if (bar) { bar.style.transition = 'width 0.3s'; bar.style.width = '0%'; }
-        _holdStart = null;
-    }
-
-    box.addEventListener('mousedown', startHold);
-    box.addEventListener('touchstart', startHold, { passive: true });
-    box.addEventListener('mouseup', cancelHold);
-    box.addEventListener('mouseleave', cancelHold);
-    box.addEventListener('touchend', cancelHold);
-    box.addEventListener('touchcancel', cancelHold);
-}
-
-// Conjunto de phones excluídos (persistente na sessão)
-let _excluidos = new Set();
-
-async function abrirModalExcluir() {
-    const modal = document.getElementById('modalExcluirClientes');
-    const list = document.getElementById('excluirClientesList');
-    modal.style.display = 'flex';
-    list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
-
-    // Busca pedidos do período
-    // Janela SP: 12h de hoje (ou ontem se < 12h) até 05h do dia seguinte
-    const _pNow = _partesSP(new Date());
-    const _hojeStr = `${_pNow.year}-${_pNow.month}-${_pNow.day}`;
-    const _hAtual = parseInt(_pNow.hour);
-    const _baseStr = _hAtual < 12
-        ? (() => { const p = _partesSP(new Date(Date.now()-86400000)); return `${p.year}-${p.month}-${p.day}`; })()
-        : _hojeStr;
-    const _startISO = `${_baseStr}T12:00:00-03:00`;
-    const _endDate = new Date(new Date(_baseStr + 'T12:00:00-03:00').getTime() + 86400000 - (7*3600000)); // +17h = 05h próximo dia
-    const _pEnd = _partesSP(_endDate);
-    const _endISO = `${_pEnd.year}-${_pEnd.month}-${_pEnd.day}T05:00:00-03:00`;
-
-    const { data } = await sb.from("pedidos")
-        .select("customer_name, customer_phone, items")
-        .gte("created_at", _startISO)
-        .lte("created_at", _endISO);
-
-    _summaryOrders = data || [];
-
-    // Agrupa por cliente
-    const clientes = {};
-    _summaryOrders.forEach(o => {
-        const key = o.customer_phone || o.customer_name;
-        if (!clientes[key]) clientes[key] = { name: o.customer_name, phone: key, pedidos: [] };
-        clientes[key].pedidos.push(o.items || '');
-    });
-
-    if (Object.keys(clientes).length === 0) {
-        list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum cliente no período</div>';
-        return;
-    }
-
-    list.innerHTML = Object.values(clientes).map(c => {
-        const checked = _excluidos.has(c.phone) ? 'checked' : '';
-        const resumo = c.pedidos.map(p => p.replace(/✅ /g,'').replace(/\n/g,', ').trim()).join(' | ');
-        return `<label style="display:flex; align-items:center; gap:12px; background:#150b25; border-radius:14px; padding:12px 14px; cursor:pointer; border:2px solid ${_excluidos.has(c.phone) ? '#e74c3c' : '#2e1f4a'};" id="label_${c.phone.replace(/\D/g,'')}">
-            <input type="checkbox" ${checked} onchange="toggleExclusao('${c.phone}')" style="width:20px; height:20px; accent-color:#e74c3c; cursor:pointer; flex-shrink:0;">
-            <div style="flex:1; min-width:0;">
-                <div style="font-weight:800; font-size:14px; color:#e8d8f8;">${c.name}</div>
-                <div style="font-size:11px; color:#9080b8; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${resumo}</div>
+    modal.innerHTML = `
+        <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:20px 18px 36px;max-height:75vh;display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0;">
+                <div>
+                    <div style="font-size:18px;font-weight:900;color:${cor};">${nomes[tipo] || tipo}</div>
+                    <div style="font-size:12px;color:#9080b8;margin-top:3px;">${lista.length} cliente${lista.length > 1 ? 's' : ''} · <strong style="color:${cor}">${total}</strong> unidade${total > 1 ? 's' : ''}</div>
+                </div>
+                <button onclick="document.getElementById('modalSummaryDetalhe').style.display='none'" class="u-close-btn">✕</button>
             </div>
-        </label>`;
-    }).join('');
-}
+            <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;">
+                ${lista.map(c => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#110820;border-radius:14px;padding:13px 16px;">
+                        <span style="font-size:14px;font-weight:700;color:#e8d8f8;">${c.nome}</span>
+                        <span style="background:${cor}22;color:${cor};font-size:15px;font-weight:900;padding:4px 12px;border-radius:20px;">${c.qtd}×</span>
+                    </div>`).join('')}
+            </div>
+        </div>`;
 
-function toggleExclusao(phone) {
-    const labelId = 'label_' + phone.replace(/\D/g,'');
-    const label = document.getElementById(labelId);
-    if (_excluidos.has(phone)) {
-        _excluidos.delete(phone);
-        if (label) label.style.border = '2px solid #eee';
-    } else {
-        _excluidos.add(phone);
-        if (label) label.style.border = '2px solid #e74c3c';
-    }
-}
-
-function fecharModalExcluir() {
-    document.getElementById('modalExcluirClientes').style.display = 'none';
-}
-
-async function aplicarExclusoes() {
-    fecharModalExcluir();
-    // Recalcula contagem excluindo clientes marcados
-    const _pNow2 = _partesSP(new Date());
-    const _hojeStr2 = `${_pNow2.year}-${_pNow2.month}-${_pNow2.day}`;
-    const _hAtual2 = parseInt(_pNow2.hour);
-    const _baseStr2 = _hAtual2 < 12
-        ? (() => { const p = _partesSP(new Date(Date.now()-86400000)); return `${p.year}-${p.month}-${p.day}`; })()
-        : _hojeStr2;
-    const _startISO2 = `${_baseStr2}T12:00:00-03:00`;
-    const _endISO2 = (() => { const p = _partesSP(new Date(new Date(_baseStr2+'T12:00:00-03:00').getTime()+61200000)); return `${p.year}-${p.month}-${p.day}T05:00:00-03:00`; })();
-
-    const { data } = await sb.from("pedidos")
-        .select("customer_phone, items")
-        .gte("created_at", _startISO2)
-        .lte("created_at", _endISO2);
-
-    const contagem = {};
-    (data || []).forEach(o => {
-        const key = o.customer_phone;
-        if (_excluidos.has(key)) return; // pula excluídos
-        const linhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
-        linhas.forEach(linha => {
-            const match = linha.match(/^(\d+)[xX]\s*(.+)$/);
-            if (match) {
-                const qtd = parseInt(match[1]);
-                const nome = abreviarNome(match[2]);
-                contagem[nome] = (contagem[nome] || 0) + qtd;
-            } else {
-                const nome = abreviarNome(linha);
-                contagem[nome] = (contagem[nome] || 0) + 1;
-            }
-        });
-    });
-
-    renderSummaryGrid(contagem);
+    modal.style.display = 'flex';
 }
 
 // Controle do carrossel de abas de pedidos
@@ -1998,17 +1922,13 @@ async function loadOrders() {
 
     try {
     // Busca pedidos + rotas + clientes em paralelo
-    const [{ data, error }, { data: rotasRaw }, { data: clientes }] = await Promise.all([
+    const [{ data, error }, { data: rotasRaw }] = await Promise.all([
         sb.from("pedidos").select("*").order("created_at", { ascending: true }).limit(200),
-        sb.from("rotas").select("id,nome_rota,paradas,status").order("created_at", { ascending: true }),
-        sb.from("clientes").select("phone,delivery_lat,delivery_lon").not("delivery_lat","is",null).not("delivery_lon","is",null)
+        sb.from("rotas").select("id,nome_rota,paradas,status").order("created_at", { ascending: true })
     ]);
 
     if (error) throw error;
-
-    const phonesComEndereco = new Set();
-    (clientes || []).forEach(c => phonesComEndereco.add(c.phone));
-    const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r["rotas"] || r.nome || "Sem nome" }));
+    const todasRotas = (rotasRaw || []).map(r => ({ ...r, nome: r.nome_rota || r["rotas"] || r.nome || "Sem nome" }));
 
     if (!data || data.length === 0) {
         document.getElementById('rotaTabsBar').innerHTML = '';
@@ -2039,7 +1959,7 @@ async function loadOrders() {
     data.forEach(o => {
         const phone = o.customer_phone;
         const rotaInfo = phoneParaRota[phone];
-        if (!phoneVistoRota.has(phone) && rotaInfo && phonesComEndereco.has(phone)) {
+        if (!phoneVistoRota.has(phone) && rotaInfo) {
             phoneVistoRota.add(phone);
             if (!grupos[rotaInfo.nome]) grupos[rotaInfo.nome] = [];
             grupos[rotaInfo.nome].push({ order: o, posicao: rotaInfo.posicao });
@@ -2221,8 +2141,7 @@ function buildOrderCard(o) {
     </div>`;
 }
 
-
-// ===== OCULTAR / RESTART PEDIDOS =====
+// OCULTAR / RESTART PEDIDOS
 const _pedidosOcultos = new Set();
 
 function ocultarPedido(orderId) {
@@ -2292,7 +2211,7 @@ async function executarCancelamentoPedido(orderId) {
     await sb.from("pedidos").delete().eq("id", orderId);
     delete ordersMap[orderId];
 
-    // ===== Remove o cliente das paradas ativas da rota =====
+    // Remove o cliente das paradas ativas da rota
     // (só remove da parada ativa, não do template — para que possa re-entrar se pedir de novo)
     if (o.customer_phone) {
         try {
@@ -2320,8 +2239,7 @@ async function executarCancelamentoPedido(orderId) {
             }
         } catch(e) { console.warn('Erro ao remover da rota:', e); }
     }
-    // ===== FIM remoção da rota =====
-
+    // FIM remoção da rota
     // Remove o card visualmente
     const wrap = document.getElementById('wrap_' + orderId);
     if (wrap) {
@@ -2384,7 +2302,7 @@ async function executarMudarParaFiado(orderId) {
     showToast({ type: 'success', title: '✅ Alterado para Pagar Depois!', body: `R$ ${Number(o.total).toFixed(2).replace('.', ',')} lançado no pagar depois de ${o.customer_name}.`, duration: 5000 });
 }
 
-// ===== AUTO-ZERAR PEDIDOS =====
+// AUTO-ZERAR PEDIDOS
 let zerarTimer = null;
 let zerarTimerDom = null;
 
@@ -2578,7 +2496,6 @@ function _registrarLogZerar(agora, qtd) {
     localStorage.setItem('autoZerar_log', JSON.stringify(log));
 }
 
-
 // MENSAGENS
 async function loadTemplates() {
     const { data } = await sb.from("configs").select("*");
@@ -2609,16 +2526,12 @@ async function salvarConfig(key, value) {
             if (updateErr) {
                 console.error('❌ Erro ao atualizar config:', updateErr);
                 mostrarToast(`❌ Erro ao atualizar: ${updateErr.message}`);
-            } else {
-                console.log('✅ Config atualizada:', key);
             }
         } else {
             const { error: insertErr } = await sb.from("configs").insert({ key, value });
             if (insertErr) {
                 console.error('❌ Erro ao inserir config:', insertErr);
                 mostrarToast(`❌ Erro ao inserir: ${insertErr.message}`);
-            } else {
-                console.log('✅ Config inserida:', key);
             }
         }
     } catch(e) {
@@ -2683,7 +2596,7 @@ async function saveMsgTemplates() {
     // legacy — noop, kept for safety
 }
 
-// ===== REFAZER PEDIDOS =====
+// REFAZER PEDIDOS
 let refazerSelecionados = {};
 let refazerBloqueados = JSON.parse(localStorage.getItem('refazer_bloqueados') || '[]');
 let refazerDesmarcados = JSON.parse(localStorage.getItem('refazer_desmarcados') || '[]');
@@ -2700,7 +2613,7 @@ function toggleBloqueioRefazer(phone, event) {
 }
 let autoRefazerTimer = null;
 
-// ---- Persistência das seleções ----
+// Persistência das seleções
 function salvarSelecoes() {
     localStorage.setItem('refazer_selecionados', JSON.stringify(refazerSelecionados));
     localStorage.setItem('refazer_desmarcados', JSON.stringify(refazerDesmarcados));
@@ -2878,8 +2791,6 @@ async function executarAutoRefazer() {
     atualizarBannerAgendamento();
 }
 
-
-
 async function loadRefazerPedidos() {
     atualizarBannerAgendamento();
     const list = document.getElementById('refazerList');
@@ -2921,7 +2832,6 @@ async function loadRefazerPedidos() {
         list.innerHTML = '<div style="text-align:center;color:#9080b8;padding:30px;">Nenhum cliente para exibir.</div>';
         return;
     }
-
 
     list.style.display = 'grid';
     list.style.gridTemplateColumns = 'repeat(3,1fr)';
@@ -3119,8 +3029,8 @@ async function executarTodosRefazer() {
     showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no pagar depois.\nTotal: R$ ${totalGeral}`, duration: 8000 });
 }
 
-// ===== COMPRA NO NOME =====
-// ===== SISTEMA DE FOTOS DE CLIENTES =====
+// COMPRA NO NOME
+// SISTEMA DE FOTOS DE CLIENTES
 let clienteFotos = JSON.parse(localStorage.getItem('cliente_fotos') || '{}');
 
 function salvarFotoCliente(phone, dataUrl) {
@@ -3196,6 +3106,7 @@ function abrirFotoPicker(phone) {
                     else if (id === 'tab-pagamentos') loadHistoricoPagamentos();
                     else if (id === 'tab-refazer') loadRefazerPedidos();
                     else if (id === 'tab-enderecos') renderEnderecos(todosClientesEnderecos);
+                    else if (id === 'tab-clients') loadAdminClients();
                 }
             };
             img.src = ev.target.result;
@@ -3204,8 +3115,7 @@ function abrirFotoPicker(phone) {
     };
     input.click();
 }
-// =========================================
-
+// 
 let compraCart = {};
 let compraPagamento = 'FIADO';
 let compraClienteAtual = null;
@@ -3625,7 +3535,7 @@ async function executarCompra(total, pedidoTexto) {
         await sb.from("clientes").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
     }
 
-    // ===== TICKETS: pagamento à vista → acumula em pendentes (libera no horário configurado) =====
+    // TICKETS: pagamento à vista → acumula em pendentes (libera no horário configurado)
     if (compraPagamento !== 'FIADO') {
         try {
             const { data: cfgTk } = await sb.from('configs').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
@@ -3648,9 +3558,8 @@ async function executarCompra(total, pedidoTexto) {
             }
         } catch(e) { console.warn('Erro ao gerar tickets pendentes da compra admin:', e); }
     }
-    // ===== FIM TICKETS COMPRA ADMIN =====
-
-    // ===== ROTA FIXA: adiciona cliente nas paradas se estiver no template =====
+    // FIM TICKETS COMPRA ADMIN
+    // ROTA FIXA: adiciona cliente nas paradas se estiver no template
     try {
         const cli = compraClienteAtual;
         if (cli?.delivery_lat && cli?.delivery_lon) {
@@ -3698,9 +3607,8 @@ async function executarCompra(total, pedidoTexto) {
             }
         }
     } catch(e) { console.warn('Rota fixa compra admin:', e); }
-    // ===== FIM ROTA FIXA =====
-
-    // ===== ROTA ALEATÓRIA: mesmo comportamento do cardápio =====
+    // FIM ROTA FIXA
+    // ROTA ALEATÓRIA: mesmo comportamento do cardápio
     try {
         const { data: raData } = await sb.from('gps')
             .select('valor').eq('chave', RA_CHAVE).maybeSingle();
@@ -3750,8 +3658,7 @@ async function executarCompra(total, pedidoTexto) {
             }
         }
     } catch(e) { console.warn('RA compra admin:', e); }
-    // ===== FIM ROTA ALEATÓRIA =====
-
+    // FIM ROTA ALEATÓRIA
     showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 8000 });
 
     compraCart = {};
@@ -3771,7 +3678,7 @@ async function executarCompra(total, pedidoTexto) {
 // Mapa seguro para dados dos pedidos do histórico
 const historicoMap = {};
 
-// ===== HISTÓRICO DE PRÊMIOS =====
+// HISTÓRICO DE PRÊMIOS
 let _premiosCache = [];
 let filtroPremio = 'todos';
 
@@ -3840,6 +3747,8 @@ function renderPremios() {
             jogoTag = '<span style="background:rgba(251,146,60,0.2);color:#fb923c;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎡 Roleta</span>';
         } else if (jogoKey === 'foguete') {
             jogoTag = '<span style="background:rgba(96,165,250,0.2);color:#60a5fa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🚀 Foguete</span>';
+        } else if (jogoKey === 'admin') {
+            jogoTag = '<span style="background:rgba(155,89,182,0.25);color:#c084fc;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">👑 Admin</span>';
         } else {
             jogoTag = '<span style="background:rgba(155,89,182,0.2);color:#a78bfa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;">🎮 Jogo</span>';
         }
@@ -3888,7 +3797,7 @@ function renderPremios() {
     }).join('');
 }
 
-// ===== CANCELAR PRÊMIO =====
+// CANCELAR PRÊMIO
 function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
     // Mostrar modal de confirmação personalizado
     const modal = document.createElement('div');
@@ -3903,7 +3812,7 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
         z-index: 9999;
         animation: fadeIn 0.3s ease-in-out;
     `;
-    
+
     modal.innerHTML = `
         <div style="
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -3934,7 +3843,7 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
                     Você tem certeza que deseja cancelar o prêmio de <strong style="color: #ffaa44;">${nome}</strong>?
                 </p>
             </div>
-            
+
             <div style="
                 background: rgba(255, 107, 0, 0.1);
                 border-left: 3px solid #ff6b00;
@@ -3948,7 +3857,7 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
                 ✓ O prêmio será marcado como cancelado
                 ${(ticketsUsados > 0 || diamantesUsados > 0) ? '<br>✓ As moedas usadas serão devolvidas' : ''}
             </div>
-            
+
             <div style="display: flex; gap: 12px;">
                 <button onclick="document.getElementById('modalCancelarPremio').remove();" style="
                     flex: 1;
@@ -3983,7 +3892,7 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
                 </button>
             </div>
         </div>
-        
+
         <style>
             @keyframes fadeIn {
                 from { opacity: 0; }
@@ -4001,9 +3910,9 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
             }
         </style>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Fechar ao clicar fora
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
@@ -4011,25 +3920,19 @@ function confirmarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados
 }
 
 async function executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesUsados) {
-    console.log('🗑️ Deletando prêmio:', { id, nome, phone, ticketsUsados, diamantesUsados });
-
     try {
-        console.log('⏳ Iniciando exclusão no Supabase...');
-
         // 1. DELETAR da tabela premios
         const { error: delErr } = await sb.from('premios').delete().eq('id', id);
         if (delErr) {
             console.error('❌ Erro ao deletar prêmio:', delErr);
             throw delErr;
         }
-        console.log('✅ Prêmio deletado do Supabase');
 
         // 2. Devolver tickets/diamantes ao cliente
         let msgMoedas = '';
         const tk = Number(ticketsUsados || 0);
         const di = Number(diamantesUsados || 0);
         if (phone && (tk > 0 || di > 0)) {
-            console.log('💰 Devolvendo moedas:', { tk, di });
             const { data: c } = await sb.from('clientes').select('tickets,diamantes').eq('phone', phone).maybeSingle();
             if (c) {
                 const update = {};
@@ -4044,7 +3947,6 @@ async function executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesU
                 if (tk > 0) partes.push(`🎟️ +${tk} ticket${tk>1?'s':''}`);
                 if (di > 0) partes.push(`💎 +${di} diamante${di>1?'s':''}`);
                 msgMoedas = partes.join(' + ');
-                console.log('✅ Moedas devolvidas:', msgMoedas);
             }
         }
 
@@ -4052,7 +3954,6 @@ async function executarCancelarPremio(id, nome, phone, ticketsUsados, diamantesU
         const idx = _premiosCache.findIndex(p => p.id === id);
         if (idx !== -1) _premiosCache.splice(idx, 1);
         renderPremios();
-        console.log('✅ Cache e lista atualizados');
 
         // Mostrar mensagem de sucesso bonita
         mostrarSucessoCancelarPremio(nome, msgMoedas);
@@ -4076,7 +3977,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
         z-index: 9999;
         animation: fadeIn 0.3s ease-in-out;
     `;
-    
+
     modal.innerHTML = `
         <div style="
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -4094,7 +3995,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
                 margin-bottom: 16px;
                 animation: bounce 0.6s ease-out;
             ">🗑️</div>
-            
+
             <h2 style="
                 color: #22c55e;
                 font-size: 22px;
@@ -4102,7 +4003,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
                 margin: 0 0 12px 0;
                 font-family: 'Inter', sans-serif;
             ">Prêmio Deletado!</h2>
-            
+
             <p style="
                 color: #a0a0b8;
                 font-size: 14px;
@@ -4112,7 +4013,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
             ">
                 O prêmio de <strong style="color: #fff;">${nome}</strong> foi deletado do sistema.
             </p>
-            
+
             ${msgMoedas ? `
             <div style="
                 background: rgba(34, 197, 94, 0.15);
@@ -4128,7 +4029,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
                 💰 ${msgMoedas} devolvidos ao cliente
             </div>
             ` : ''}
-            
+
             <button onclick="document.getElementById('modalSucesso').remove();" style="
                 width: 100%;
                 padding: 12px 16px;
@@ -4146,7 +4047,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
                 ✓ Entendido
             </button>
         </div>
-        
+
         <style>
             @keyframes bounce {
                 0%, 100% { transform: scale(1); }
@@ -4154,7 +4055,7 @@ function mostrarSucessoCancelarPremio(nome, msgMoedas) {
             }
         </style>
     `;
-    
+
     document.body.appendChild(modal);
 }
 
@@ -4171,7 +4072,7 @@ function mostrarErro(msg) {
         z-index: 9999;
         animation: fadeIn 0.3s ease-in-out;
     `;
-    
+
     modal.innerHTML = `
         <div style="
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -4185,7 +4086,7 @@ function mostrarErro(msg) {
             animation: slideUp 0.3s ease-out;
         ">
             <div style="font-size: 56px; margin-bottom: 16px;">❌</div>
-            
+
             <h2 style="
                 color: #ef4444;
                 font-size: 18px;
@@ -4193,7 +4094,7 @@ function mostrarErro(msg) {
                 margin: 0 0 12px 0;
                 font-family: 'Inter', sans-serif;
             ">Erro ao Cancelar</h2>
-            
+
             <p style="
                 color: #a0a0b8;
                 font-size: 14px;
@@ -4203,7 +4104,7 @@ function mostrarErro(msg) {
             ">
                 ${msg}
             </p>
-            
+
             <button onclick="document.getElementById('modalErro').remove();" style="
                 width: 100%;
                 padding: 12px 16px;
@@ -4222,11 +4123,10 @@ function mostrarErro(msg) {
             </button>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
 }
-// ===== FIM CANCELAR PRÊMIO =====
-
+// FIM CANCELAR PRÊMIO
 async function loadHistoricoPagamentos() {
     const list = document.getElementById('pagamentosList');
     list.style.display = 'grid';
@@ -4397,7 +4297,6 @@ async function enviarComprovanteDia() {
     const url = `https://wa.me/55${phone}?text=${encodeURIComponent(textoComprovante)}`;
     window.open(url, '_blank');
 }
-
 
 let _historicoAllData = [];
 let _historicoFiltroAtual = 'todos';
@@ -4697,8 +4596,7 @@ async function executarCancelamento(orderId) {
     showToast({ type: 'success', title: '✅ Pedido removido!', body: msg, duration: 5000 });
 }
 
-// ===== PAINEL DE ROTAS INTELIGENTE =====
-
+// PAINEL DE ROTAS INTELIGENTE
 // Coordenadas da fábrica 🏭
 const FABRICA_LAT = -8.1837523;
 const FABRICA_LON = -34.9383004;
@@ -4728,7 +4626,6 @@ async function loadRotasPanel() {
     await carregarRotasHoje();
     await carregarRotasSalvas();
 }
-
 
 // Estado da seleção múltipla
 let _paradaSelecionados = []; // [{phone, nome, ordem}]
@@ -4778,30 +4675,44 @@ function filtrarListaClientes() {
 function _renderListaClientes(lista) {
     const el = document.getElementById('paradaClienteLista');
     if (!lista.length) {
-        el.innerHTML = '<div style="text-align:center;color:#9080b8;padding:16px;font-size:13px;">Nenhum cliente disponível</div>';
+        el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:16px;font-size:13px;">Nenhum cliente disponível</div>';
         return;
     }
-    const phonesNaRota = new Set((rotaParadas || []).map(p => p.cliente_phone));
 
     el.innerHTML = lista.map(c => {
         const temEnd = c.delivery_lat && c.delivery_lon;
         const sel = _paradaSelecionados.find(x => x.phone === c.phone);
         const ordem = sel ? sel.ordem : null;
         const ativo = !!sel;
-        return `<div onclick="_toggleClienteSelecionado('${c.phone}','${(c.name||'').replace(/'/g,"\'")}',${temEnd})"
-            style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #1e0f35;cursor:pointer;background:${ativo ? '#1a2e1a' : 'transparent'};transition:background 0.15s;">
-            <!-- Badge numerado ou círculo vazio -->
-            <div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;
-                background:${ativo ? '#27ae60' : 'transparent'};
-                border:2px solid ${ativo ? '#27ae60' : temEnd ? '#3a2a5a' : '#e74c3c'};
-                color:${ativo ? 'white' : '#9080b8'};">
-                ${ativo ? ordem : ''}
-            </div>
-            <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;font-size:13px;color:${ativo ? '#7fffb0' : '#e8d8f8'};">${c.name||'Sem nome'}</div>
-                <div style="font-size:10px;color:${temEnd ? '#27ae60' : '#e74c3c'};margin-top:1px;">
-                    ${temEnd ? '✅ Endereço cadastrado' : '⚠️ Sem endereço — não pode adicionar'}
-                </div>
+
+        const partes = (c.name || '').trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : (c.name || '??').slice(0,2).toUpperCase();
+        const nomeExibido = partes[0] || 'Sem nome';
+
+        const gradiente = ativo
+            ? 'linear-gradient(135deg,#27ae60,#1a7a42)'
+            : temEnd
+                ? 'linear-gradient(135deg,#4a3580,#2d1f6e)'
+                : 'linear-gradient(135deg,#5a2020,#3a1010)';
+
+        return `<div onclick="_toggleClienteSelecionado('${c.phone}','${(c.name||'').replace(/'/g,"\\'")}',${temEnd})"
+            style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
+            padding:12px 4px 10px;border-radius:18px;cursor:pointer;
+            background:${ativo ? '#1a2e1a' : '#1a0f2e'};
+            border:2px solid ${ativo ? '#27ae60' : temEnd ? 'rgba(139,92,246,0.25)' : 'rgba(231,76,60,0.3)'};
+            box-shadow:0 3px 12px rgba(0,0,0,0.35);
+            transition:transform 0.12s;-webkit-tap-highlight-color:transparent;"
+            onmousedown="this.style.transform='scale(0.93)'"
+            onmouseup="this.style.transform='scale(1)'"
+            ontouchstart="this.style.transform='scale(0.93)'"
+            ontouchend="this.style.transform='scale(1)'">
+            ${renderAvatar(c.phone, iniciais, gradiente)}
+            ${ativo ? `<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#27ae60;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:white;border:2px solid #1a2e1a;">${ordem}</div>` : ''}
+            ${!temEnd ? `<div style="position:absolute;top:5px;left:5px;font-size:10px;">⚠️</div>` : ''}
+            <div style="font-size:11px;font-weight:700;color:${ativo ? '#7fffb0' : '#e8d8f8'};text-align:center;line-height:1.2;word-break:break-word;">
+                ${nomeExibido}
             </div>
         </div>`;
     }).join('');
@@ -4952,19 +4863,7 @@ function renderRotasHoje() {
     }).join('');
 }
 
-
-
-
-
 // Controle de presença nas paradas
-
-
-
-
-
-
-
-
 
 function toggleNovaRota() {
     const f = document.getElementById('novaRotaForm');
@@ -4982,7 +4881,6 @@ function toggleDia(el, dia) {
 function getDiasSelecionados() {
     return [...document.querySelectorAll('[data-dia]')].filter(el=>el.dataset.ativo==='true').map(el=>el.dataset.dia);
 }
-
 
 // Extrai dias_semana do metadado salvo em paradas_template
 function getDiasSemanaRota(r) {
@@ -5034,7 +4932,8 @@ async function abrirParadasRota(rotaId) {
     rotaParadas = (r.paradas || []).filter(x => !x._meta);
     document.getElementById('rotaAtualNomeLabel').textContent = r.nome;
     document.getElementById('addParadaRotaNome').textContent = r.nome;
-    document.getElementById('addParadaBox').style.display = 'block';
+    document.getElementById('addParadaBox').style.display = 'flex';
+    history.pushState({ addParadaAberto: true }, '');
 
     // Mostra paradas ativas do dia se a rota estiver em andamento
     const emAndamento = r.status === 'em_andamento';
@@ -5062,6 +4961,8 @@ function fecharAddParada() {
     document.getElementById('addParadaBox').style.display = 'none';
     document.getElementById('rotaAtualBox').style.display = 'none';
     if (rotaAtualObj) rotaAtualId = rotaAtualObj.id; else rotaAtualId = null;
+    // Remove do history se ainda estiver lá
+    if (history.state && history.state.addParadaAberto) history.back();
 }
 
 async function calcularMediaEta() {
@@ -5080,137 +4981,9 @@ async function calcularMediaEta() {
 
 function onParadaClienteChange() {}
 
-// ===== ENDEREÇOS DOS CLIENTES =====
+// ENDEREÇOS DOS CLIENTES
 let enderecoClienteAtual = null;
 let todosClientesEnderecos = [];
-
-// ===== CONTROLE DE VENDAS =====
-let cvCustos = JSON.parse(localStorage.getItem('cv_custos') || '{}');
-
-async function loadControleVendas() {
-    const listEl = document.getElementById('cvProdutosList');
-    listEl.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Carregando...</div>';
-
-    // Busca produtos do cardápio
-    const { data: prods } = await sb.from('cardapio').select('id,name,price').order('name');
-    if (!prods || prods.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center;color:#9080b8;padding:20px;">Nenhum produto cadastrado.</div>';
-        return;
-    }
-
-    // Busca pedidos do mês atual
-    const agora = new Date();
-    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
-    const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59).toISOString();
-    const { data: pedidos } = await sb.from('pedidos')
-        .select('items, total')
-        .gte('created_at', inicioMes)
-        .lte('created_at', fimMes);
-
-    // Conta quantidade vendida de cada produto pelo nome no campo items
-    const qtdVendida = {};
-    (pedidos || []).forEach(p => {
-        const linhas = (p.items || '').split('\n');
-        linhas.forEach(linha => {
-            const match = linha.match(/^✅?\s*(\d+)x?\s+(.+?)\s+R\$\s*([\d,\.]+)/i)
-                       || linha.match(/^✅?\s*(.+?)\s+[xX]\s*(\d+)/i)
-                       || linha.match(/^✅?\s*(\d+)[xX]\s*(.+)/i);
-            if (match) {
-                // Tenta casar com produto pelo nome
-                prods.forEach(prod => {
-                    if (linha.toLowerCase().includes(prod.name.toLowerCase())) {
-                        const qMatch = linha.match(/(\d+)[xX]/i) || linha.match(/[xX](\d+)/i) || linha.match(/^✅?\s*(\d+)/);
-                        const q = qMatch ? parseInt(qMatch[1]) : 1;
-                        qtdVendida[prod.id] = (qtdVendida[prod.id] || 0) + q;
-                    }
-                });
-            }
-        });
-    });
-
-    const totalVendas = (pedidos || []).reduce((s, p) => s + Number(p.total || 0), 0);
-
-    // Calcula totais
-    let totalCusto = 0;
-    prods.forEach(p => {
-        const custo = Number(cvCustos[p.id] || 0);
-        const qtd = qtdVendida[p.id] || 0;
-        totalCusto += custo * qtd;
-    });
-
-    const lucro = totalVendas - totalCusto;
-    const margem = totalVendas > 0 ? Math.round((lucro / totalVendas) * 100) : 0;
-
-    // Atualiza banner
-    document.getElementById('cvLucroMesValor').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
-    document.getElementById('cvLucroMesValor').style.color = lucro >= 0 ? '#4ade80' : '#f87171';
-    const mes = agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-    document.getElementById('cvLucroMesSub').textContent = `${mes} · ${(pedidos||[]).length} pedidos`;
-    document.getElementById('cvTotalVendas').textContent = 'R$ ' + totalVendas.toFixed(0).replace('.', ',');
-    document.getElementById('cvTotalCusto').textContent = 'R$ ' + totalCusto.toFixed(0).replace('.', ',');
-    document.getElementById('cvMargem').textContent = margem + '%';
-
-    // Atualiza home sub
-    const homeEl = document.getElementById('homeControleVendasSub');
-    if (homeEl) homeEl.textContent = 'Lucro: R$ ' + lucro.toFixed(2).replace('.', ',');
-
-    // Renderiza produtos
-    listEl.innerHTML = prods.map(p => {
-        const custo = cvCustos[p.id] ? Number(cvCustos[p.id]) : null;
-        const preco = Number(p.price);
-        const qtd = qtdVendida[p.id] || 0;
-        const lucroprod = custo !== null ? ((preco - custo) * qtd) : null;
-        const margemProd = custo !== null && preco > 0 ? Math.round(((preco - custo) / preco) * 100) : null;
-
-        return `<div style="background:#1a0f2e;border-radius:18px;padding:16px;border:2px solid rgba(139,92,246,0.2);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-                <div>
-                    <div style="font-weight:800;font-size:15px;color:#e8d8f8;">${p.name}</div>
-                    <div style="font-size:12px;color:#9080b8;margin-top:2px;">
-                        💰 Venda: <strong style="color:#e8d8f8;">R$ ${preco.toFixed(2).replace('.',',')}</strong>
-                        ${qtd > 0 ? ` · 📦 ${qtd} vendidos este mês` : ''}
-                    </div>
-                </div>
-                ${margemProd !== null ? `<div style="background:${margemProd>=30?'rgba(34,197,94,0.15)':'rgba(251,191,36,0.15)'};border-radius:10px;padding:4px 10px;text-align:center;">
-                    <div style="font-size:16px;font-weight:900;color:${margemProd>=30?'#4ade80':'#fbbf24'};">${margemProd}%</div>
-                    <div style="font-size:9px;color:#9080b8;">margem</div>
-                </div>` : ''}
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:12px;font-weight:700;color:#9080b8;white-space:nowrap;">💸 Custo unit.:</div>
-                <div style="flex:1;position:relative;">
-                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:#9080b8;font-weight:700;">R$</span>
-                    <input type="number" step="0.01" min="0"
-                        value="${custo !== null ? custo.toFixed(2) : ''}"
-                        placeholder="0,00"
-                        oninput="cvSalvarCusto('${p.id}', this.value)"
-                        style="width:100%;box-sizing:border-box;padding:10px 12px 10px 36px;
-                        border-radius:12px;border:2px solid rgba(139,92,246,0.3);
-                        background:#0d0720;color:#e8d8f8;font-size:14px;font-weight:700;outline:none;">
-                </div>
-            </div>
-            ${lucroprod !== null && qtd > 0 ? `
-            <div style="margin-top:10px;padding:8px 12px;background:${lucroprod>=0?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};border-radius:10px;display:flex;justify-content:space-between;">
-                <span style="font-size:12px;color:#9080b8;">Lucro do mês neste produto</span>
-                <span style="font-size:14px;font-weight:900;color:${lucroprod>=0?'#4ade80':'#f87171'};">R$ ${lucroprod.toFixed(2).replace('.',',')}</span>
-            </div>` : ''}
-        </div>`;
-    }).join('');
-}
-
-function cvSalvarCusto(prodId, valor) {
-    const v = parseFloat(valor);
-    if (!isNaN(v) && v >= 0) {
-        cvCustos[prodId] = v;
-    } else {
-        delete cvCustos[prodId];
-    }
-    localStorage.setItem('cv_custos', JSON.stringify(cvCustos));
-    // Debounce: recalcula depois de 800ms sem digitar
-    clearTimeout(cvSalvarCusto._t);
-    cvSalvarCusto._t = setTimeout(loadControleVendas, 800);
-}
-// ==============================
 
 async function loadEnderecos() {
     const el = document.getElementById('enderecosList');
@@ -5422,7 +5195,6 @@ function mostrarEtaPreview() {
     document.getElementById('paradaEtaHistorico').textContent=`Parada #${num} · Média: ${mediaMinPorParada.toFixed(0)} min/entrega`;
 }
 
-
 async function adicionarParada() {
     // Mantido para compatibilidade — redireciona para o novo
     await adicionarParadasSelecionadas();
@@ -5534,7 +5306,7 @@ function renderParadasList() {
             <div style="color:#9080b8;font-size:18px;flex-shrink:0;touch-action:none;user-select:none;">☰</div>
             <div style="width:28px;height:28px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:13px;flex-shrink:0;">${i+1}</div>
             <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;font-size:13px;">👤 ${p.nome}</div>
+                <div style="font-weight:700;font-size:13px;color:#1a1a1a;">👤 ${p.nome}</div>
                 <div style="font-size:11px;color:#9080b8;">📍 ${p.endereco || 'Endereço não informado'}</div>
             </div>
             <button onclick="removerParada('${p.id}')" style="padding:4px 8px;background:#fee;color:#e74c3c;border:1px solid #fcc;border-radius:8px;font-size:11px;cursor:pointer;flex-shrink:0;">✕</button>
@@ -5565,7 +5337,7 @@ function initParadasDragDrop() {
                 item.style.cursor = 'grabbing';
                 item.style.boxShadow = '0 6px 24px rgba(52,152,219,0.35)';
                 item.style.transform = 'scale(1.02)';
-            }, 800);
+            }, 150);
         });
         item.addEventListener('mouseup', () => {
             clearTimeout(mouseHoldTimer);
@@ -5622,11 +5394,11 @@ function initParadasDragDrop() {
             touchHoldTimer = setTimeout(() => {
                 touchActive = true;
                 // Vibração feedback
-                if (navigator.vibrate) navigator.vibrate(60);
+                if (navigator.vibrate) navigator.vibrate(30);
                 item.style.opacity = '0.6';
                 item.style.transform = 'scale(1.03)';
                 item.style.boxShadow = '0 6px 24px rgba(52,152,219,0.4)';
-            }, 800);
+            }, 150);
         }, { passive: true });
 
         item.addEventListener('touchmove', e => {
@@ -5641,19 +5413,25 @@ function initParadasDragDrop() {
 
             // Drag ativo: bloqueia scroll e move o item
             e.preventDefault();
-            const deltaY = e.touches[0].clientY - touchStartY;
+            const touchY = e.touches[0].clientY;
+            const deltaY = touchY - touchStartY;
             item.style.transform = `translateY(${deltaY}px) scale(1.03)`;
 
+            // Encontra o elemento mais próximo do dedo (cima ou baixo)
             const rect = list.getBoundingClientRect();
-            const relY = e.touches[0].clientY - rect.top + list.scrollTop;
-            let overIdx = touchStartIdx;
+            let closestIdx = touchStartIdx;
+            let closestDist = Infinity;
             list.querySelectorAll('[data-parada-id]').forEach(el => {
                 if (el === item) return;
                 const r = el.getBoundingClientRect();
-                const midY = r.top + r.height / 2 - rect.top + list.scrollTop;
-                if (relY > midY) overIdx = parseInt(el.dataset.paradaIdx);
+                const midY = r.top + r.height / 2;
+                const dist = Math.abs(touchY - midY);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestIdx = parseInt(el.dataset.paradaIdx);
+                }
             });
-            _dragOverParadaIdx = overIdx;
+            _dragOverParadaIdx = closestIdx;
         }, { passive: false });
 
         item.addEventListener('touchend', e => {
@@ -5801,7 +5579,7 @@ async function carregarRotasSalvas() {
     } catch(e) { list.innerHTML=`<div style="text-align:center;color:#e74c3c;padding:20px;font-size:13px;">Erro inesperado: ${e.message}</div>`; }
 }
 
-// ===== LONG PRESS NO SALDO DO CABEÇALHO =====
+// LONG PRESS NO SALDO DO CABEÇALHO
 let longPressTimer = null;
 let longPressEl = null;
 
@@ -5824,38 +5602,92 @@ function cancelarLongPress() {
 }
 
 async function abrirModalEditarSaldoCliente() {
-    // Carrega clientes para o select
     const { data } = await sb.from("clientes").select("phone,name,debt").order("name");
-    const select = document.getElementById('editarSaldoSelect');
-    select.innerHTML = '<option value="">— Selecione o cliente —</option>' +
-        (data || []).map(c => `<option value="${c.phone}" data-debt="${c.debt}">${c.name} (${c.debt > 0 ? 'Débito: R$ ' + c.debt.toFixed(2) : c.debt < 0 ? 'Crédito: R$ ' + Math.abs(c.debt).toFixed(2) : 'Zerado'})</option>`).join('');
-    document.getElementById('editarSaldoValor').value = '';
-    document.getElementById('editarSaldoNome').textContent = '';
-    document.getElementById('editarSaldoAtual').textContent = '';
-    document.getElementById('modalEditarSaldo').style.display = 'flex';
+    const clientes = (data || []).sort((a, b) => {
+        const rank = c => c.debt < 0 ? 0 : c.debt > 0 ? 1 : 2;
+        if (rank(a) !== rank(b)) return rank(a) - rank(b);
+        return Math.abs(b.debt) - Math.abs(a.debt);
+    });
+
+    const grid = document.getElementById('editarSaldoGrid');
+    grid.innerHTML = clientes.map(c => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : c.name.slice(0,2).toUpperCase();
+        const nomeExibido = partes[0];
+        const temDebito  = c.debt > 0;
+        const temCredito = c.debt < 0;
+        const bgGradient = temDebito
+            ? 'linear-gradient(135deg,#c0392b,#922b21)'
+            : temCredito
+                ? 'linear-gradient(135deg,#2980b9,#1a5276)'
+                : 'linear-gradient(135deg,#6c3483,#4a235a)';
+        const valorLabel = temDebito
+            ? `<div style="font-size:10px;font-weight:900;color:#ff6b6b;margin-top:2px;">R$ ${c.debt.toFixed(2).replace('.',',')}</div>`
+            : temCredito
+                ? `<div style="font-size:10px;font-weight:900;color:#5dade2;margin-top:2px;">R$ ${Math.abs(c.debt).toFixed(2).replace('.',',')}</div>`
+                : '';
+        return `<div onclick="selecionarClienteEditarSaldo('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})"
+            style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+            padding:14px 6px 10px;border-radius:18px;cursor:pointer;
+            background:#1a0f2e;border:2px solid ${temDebito ? 'rgba(231,76,60,0.35)' : temCredito ? 'rgba(52,152,219,0.35)' : 'rgba(139,92,246,0.2)'};
+            box-shadow:0 3px 12px rgba(0,0,0,0.35);transition:transform 0.12s;-webkit-tap-highlight-color:transparent;"
+            onmousedown="this.style.transform='scale(0.93)'" onmouseup="this.style.transform='scale(1)'"
+            ontouchstart="this.style.transform='scale(0.93)'" ontouchend="this.style.transform='scale(1)'">
+            ${renderAvatar(c.phone, iniciais, bgGradient)}
+            <div style="font-size:11px;font-weight:700;color:#e8d8f8;text-align:center;line-height:1.2;">${nomeExibido}</div>
+            ${valorLabel}
+        </div>`;
+    }).join('');
+
+    voltarEditarSaldoEtapa1();
+    const modal = document.getElementById('modalEditarSaldo');
+    modal.style.display = 'flex';
+    modal.onclick = e => { if (e.target === modal) fecharEditarSaldo(); };
 }
 
-function onSelectClienteSaldo() {
-    const select = document.getElementById('editarSaldoSelect');
-    const opt = select.options[select.selectedIndex];
-    if (!opt || !opt.value) {
-        document.getElementById('editarSaldoNome').textContent = '';
-        document.getElementById('editarSaldoAtual').textContent = '';
-        document.getElementById('editarSaldoValor').value = '';
-        editarSaldoPhone = null;
-        return;
-    }
-    editarSaldoPhone = opt.value;
-    const debt = parseFloat(opt.dataset.debt) || 0;
-    document.getElementById('editarSaldoNome').textContent = opt.text.split(' (')[0];
-    document.getElementById('editarSaldoAtual').textContent = debt > 0
-        ? `Débito atual: R$ ${debt.toFixed(2).replace('.',',')}`
-        : debt < 0 ? `Crédito atual: R$ ${Math.abs(debt).toFixed(2).replace('.',',')}`
-        : 'Saldo atual: R$ 0,00';
+function selecionarClienteEditarSaldo(phone, name, debt) {
+    editarSaldoPhone = phone;
+    const partes = name.trim().split(' ').filter(Boolean);
+    const iniciais = partes.length >= 2
+        ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+        : name.slice(0,2).toUpperCase();
+    const temDebito  = debt > 0;
+    const temCredito = debt < 0;
+    const bgGradient = temDebito
+        ? 'linear-gradient(135deg,#c0392b,#922b21)'
+        : temCredito
+            ? 'linear-gradient(135deg,#2980b9,#1a5276)'
+            : 'linear-gradient(135deg,#6c3483,#4a235a)';
+    const saldoTexto = temDebito
+        ? `<span style="color:#ff6b6b;font-weight:900;">Débito: R$ ${debt.toFixed(2).replace('.',',')}</span>`
+        : temCredito
+            ? `<span style="color:#5dade2;font-weight:900;">Crédito: R$ ${Math.abs(debt).toFixed(2).replace('.',',')}</span>`
+            : `<span style="color:#9080b8;">Saldo zerado ✅</span>`;
+
+    document.getElementById('editarSaldoClienteInfo').innerHTML = `
+        ${renderAvatar(phone, iniciais, bgGradient, 44)}
+        <div>
+            <div style="font-size:15px;font-weight:900;color:#e8d8f8;">${name}</div>
+            <div style="font-size:12px;margin-top:2px;">${saldoTexto}</div>
+        </div>`;
+
     document.getElementById('editarSaldoValor').value = debt.toFixed(2);
+    document.getElementById('editarSaldoEtapa1').style.display = 'none';
+    document.getElementById('editarSaldoEtapa2').style.display = 'block';
 }
 
-// ===== EDITAR SALDO DO CLIENTE =====
+function voltarEditarSaldoEtapa1() {
+    editarSaldoPhone = null;
+    document.getElementById('editarSaldoEtapa1').style.display = 'block';
+    document.getElementById('editarSaldoEtapa2').style.display = 'none';
+    document.getElementById('editarSaldoValor').value = '';
+}
+
+function onSelectClienteSaldo() {} // mantido por compatibilidade
+
+// EDITAR SALDO DO CLIENTE
 let editarSaldoPhone = null;
 
 function fecharEditarSaldo() {
@@ -5878,7 +5710,6 @@ async function salvarEditarSaldo() {
               novoSaldo < 0 ? `Crédito definido: R$ ${Math.abs(novoSaldo).toFixed(2).replace('.',',')}` :
               'Saldo zerado ✅', duration:3000 });
 }
-
 
 let rotaEditandoId = null;
 
@@ -5953,8 +5784,7 @@ async function salvarEdicaoRota() {
     showToast({type:'success',title:'✅ Rota atualizada!',body:`"${nome}" — ${dias.join(', ')} às ${hora}`,duration:3000});
 }
 
-
-// ===== ROTA ALEATÓRIA =====
+// ROTA ALEATÓRIA
 let raConfig = null; // { ativa, hora_inicio, hora_fim, raio_fabrica, clientes_fila, removidos }
 let raRealtimeCh = null;
 let raStatusInterval = null;
@@ -5962,7 +5792,7 @@ let raStatusInterval = null;
 // Chave usada no Supabase (tabela rota_especial_gps, reutilizando estrutura existente)
 const RA_CHAVE = 'rota_aleatoria';
 
-// ---------- CARREGAR ----------
+// CARREGAR
 async function loadRotaAleatoria() {
     await buscarConfigRA();
     renderUIRotaAleatoria();
@@ -5991,7 +5821,7 @@ async function buscarConfigRA() {
     }
 }
 
-// ---------- SALVAR CONFIG ----------
+// SALVAR CONFIG
 async function salvarConfigRotaAleatoria() {
     const inicio = document.getElementById('raHoraInicio').value;
     const fim    = document.getElementById('raHoraFim').value;
@@ -6015,7 +5845,7 @@ async function salvarConfigRotaAleatoria() {
     showToast({type:'success', title:'✅ Configuração salva!', body:`${inicio} → ${fim} · Raio ${raio}m`, duration:3000});
 }
 
-// ---------- TOGGLE LIGA/DESLIGA ----------
+// TOGGLE LIGA/DESLIGA
 async function toggleRotaAleatoria() {
     if (!raConfig) return;
     raConfig.ativa = !raConfig.ativa;
@@ -6029,24 +5859,24 @@ async function toggleRotaAleatoria() {
     }
 }
 
-// ---------- TOGGLE DIAS DA SEMANA ----------
+// TOGGLE DIAS DA SEMANA
 async function toggleDiaRA(btn, dia) {
     if (!raConfig) { raConfig = {}; }
     if (!raConfig.dias_operacao) { raConfig.dias_operacao = ['seg','ter','qua','qui','sex','sab','dom']; }
-    
+
     const idx = raConfig.dias_operacao.indexOf(dia);
     if (idx === -1) {
         raConfig.dias_operacao.push(dia);
     } else {
         raConfig.dias_operacao.splice(idx, 1);
     }
-    
+
     // Validar que ao menos um dia está selecionado
     if (raConfig.dias_operacao.length === 0) {
         raConfig.dias_operacao.push(dia);
         return showToast({type:'confirm', title:'⚠️', body:'Selecione ao menos um dia.', duration:2500});
     }
-    
+
     // Atualizar visual
     if (raConfig.dias_operacao.includes(dia)) {
         btn.style.background = '#9b59b6';
@@ -6057,13 +5887,13 @@ async function toggleDiaRA(btn, dia) {
         btn.style.color = '#999';
         btn.style.borderColor = '#e8e8e8';
     }
-    
+
     // Salvar
     await _salvarRA();
     atualizarPreviewRA();
 }
 
-// ---------- SALVAR NO SUPABASE ----------
+// SALVAR NO SUPABASE
 async function _salvarRA() {
     await sb.from('gps').upsert(
         { chave: RA_CHAVE, valor: JSON.stringify(raConfig) },
@@ -6071,7 +5901,7 @@ async function _salvarRA() {
     );
 }
 
-// ---------- HELPER: DENTRO DO HORÁRIO ----------
+// HELPER: DENTRO DO HORÁRIO
 function raDentroDoHorario() {
     if (!raConfig?.hora_inicio || !raConfig?.hora_fim) return false;
     const TZ = 'America/Sao_Paulo';
@@ -6084,7 +5914,7 @@ function raDentroDoHorario() {
     return hAtual >= toMin(raConfig.hora_inicio) && hAtual < toMin(raConfig.hora_fim);
 }
 
-// ---------- RENDER UI ----------
+// RENDER UI
 function renderUIRotaAleatoria() {
     if (!raConfig) return;
 
@@ -6196,7 +6026,7 @@ function renderUIRotaAleatoria() {
     }
 }
 
-// ---------- PREENCHER CAMPOS AO ABRIR ----------
+// PREENCHER CAMPOS AO ABRIR
 function preencherCamposRA() {
     if (!raConfig) return;
     const ini = document.getElementById('raHoraInicio');
@@ -6209,16 +6039,16 @@ function preencherCamposRA() {
     // Listeners para preview ao vivo
     if (ini) ini.addEventListener('input', atualizarPreviewRA);
     if (fim) fim.addEventListener('input', atualizarPreviewRA);
-    
+
     // Inicializar botões de dias
     atualizarBotoesDiasRA();
 }
 
-// ---------- ATUALIZAR BOTÕES DE DIAS ----------
+// ATUALIZAR BOTÕES DE DIAS
 function atualizarBotoesDiasRA() {
     if (!raConfig) { raConfig = {}; }
     if (!raConfig.dias_operacao) { raConfig.dias_operacao = ['seg','ter','qua','qui','sex','sab','dom']; }
-    
+
     const botoes = document.querySelectorAll('.dia-ra-btn');
     botoes.forEach(btn => {
         const dia = btn.getAttribute('data-dia');
@@ -6234,20 +6064,20 @@ function atualizarBotoesDiasRA() {
     });
 }
 
-// ---------- PREVIEW HORÁRIO ----------
+// PREVIEW HORÁRIO
 function atualizarPreviewRA() {
     const ini = document.getElementById('raHoraInicio')?.value;
     const fim = document.getElementById('raHoraFim')?.value;
     const box = document.getElementById('raPreviewHorario');
     const txt = document.getElementById('raPreviewTexto');
     const dias = document.getElementById('raPreviewDias');
-    
+
     if (!box || !txt) return;
-    
+
     if (ini && fim) {
         box.style.display = 'block';
         txt.textContent   = `${ini} às ${fim}`;
-        
+
         // Atualizar texto dos dias
         if (dias && raConfig && raConfig.dias_operacao) {
             const diasMap = { seg: 'segunda', ter: 'terça', qua: 'quarta', qui: 'quinta', sex: 'sexta', sab: 'sábado', dom: 'domingo' };
@@ -6259,7 +6089,7 @@ function atualizarPreviewRA() {
     }
 }
 
-// ---------- REMOVER CLIENTE (ADM) ----------
+// REMOVER CLIENTE (ADM)
 async function removerClienteRAAdmin(clienteId) {
     if (!raConfig) return;
     const fila  = raConfig.clientes_fila || [];
@@ -6275,7 +6105,7 @@ async function removerClienteRAAdmin(clienteId) {
     showToast({type:'confirm', title:'⏭️ Cliente removido', body:`${removido.nome} ficará para a próxima rota.`, duration:2500});
 }
 
-// ---------- LIMPAR REMOVIDOS ----------
+// LIMPAR REMOVIDOS
 async function limparRemovidosRA() {
     if (!raConfig) return;
     raConfig.removidos = [];
@@ -6283,7 +6113,7 @@ async function limparRemovidosRA() {
     renderUIRotaAleatoria();
 }
 
-// ---------- STATUS NA HOME ----------
+// STATUS NA HOME
 async function atualizarStatusHomeRA() {
     const el = document.getElementById('homeRotaAleatoriaStatus');
     if (!el) return;
@@ -6304,7 +6134,7 @@ async function atualizarStatusHomeRA() {
     }
 }
 
-// ---------- REALTIME: escuta config + novos pedidos ----------
+// REALTIME: escuta config + novos pedidos
 function iniciarRealtimeRA() {
     if (raRealtimeCh) { sb.removeChannel(raRealtimeCh); }
     raRealtimeCh = sb.channel('ra_adm_pedidos')
@@ -6355,10 +6185,9 @@ async function adicionarNaFilaRAAdm(pedido) {
     atualizarStatusHomeRA();
 }
 
-// =====================================================================
+// 
 // 🎮 CONFIG JOGOS — Roleta, Foguete, Campo Minado
-// =====================================================================
-
+// 
 // Defaults em memória (sobrescritos ao carregar do Supabase)
 let cfgRoleta  = [
     { nome:'10% OFF',       emoji:'🏷️', tipo:'cupom',    codigo:'REI10',     valor2:10, chance:25 },
@@ -6388,7 +6217,122 @@ let cfgMinado = {
     ]
 };
 
-// ── CONFIG MOEDAS ─────────────────────────────────────────────────────
+let cfgRaspadinha = [
+    { emoji:'🏷️', nome:'5% OFF',        tipo:'desconto', codigo:'5',         chance:35 },
+    { emoji:'🔖', nome:'10% OFF',       tipo:'desconto', codigo:'10',        chance:30 },
+    { emoji:'🎁', nome:'Frete Grátis',  tipo:'pessoal',  codigo:'Frete grátis no próximo pedido', chance:20 },
+    { emoji:'🔥', nome:'20% OFF',       tipo:'desconto', codigo:'20',        chance:10 },
+    { emoji:'👑', nome:'R$ 150 no Pix', tipo:'pessoal',  codigo:'R$ 150 no Pix', chance:5  },
+];
+
+function renderRaspadinha() {
+    const el = document.getElementById('raspadinhaPremiosList');
+    if (!el) return;
+    el.innerHTML = '';
+    cfgRaspadinha.forEach((p, i) => {
+        if (!p.tipo) p.tipo = 'pessoal';
+
+        const tipos = [
+            { v:'pessoal',  l:'🎁 Pessoal'    },
+            { v:'desconto', l:'🏷️ % Desconto'  },
+            { v:'ticket',   l:'🎟️ Ticket'      },
+            { v:'diamante', l:'💎 Diamante'    },
+            { v:'nada',     l:'🚫 Nada'        },
+        ];
+        const opts = tipos.map(t => `<option value="${t.v}"${p.tipo===t.v?' selected':''}>${t.l}</option>`).join('');
+
+        let extra = '';
+        if (p.tipo === 'pessoal') {
+            extra = `<input type="text" value="${p.codigo||''}" placeholder="Descrição do prêmio"
+                oninput="cfgRaspadinha[${i}].codigo=this.value"
+                style="flex:1;padding:5px 8px;border-radius:8px;background:#1a0f2e;color:#e8d8f8;border:1px solid #3e2f5a;font-size:12px;font-family:inherit;">`;
+        } else if (p.tipo === 'desconto') {
+            extra = `<input type="number" value="${p.codigo||''}" placeholder="%" min="1" max="100"
+                oninput="cfgRaspadinha[${i}].codigo=this.value"
+                style="width:55px;padding:5px;border-radius:8px;background:#1a0f2e;color:#fb923c;border:1px solid #3e2f5a;font-size:14px;font-weight:900;text-align:center;font-family:inherit;">
+                <span style="color:#9080b8;font-size:11px;">% de desconto</span>`;
+        } else if (p.tipo === 'ticket') {
+            extra = `<input type="number" value="${p.codigo||1}" min="1"
+                oninput="cfgRaspadinha[${i}].codigo=+this.value"
+                style="width:55px;padding:5px;border-radius:8px;background:#1a0f2e;color:#fbbf24;border:1px solid #3e2f5a;font-size:14px;font-weight:900;text-align:center;font-family:inherit;">
+                <span style="color:#9080b8;font-size:11px;">🎟️ ticket(s)</span>`;
+        } else if (p.tipo === 'diamante') {
+            extra = `<input type="number" value="${p.codigo||1}" min="1"
+                oninput="cfgRaspadinha[${i}].codigo=+this.value"
+                style="width:55px;padding:5px;border-radius:8px;background:#1a0f2e;color:#38bdf8;border:1px solid #3e2f5a;font-size:14px;font-weight:900;text-align:center;font-family:inherit;">
+                <span style="color:#9080b8;font-size:11px;">💎 diamante(s)</span>`;
+        }
+
+        el.innerHTML += `
+        <div style="background:#110820;border-radius:14px;padding:10px 12px;border:1px solid #2e1f4a;">
+            <div style="display:grid;grid-template-columns:44px 1fr auto 52px;gap:6px;align-items:center;margin-bottom:6px;">
+                <input type="text" value="${p.emoji}" oninput="cfgRaspadinha[${i}].emoji=this.value"
+                    style="padding:5px;border-radius:9px;background:#1a0f2e;color:#fbbf24;border:1px solid #3e2f5a;font-size:18px;text-align:center;font-family:inherit;width:100%;">
+                <input type="text" value="${p.nome}" oninput="cfgRaspadinha[${i}].nome=this.value"
+                    style="padding:5px 8px;border-radius:9px;background:#1a0f2e;color:#e8d8f8;border:1px solid #3e2f5a;font-size:12px;font-family:inherit;width:100%;">
+                <select onchange="cfgRaspadinha[${i}].tipo=this.value;renderRaspadinha()"
+                    style="padding:5px 6px;border-radius:9px;background:#1a0f2e;color:#a090c8;border:1px solid #3e2f5a;font-size:10px;font-family:inherit;cursor:pointer;">
+                    ${opts}
+                </select>
+                <div style="display:flex;align-items:center;gap:2px;">
+                    <input type="number" value="${p.chance}" min="1" max="100" oninput="cfgRaspadinha[${i}].chance=+this.value;atualizarValidadorRaspadinha()"
+                        style="width:34px;padding:4px 2px;border-radius:7px;background:#1a0f2e;color:#4ade80;border:1px solid #3e2f5a;font-size:12px;font-weight:900;text-align:center;font-family:inherit;">
+                    <span style="font-size:9px;color:#6b5e8a;">%</span>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                ${p.tipo !== 'nada' ? `<div style="display:flex;align-items:center;gap:6px;flex:1;">${extra}</div>` : '<div></div>'}
+                <button onclick="cfgRaspadinha.splice(${i},1);renderRaspadinha();atualizarValidadorRaspadinha()"
+                    style="padding:4px 9px;border:none;border-radius:7px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;font-size:11px;font-family:inherit;line-height:1;flex-shrink:0;">✕</button>
+            </div>
+        </div>`;
+    });
+
+    el.innerHTML += `<button onclick="cfgRaspadinha.push({emoji:'🎁',nome:'Novo Prêmio',tipo:'pessoal',codigo:'',chance:5});renderRaspadinha();atualizarValidadorRaspadinha()"
+        style="width:100%;margin-top:6px;padding:8px;border:1.5px dashed rgba(155,89,182,0.3);border-radius:10px;background:transparent;color:#9b59b6;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Adicionar prêmio</button>`;
+
+    atualizarValidadorRaspadinha();
+}
+
+function atualizarValidadorRaspadinha() {
+    const total = cfgRaspadinha.reduce((s,p) => s+(p.chance||0), 0);
+    const el = document.getElementById('raspadinhaValidador');
+    if (!el) return;
+    if (total === 100) {
+        el.innerHTML = '<span style="color:#4ade80;">✅ Total: 100% — OK!</span>';
+    } else {
+        el.innerHTML = `<span style="color:#ef4444;">⚠️ Total: ${total}% — precisa ser 100%</span>`;
+    }
+}
+
+async function salvarRaspadinha() {
+    const total = cfgRaspadinha.reduce((s,p) => s+(p.chance||0), 0);
+    if (total !== 100) { mostrarToast(`⚠️ A soma deve ser 100%! Atual: ${total}%`); return; }
+    mostrarToast('⏳ Salvando Raspadinha...');
+    try {
+        // Salva prêmios
+        const { error: e1 } = await sb.from('jogos_configs').upsert({
+            jogo: 'raspadinha', chave: 'premios',
+            valor: JSON.stringify(cfgRaspadinha),
+            descricao: 'Prêmios da raspadinha'
+        }, { onConflict: 'jogo,chave' });
+        if (e1) { mostrarToast(`❌ Erro: ${e1.message}`); return; }
+
+        // Salva mensagem de destaque
+        const emoji = document.getElementById('raspadinhaEmoji')?.value.trim() || '🤑';
+        const msg   = document.getElementById('raspadinhaMsgDestaque')?.value.trim() || '';
+        const { error: e2 } = await sb.from('jogos_configs').upsert({
+            jogo: 'raspadinha', chave: 'msg_destaque',
+            valor: JSON.stringify({ emoji, msg }),
+            descricao: 'Mensagem de destaque da raspadinha'
+        }, { onConflict: 'jogo,chave' });
+        if (e2) { mostrarToast(`❌ Erro ao salvar mensagem: ${e2.message}`); return; }
+
+        mostrarToast('✅ Raspadinha salva!');
+    } catch(e) { mostrarToast(`❌ Erro: ${e.message}`); }
+}
+
+// CONFIG MOEDAS
 async function openConfigMoedas() {
     try {
         const [cfgTk, cfgDi] = await Promise.all([
@@ -6401,7 +6345,7 @@ async function openConfigMoedas() {
     carregarClientesMoedas();
 }
 
-// ===== SALGADOS NA SEÇÃO DE MOEDAS =====
+// SALGADOS NA SEÇÃO DE MOEDAS
 let _salgadosMoedasCache = [];
 let _salgadoEditId = null;
 
@@ -6486,8 +6430,7 @@ async function toggleSalgadoMoedas(id, valor) {
         mostrarToast(valor ? '✅ Produto ativado' : '🚫 Produto desativado');
     } catch(e) { mostrarToast(`❌ Erro: ${e.message}`); carregarSalgadosMoedas(); }
 }
-// ===== FIM SALGADOS NA SEÇÃO DE MOEDAS =====
-
+// FIM SALGADOS NA SEÇÃO DE MOEDAS
 async function carregarClientesMoedas() {
     try {
         const { data: clientes } = await sb.from('clientes').select('name,phone').order('name');
@@ -6779,7 +6722,7 @@ async function salvarDiamante() {
     } catch(e) { mostrarToast('❌ Erro ao salvar'); }
 }
 
-// ── CARREGAR ──────────────────────────────────────────────────────────
+// CARREGAR
 async function openConfigJogos() {
     // Busca configs salvas no Supabase (tabela jogos_configs)
     try {
@@ -6801,15 +6744,41 @@ async function openConfigJogos() {
             // Minado
             const minadoRaw = get('minado', 'config');
             if (minadoRaw) cfgMinado = JSON.parse(minadoRaw);
+
+            // Raspadinha — prêmios
+            const raspadinhaRaw = get('raspadinha', 'premios');
+            if (raspadinhaRaw) cfgRaspadinha = JSON.parse(raspadinhaRaw);
+
+            // Raspadinha — mensagem de destaque
+            const raspadinhaMsgRaw = get('raspadinha', 'msg_destaque');
+            if (raspadinhaMsgRaw) {
+                const md = JSON.parse(raspadinhaMsgRaw);
+                const emojiEl = document.getElementById('raspadinhaEmoji');
+                const msgEl   = document.getElementById('raspadinhaMsgDestaque');
+                if (emojiEl && md.emoji) emojiEl.value = md.emoji;
+                if (msgEl   && md.msg)   msgEl.value   = md.msg;
+            }
         }
     } catch(e) { console.warn('jogos_configs não existe ainda', e); }
+
+    // Preview ao vivo da mensagem
+    const emojiEl = document.getElementById('raspadinhaEmoji');
+    const msgEl   = document.getElementById('raspadinhaMsgDestaque');
+    const prevEl  = document.getElementById('raspadinhaMsgPreview');
+    function _atualizarPreviewMsg() {
+        if (prevEl) prevEl.textContent = (emojiEl?.value || '🤑') + ' ' + (msgEl?.value || '');
+    }
+    if (emojiEl) emojiEl.addEventListener('input', _atualizarPreviewMsg);
+    if (msgEl)   msgEl.addEventListener('input', _atualizarPreviewMsg);
+    _atualizarPreviewMsg();
 
     renderRoleta();
     renderFoguete();
     renderMinado();
+    renderRaspadinha();
 }
 
-// ── ROLETA ────────────────────────────────────────────────────────────
+// ROLETA
 function renderRoleta() {
     const el = document.getElementById('roletaPremiosList');
     el.innerHTML = '';
@@ -6880,7 +6849,7 @@ function renderRoleta() {
 
     el.innerHTML += `<button onclick="cfgRoleta.push({emoji:'🎁',nome:'Novo Prêmio',tipo:'pessoal',codigo:'',chance:5});renderRoleta();atualizarValidadorRoleta()"
         style="width:100%;margin-top:6px;padding:7px;border:1.5px dashed rgba(251,146,60,0.3);border-radius:10px;background:transparent;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Adicionar prêmio</button>`;
-    
+
     // Atualizar validador após renderizar
     atualizarValidadorRoleta();
 }
@@ -6889,7 +6858,7 @@ function renderRoleta() {
 function atualizarValidadorRoleta() {
     const total = cfgRoleta.reduce((sum, p) => sum + (p.chance || 0), 0);
     const validEl = document.getElementById('roletaValidador');
-    
+
     if (!validEl) {
         // Criar elemento se não existir
         const container = document.getElementById('roletaPremiosList').parentElement;
@@ -6899,7 +6868,7 @@ function atualizarValidadorRoleta() {
         container.appendChild(div);
         return atualizarValidadorRoleta();
     }
-    
+
     const isValid = total === 100;
     validEl.style.borderColor = isValid ? '#4ade80' : '#ef4444';
     validEl.style.background = isValid ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)';
@@ -6907,22 +6876,16 @@ function atualizarValidadorRoleta() {
     validEl.innerHTML = `${isValid ? '✅' : '⚠️'} Total: <strong>${total}%</strong> ${isValid ? '(Perfeito!)' : '(Deve ser 100%)'}`;
 }
 
-// Função original renderRoleta renomeada
-function renderRoletaOriginal() {
-}
-
 async function salvarRoleta() {
-    console.log('🔄 Iniciando salvarRoleta()...');
-    
     // VALIDAR SE BATE 100%
     const total = cfgRoleta.reduce((sum, p) => sum + (p.chance || 0), 0);
     if (total !== 100) {
         mostrarToast(`⚠️ A soma deve ser 100%! Atualmente: ${total}%`);
         return;
     }
-    
+
     mostrarToast('⏳ Salvando Roleta...');
-    
+
     try {
         const dados = {
             jogo: 'roleta',
@@ -6930,36 +6893,28 @@ async function salvarRoleta() {
             valor: JSON.stringify(cfgRoleta),
             descricao: 'Prêmios da roleta'
         };
-        
-        console.log('📤 Enviando para Supabase:', dados);
-        
+
         // Usar UPSERT simples sem maybeSingle
         const { data, error } = await sb
             .from('jogos_configs')
             .upsert(dados, { onConflict: 'jogo,chave' });
-        
+
         if (error) {
-            console.error('❌ ERRO ao salvar:', error);
+            console.error('❌ ERRO ao salvar roleta:', error);
             mostrarToast(`❌ ERRO: ${error.message}`);
             return;
         }
-        
-        console.log('✅ Roleta salva com sucesso!', data);
+
         mostrarToast('✅ Roleta salva com sucesso!');
-        
-        // Recarregar dados após salvar
-        setTimeout(() => {
-            console.log('🔄 Recarregando dados...');
-            location.reload();
-        }, 1500);
-        
+        setTimeout(() => { location.reload(); }, 1500);
+
     } catch(e) {
-        console.error('❌ ERRO INESPERADO:', e);
+        console.error('❌ ERRO INESPERADO salvarRoleta:', e);
         mostrarToast(`❌ ERRO INESPERADO: ${e.message}`);
     }
 }
 
-// ── FOGUETE ───────────────────────────────────────────────────────────
+// FOGUETE
 function renderFoguete() {
     const el = document.getElementById('fogueteFaixasList');
     el.innerHTML = '';
@@ -6981,9 +6936,8 @@ function renderFoguete() {
 }
 
 async function salvarFoguete() {
-    console.log('🔄 Iniciando salvarFoguete()...');
     mostrarToast('⏳ Salvando Foguete...');
-    
+
     try {
         const dados = {
             jogo: 'foguete',
@@ -6991,30 +6945,27 @@ async function salvarFoguete() {
             valor: JSON.stringify(cfgFoguete),
             descricao: 'Faixas de crash do foguete'
         };
-        
-        console.log('📤 Enviando para Supabase:', dados);
-        
-        const { data, error } = await sb
+
+        const { error } = await sb
             .from('jogos_configs')
             .upsert(dados, { onConflict: 'jogo,chave' });
-        
+
         if (error) {
-            console.error('❌ ERRO ao salvar:', error);
+            console.error('❌ ERRO ao salvar foguete:', error);
             mostrarToast(`❌ ERRO: ${error.message}`);
             return;
         }
-        
-        console.log('✅ Foguete salvo com sucesso!', data);
+
         mostrarToast('✅ Foguete salvo com sucesso!');
         setTimeout(() => location.reload(), 1500);
-        
+
     } catch(e) {
-        console.error('❌ ERRO INESPERADO:', e);
+        console.error('❌ ERRO INESPERADO salvarFoguete:', e);
         mostrarToast(`❌ ERRO: ${e.message}`);
     }
 }
 
-// ── CAMPO MINADO ──────────────────────────────────────────────────────
+// CAMPO MINADO
 function renderMinado() {
     document.getElementById('minadoBanner').value    = cfgMinado.banner;
     document.getElementById('minadoBombas').value    = cfgMinado.bombas;
@@ -7055,15 +7006,14 @@ function removerPremioMinado(i) {
 }
 
 async function salvarMinado() {
-    console.log('🔄 Iniciando salvarMinado()...');
     mostrarToast('⏳ Salvando Campo Minado...');
-    
+
     cfgMinado.banner    = document.getElementById('minadoBanner').value.trim();
     cfgMinado.bombas    = +document.getElementById('minadoBombas').value;
     cfgMinado.armadilha = +document.getElementById('minadoArmadilha').value;
     // Ordena por acertos crescente
     cfgMinado.premios.sort((a,b) => a.acertos - b.acertos);
-    
+
     try {
         const dados = {
             jogo: 'minado',
@@ -7071,26 +7021,23 @@ async function salvarMinado() {
             valor: JSON.stringify(cfgMinado),
             descricao: 'Configuração completa do Campo Minado'
         };
-        
-        console.log('📤 Enviando para Supabase:', dados);
-        
-        const { data, error } = await sb
+
+        const { error } = await sb
             .from('jogos_configs')
             .upsert(dados, { onConflict: 'jogo,chave' });
-        
+
         if (error) {
-            console.error('❌ ERRO ao salvar:', error);
+            console.error('❌ ERRO ao salvar minado:', error);
             mostrarToast(`❌ ERRO: ${error.message}`);
             return;
         }
-        
-        console.log('✅ Campo Minado salvo com sucesso!', data);
+
         mostrarToast('✅ Campo Minado salvo com sucesso!');
         renderPremiosMinado(); // rerender para refletir ordem
         setTimeout(() => location.reload(), 1500);
-        
-    } catch(e) { 
-        console.error('❌ ERRO INESPERADO:', e);
+
+    } catch(e) {
+        console.error('❌ ERRO INESPERADO salvarMinado:', e);
         mostrarToast(`❌ ERRO: ${e.message}`);
     }
 }
@@ -7109,37 +7056,36 @@ function mostrarToast(msg) {
     t._tmr = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
-
 </script>
 
 <!-- Modal Editar Rota -->
-<div id="modalEditarRota" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+<div id="modalEditarRota" class="u-modal-overlay">
+    <div class="u-modal-panel">
+        <div class="u-row-sb-mb">
             <h3 style="color:#3498db;font-size:17px;">✏️ Editar Rota</h3>
-            <button onclick="document.getElementById('modalEditarRota').style.display='none'" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
+            <button onclick="document.getElementById('modalEditarRota').style.display='none'" class="u-close-btn">✕</button>
         </div>
         <input type="text" id="editRotaNome" class="input-text" placeholder="Nome da rota (ex: Rota 1 — Manhã)">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <div style="flex:1;">
-                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">⏰ Horário de saída</div>
+                <div class="u-lbl-mb5">⏰ Horário de saída</div>
                 <input type="time" id="editRotaHora" class="input-text" style="margin-bottom:0;">
             </div>
             <div style="flex:1;">
-                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">📍 Raio fábrica (m)</div>
+                <div class="u-lbl-mb5">📍 Raio fábrica (m)</div>
                 <input type="number" id="editRotaRaio" class="input-text" style="margin-bottom:0;" value="20">
             </div>
         </div>
         <div style="margin-bottom:14px;">
-            <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;">📅 Dias da semana</div>
+            <div class="u-lbl-mb">📅 Dias da semana</div>
             <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
-                <div onclick="toggleDiaEdit(this,'Dom')" data-edit-dia="Dom" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Dom</div></div>
-                <div onclick="toggleDiaEdit(this,'Seg')" data-edit-dia="Seg" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Seg</div></div>
-                <div onclick="toggleDiaEdit(this,'Ter')" data-edit-dia="Ter" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Ter</div></div>
-                <div onclick="toggleDiaEdit(this,'Qua')" data-edit-dia="Qua" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qua</div></div>
-                <div onclick="toggleDiaEdit(this,'Qui')" data-edit-dia="Qui" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Qui</div></div>
-                <div onclick="toggleDiaEdit(this,'Sex')" data-edit-dia="Sex" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sex</div></div>
-                <div onclick="toggleDiaEdit(this,'Sáb')" data-edit-dia="Sáb" style="text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;"><div style="font-size:10px;font-weight:700;color:#9080b8;">Sáb</div></div>
+                <div onclick="toggleDiaEdit(this,'Dom')" data-edit-dia="Dom" class="u-dia-btn"><div class="u-lbl">Dom</div></div>
+                <div onclick="toggleDiaEdit(this,'Seg')" data-edit-dia="Seg" class="u-dia-btn"><div class="u-lbl">Seg</div></div>
+                <div onclick="toggleDiaEdit(this,'Ter')" data-edit-dia="Ter" class="u-dia-btn"><div class="u-lbl">Ter</div></div>
+                <div onclick="toggleDiaEdit(this,'Qua')" data-edit-dia="Qua" class="u-dia-btn"><div class="u-lbl">Qua</div></div>
+                <div onclick="toggleDiaEdit(this,'Qui')" data-edit-dia="Qui" class="u-dia-btn"><div class="u-lbl">Qui</div></div>
+                <div onclick="toggleDiaEdit(this,'Sex')" data-edit-dia="Sex" class="u-dia-btn"><div class="u-lbl">Sex</div></div>
+                <div onclick="toggleDiaEdit(this,'Sáb')" data-edit-dia="Sáb" class="u-dia-btn"><div class="u-lbl">Sáb</div></div>
             </div>
         </div>
         <button onclick="salvarEdicaoRota()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar alterações</button>
@@ -7147,27 +7093,33 @@ function mostrarToast(msg) {
 </div>
 
 <!-- Modal Editar Saldo do Cliente -->
-<div id="modalEditarSaldo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;align-items:flex-end;justify-content:center;">
-    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <h3 style="color:#3498db;font-size:17px;">✏️ Editar Saldo do Cliente</h3>
-            <button onclick="fecharEditarSaldo()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;">✕</button>
+<div id="modalEditarSaldo" class="u-modal-overlay">
+    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-shrink:0;">
+            <h3 style="color:#3498db;font-size:17px;">✏️ Editar Saldo</h3>
+            <button onclick="fecharEditarSaldo()" class="u-close-btn">✕</button>
         </div>
-        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">👤 Cliente</div>
-        <select id="editarSaldoSelect" onchange="onSelectClienteSaldo()" class="input-text" style="appearance:auto;">
-            <option value="">— Selecione o cliente —</option>
-        </select>
-        <div id="editarSaldoNome" style="font-size:15px;font-weight:800;color:#1a1a2e;margin-bottom:2px;min-height:20px;"></div>
-        <div id="editarSaldoAtual" style="font-size:12px;color:#9080b8;margin-bottom:12px;min-height:16px;"></div>
-        <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:5px;">💰 Novo saldo (positivo = débito · negativo = crédito · 0 = zerado)</div>
-        <input type="number" id="editarSaldoValor" class="input-text" step="0.01" placeholder="Ex: 25.50">
-        <div style="display:flex;gap:10px;margin-top:6px;">
-            <button onclick="fecharEditarSaldo()" class="btn btn-block" style="background:#110820;color:#9080b8;">Cancelar</button>
-            <button onclick="salvarEditarSaldo()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar</button>
+
+        <!-- Etapa 1: grid de clientes -->
+        <div id="editarSaldoEtapa1" style="overflow-y:auto;flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">👤 Selecione o cliente</div>
+            <div id="editarSaldoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+        </div>
+
+        <!-- Etapa 2: formulário de saldo (oculto até selecionar) -->
+        <div id="editarSaldoEtapa2" style="display:none;flex-shrink:0;">
+            <div id="editarSaldoClienteInfo" style="display:flex;align-items:center;gap:12px;margin-bottom:14px;background:#110820;border-radius:16px;padding:12px 14px;"></div>
+            <div class="u-lbl-mb5">💰 Novo saldo <span style="font-weight:400;">(positivo = débito · negativo = crédito · 0 = zerado)</span></div>
+            <input type="number" id="editarSaldoValor" class="input-text" step="0.01" placeholder="Ex: 25.50">
+            <div style="display:flex;gap:10px;margin-top:8px;">
+                <button onclick="voltarEditarSaldoEtapa1()" class="btn btn-block" style="background:#110820;color:#9080b8;">← Voltar</button>
+                <button onclick="salvarEditarSaldo()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar</button>
+            </div>
         </div>
     </div>
 </div>
 
 </div><!-- /adminApp -->
+
 </body>
 </html>
