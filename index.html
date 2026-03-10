@@ -1124,10 +1124,6 @@ function _partesSP(d) {
   return Object.fromEntries(fmt.formatToParts(d || new Date()).filter(x => x.type !== 'literal').map(x => [x.type, x.value]));
 }
 
-function _getViradaHoraMin(diaSemana) {
-  return diaSemana === 0 ? [8, 0] : [14, 30];
-}
-
 /**
  * Retorna ISO string com offset correto de São Paulo (ex: "2025-03-01T14:05:00-03:00").
  * O offset é calculado dinamicamente, então funciona mesmo após mudanças de horário de verão.
@@ -2746,10 +2742,7 @@ async function executarAutoRefazer() {
         }
 
         const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
-        const saldoAntes = c.debt || 0;
-        const novoSaldo = saldoAntes + totalParaUsar;
-        await sb.from("clientes").update({ debt: novoSaldo }).eq("phone", s.phone);
-        // Lançamento fiado registrado diretamente no saldo do cliente (clientes.debt)
+        // Dívida NÃO é adicionada aqui — o entregador registra na hora da entrega
         const { data: novoPedido } = await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -3016,7 +3009,7 @@ async function executarTodosRefazer() {
         if (!c) continue;
         const itemsFinais = (c.saved_order && c.saved_order.trim()) ? c.saved_order : s.items.replace(/\\n/g, '\n');
         const totalFinal = (c.saved_order_total && c.saved_order_total > 0) ? Number(c.saved_order_total) : Number(s.total);
-        await sb.from("clientes").update({ debt: (c.debt || 0) + totalFinal }).eq("phone", s.phone);
+        // Dívida NÃO é adicionada aqui — o entregador registra na hora da entrega
         await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -3534,10 +3527,8 @@ async function executarCompra(total, pedidoTexto) {
         items: pedidoTexto
     });
 
-    if (compraPagamento === 'FIADO') {
-        const { data: c } = await sb.from("clientes").select("debt").eq("phone", compraClienteAtual.phone).single();
-        await sb.from("clientes").update({ debt: (c.debt || 0) + total }).eq("phone", compraClienteAtual.phone);
-    }
+    // Fiado: dívida NÃO é adicionada aqui — o entregador registra na hora da entrega
+    // if (compraPagamento === 'FIADO') { ... } ← movido para o entregador
 
     // TICKETS: pagamento à vista → acumula em pendentes (libera no horário configurado)
     if (compraPagamento !== 'FIADO') {
@@ -3571,8 +3562,7 @@ async function executarCompra(total, pedidoTexto) {
             const _agora = new Date();
             const _hStr = _agora.toLocaleTimeString('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
             const [_hh, _mm] = _hStr.split(':').map(Number);
-            const [_vh, _vm] = _getViradaHoraMin(_agora.getDay());
-            const eParaAmanha = (_hh * 60 + _mm) >= (_vh * 60 + _vm);
+            const eParaAmanha = (_hh * 60 + _mm) >= (14 * 60 + 30);
 
             // Só adiciona nas paradas de hoje se o pedido for de hoje
             if (!eParaAmanha) {
@@ -3594,6 +3584,7 @@ async function executarCompra(total, pedidoTexto) {
 
                     const novaParada = {
                         ...tmpl,
+                        coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
                         endereco: tmpl.endereco || cli.delivery_address || '',
                         nome: tmpl.nome || cli.name,
                         status: 'pendente'
@@ -6595,7 +6586,6 @@ async function carregarSaldoClientes() {
     try {
         const { data } = await sb.from('clientes')
             .select('name,phone,tickets,diamantes')
-            .or('tickets.gt.0,diamantes.gt.0')
             .order('name');
         _saldoClientesCache = data || [];
         renderSaldoClientes();
@@ -6618,7 +6608,7 @@ function renderSaldoClientes() {
     let lista = _saldoClientesCache.filter(c => {
         if (filtroMoedas === 'ticket')   return (c.tickets   || 0) > 0;
         if (filtroMoedas === 'diamante') return (c.diamantes || 0) > 0;
-        return (c.tickets || 0) > 0 || (c.diamantes || 0) > 0;
+        return true;
     });
 
     if (!lista.length) {
