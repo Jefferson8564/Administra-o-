@@ -1618,7 +1618,7 @@ function abrirDetalheCliente(phone) {
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;">
             <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;flex:1;" placeholder="Valor a lançar">
-            <button onclick="payDebt('${c.phone}')" class="btn btn-success" style="white-space:nowrap;">✅ Lançar</button>
+            <button onclick="payDebt('${c.phone}')" class="btn btn-success btn-pay-lancar" style="white-space:nowrap;">✅ Lançar</button>
         </div>
         <div style="display:flex;gap:8px;">
             ${temDebito ? `<button onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})" class="btn btn-success btn-block">📱 Cobrar no WhatsApp</button>` : ''}
@@ -1713,17 +1713,64 @@ async function payDebt(phone) {
         });
         return;
     }
-    executarPayDebt(phone, digitado);
+    // Confirmação também quando valor é digitado manualmente (evita duplo clique)
+    showToast({
+        type: 'confirm',
+        title: `💰 Confirmar pagamento de ${c.name}?`,
+        body: `Deseja registrar o pagamento de R$ ${digitado.toFixed(2).replace('.', ',')}?`,
+        actions: [
+            { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
+            { label: '✅ Confirmar', bg: '#25d366', color: 'white', fn: `executarPayDebt('${phone}', ${digitado})` }
+        ],
+        duration: 10000
+    });
+}
+
+let _payDebtProcessando = false;
+let _payDebtUltimoTempo = 0;
+const _payDebtCooldown = 5000; // 5 segundos entre pagamentos
+
+function iniciarCooldownPagamento() {
+    _payDebtUltimoTempo = Date.now();
+    // Atualiza todos os botões de lançar com contagem regressiva
+    let restante = _payDebtCooldown / 1000;
+    const btns = document.querySelectorAll('.btn-pay-lancar');
+    btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'not-allowed'; });
+
+    const intervalo = setInterval(() => {
+        restante--;
+        btns.forEach(b => { b.textContent = `⏳ ${restante}s`; });
+        if (restante <= 0) {
+            clearInterval(intervalo);
+            btns.forEach(b => {
+                b.disabled = false;
+                b.style.opacity = '';
+                b.style.cursor = '';
+                b.textContent = '✅ Lançar';
+            });
+        }
+    }, 1000);
 }
 
 async function executarPayDebt(phone, val) {
+    const agora = Date.now();
+    if (_payDebtProcessando) return;
+    if (agora - _payDebtUltimoTempo < _payDebtCooldown) {
+        const restante = Math.ceil((_payDebtCooldown - (agora - _payDebtUltimoTempo)) / 1000);
+        showToast({ type:'confirm', title:'⏳ Aguarde!', body:`Você precisa esperar ${restante} segundo${restante > 1 ? 's' : ''} antes de registrar outro pagamento.`, duration: 3000 });
+        return;
+    }
+    _payDebtProcessando = true;
     closeToast();
     const input = document.getElementById('pay_' + phone);
-    const { data: c } = await sb.from("clientes").select("debt, name").eq("phone", phone).single();
+
+    // Busca TODOS os campos necessários em uma única query
+    const { data: c } = await sb.from("clientes")
+        .select("debt, name, tickets, diamantes, total_gasto")
+        .eq("phone", phone).single();
+
     const novoSaldo = c.debt - val;
     await sb.from("clientes").update({ debt: novoSaldo }).eq("phone", phone);
-
-    // Pagamento registrado diretamente no saldo do cliente (clientes.debt)
 
     // TICKETS E DIAMANTES DO FIADO
     // Quando o ADM quita o fiado, tickets e diamantes são liberados IMEDIATAMENTE.
@@ -1735,36 +1782,43 @@ async function executarPayDebt(phone, val) {
         const valorPorTicket   = cfgTk?.data ? Number(cfgTk.data.value) : 0;
         const valorPorDiamante = cfgDi?.data ? Number(cfgDi.data.value) : 0;
 
-        const { data: gt } = await sb.from('clientes')
-            .select('tickets,tickets_pendentes,total_gasto,diamantes,diamantes_pendentes')
-            .eq('phone', phone).maybeSingle();
-
-        const totalGastoAtual    = gt ? Number(gt.total_gasto || 0) : 0;
+        const totalGastoAtual    = Number(c.total_gasto || 0);
         const novoTotalGasto     = totalGastoAtual + val;
-        const ticketsJaConf      = gt ? Number(gt.tickets || 0) : 0;
-        const diamantesJaConf    = gt ? Number(gt.diamantes || 0) : 0;
-        const novosTickets   = valorPorTicket   > 0 ? Math.max(0, Math.floor(novoTotalGasto / valorPorTicket)   - ticketsJaConf)   : 0;
-        const novosDiamantes = valorPorDiamante > 0 ? Math.max(0, Math.floor(novoTotalGasto / valorPorDiamante) - diamantesJaConf) : 0;
+        const ticketsJaConf      = Number(c.tickets || 0);
+        const diamantesJaConf    = Number(c.diamantes || 0);
 
-        await sb.from('clientes').update({
+        // Usa total_gasto acumulado para não perder a "sobra" de pagamentos anteriores
+        // Ex: diamante = R$1, pagou R$50 → 50 diamantes. ticket = R$50 → 1 ticket
+        const ticketsTotaisDevidos   = valorPorTicket   > 0 ? Math.floor(novoTotalGasto / valorPorTicket)   : 0;
+        const diamantesTotaisDevidos = valorPorDiamante > 0 ? Math.floor(novoTotalGasto / valorPorDiamante) : 0;
+        const novosTickets   = Math.max(0, ticketsTotaisDevidos   - ticketsJaConf);
+        const novosDiamantes = Math.max(0, diamantesTotaisDevidos - diamantesJaConf);
+
+        const { error: errUpdate } = await sb.from('clientes').update({
             total_gasto:         novoTotalGasto,
             tickets:             ticketsJaConf   + novosTickets,
             tickets_pendentes:   0,
             tickets_liberar_em:  null,
             diamantes:           diamantesJaConf + novosDiamantes,
             diamantes_pendentes: 0,
-            diamantes_liberar_em: null,
-            updated_at:          new Date().toISOString()
+            diamantes_liberar_em: null
         }).eq('phone', phone);
 
-        const msgs = [];
-        if (novosTickets   > 0) msgs.push(`🎟️ ${novosTickets} ticket${novosTickets>1?'s':''}`);
-        if (novosDiamantes > 0) msgs.push(`💎 ${novosDiamantes} diamante${novosDiamantes>1?'s':''}`);
-        if (msgs.length) {
-            showToast({ type:'success', title: msgs.join(' + ') + ' liberado(s)!',
-                body: `${c.name} ganhou ao confirmar o pagamento! 🎉`, duration: 6000 });
+        if (errUpdate) {
+            mostrarToast(`❌ Erro ao salvar tickets/diamantes: ${errUpdate.message}`);
+        } else {
+            const msgs = [];
+            if (novosTickets   > 0) msgs.push(`🎟️ ${novosTickets} ticket${novosTickets>1?'s':''}`);
+            if (novosDiamantes > 0) msgs.push(`💎 ${novosDiamantes} diamante${novosDiamantes>1?'s':''}`);
+            if (msgs.length) {
+                showToast({ type:'success', title: msgs.join(' + ') + ' liberado(s)!',
+                    body: `${c.name} ganhou ao confirmar o pagamento! 🎉`, duration: 6000 });
+            }
         }
-    } catch(e) { console.warn('Erro ao gerar tickets/diamantes do fiado:', e); }
+    } catch(e) {
+        mostrarToast(`❌ Erro tickets/diamantes: ${e.message}`);
+        console.error('Erro ao gerar tickets/diamantes do fiado:', e);
+    }
     // FIM TICKETS/DIAMANTES FIADO
     if (input) input.value = '';
     // Registra notificação de pagamento
@@ -1790,6 +1844,8 @@ async function executarPayDebt(phone, val) {
     // Guarda na variável global para o botão do toast acessar com segurança
     _comprovanteTemp = { phone, texto: comprovante };
 
+    _payDebtProcessando = false;
+    iniciarCooldownPagamento();
     showToast({
         type: 'success',
         title: `💰 Pagamento de R$ ${val.toFixed(2).replace('.', ',')} registrado!`,
@@ -2055,8 +2111,8 @@ async function loadOrders() {
         grupos[nome] = grupos[nome].map((x, i) => ({ ...x.order, _posRota: i + 1 }));
     });
 
-    // Geral = TODOS os pedidos na ordem que chegaram (sem filtro)
-    const geral = [...data];
+    // Geral = TODOS os pedidos em ordem alfabética pelo nome do cliente
+    const geral = [...data].sort((a, b) => (a.customer_name || '').localeCompare(b.customer_name || '', 'pt-BR', { sensitivity: 'base' }));
 
     // Monta abas: Geral primeiro, depois rotas em ordem de hora_saida, por último Sem Rota
     const abas = [];
@@ -2834,7 +2890,6 @@ async function executarAutoRefazer() {
         }
 
         const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
-        // Dívida NÃO é adicionada aqui — o entregador registra na hora da entrega
         const { data: novoPedido } = await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -2842,6 +2897,13 @@ async function executarAutoRefazer() {
             payment_method: 'FIADO',
             items: c.saved_order
         }).select().single();
+
+        // Atualiza o débito do cliente
+        try {
+            const debtAtual = Number(c.debt || 0);
+            await sb.from('clientes').update({ debt: debtAtual + totalParaUsar }).eq('phone', s.phone);
+        } catch(e) { console.warn('Erro ao atualizar dívida no refazer automático:', e); }
+
         lancados.push({ name: s.name, phone: s.phone, total: totalParaUsar, orderId: novoPedido ? novoPedido.id : null });
     }
 
@@ -3042,8 +3104,7 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
                 const novosPendentes = Math.max(0, ticketsTotaisNovos - ticketsJaConfirmados);
                 await sb.from('clientes').update({
                     total_gasto: novoTotalGasto,
-                    tickets_pendentes: novosPendentes,
-                    updated_at: new Date().toISOString()
+                    tickets_pendentes: novosPendentes
                 }).eq('phone', phone);
             }
         }
@@ -3103,7 +3164,6 @@ async function executarTodosRefazer() {
         if (!c) continue;
         const itemsFinais = (c.saved_order && c.saved_order.trim()) ? c.saved_order : s.items.replace(/\\n/g, '\n');
         const totalFinal = (c.saved_order_total && c.saved_order_total > 0) ? Number(c.saved_order_total) : Number(s.total);
-        // Dívida NÃO é adicionada aqui — o entregador registra na hora da entrega
         await sb.from("pedidos").insert({
             customer_name: s.name,
             customer_phone: s.phone,
@@ -3111,6 +3171,12 @@ async function executarTodosRefazer() {
             payment_method: 'FIADO',
             items: itemsFinais
         });
+
+        // Atualiza o débito do cliente
+        try {
+            const debtAtual = Number(c.debt || 0);
+            await sb.from('clientes').update({ debt: debtAtual + totalFinal }).eq('phone', s.phone);
+        } catch(e) { console.warn('Erro ao atualizar dívida no refazer manual:', e); }
     }
 
     refazerSelecionados = {};
@@ -3645,8 +3711,7 @@ async function executarCompra(total, pedidoTexto) {
 
                 await sb.from('clientes').update({
                     total_gasto: novoTotalGasto,
-                    tickets_pendentes: novosPendentes,
-                    updated_at: new Date().toISOString()
+                    tickets_pendentes: novosPendentes
                 }).eq('phone', phoneCliente);
             }
         } catch(e) { console.warn('Erro ao gerar tickets pendentes da compra admin:', e); }
@@ -4657,8 +4722,7 @@ async function executarCancelamento(orderId) {
                 await sb.from('clientes').update({
                     total_gasto:          novoTotalGasto,
                     tickets_pendentes:    novosPendTk,
-                    diamantes_pendentes:  novosPendDi,
-                    updated_at:           new Date().toISOString()
+                    diamantes_pendentes:  novosPendDi
                 }).eq('phone', phone);
             }
         } catch(e) { console.warn('Erro ao estornar tickets/diamantes:', e); }
