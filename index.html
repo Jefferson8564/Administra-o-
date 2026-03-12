@@ -2228,18 +2228,24 @@ async function executarCancelamentoPedido(orderId) {
         }
 
         // Restaura cupom se havia no pedido (info embutida no items)
-        const cupomMatchA = (o.items || '').match(/🏷️ CUPOM:(\d+):(.+)/);
-        if (cupomMatchA) {
-            const pct = Number(cupomMatchA[1]);
-            await sb.from('premios').insert({
-                customer_phone: o.customer_phone,
-                customer_name: o.customer_name || '',
-                descricao: `🏷️ ${pct}% OFF — ${pct}% de desconto`,
-                jogo: 'cupom_estornado',
-                tickets_usados: 0,
-                diamantes_usados: 0
-            }).catch(e => console.warn('Erro ao restaurar cupom:', e));
-        }
+        try {
+            const linhasCupomA = (o.items || '').split('\n').filter(l => l.includes('CUPOM:'));
+            if (linhasCupomA.length > 0) {
+                const partsA = linhasCupomA[0].split(':');
+                const pct = Number(partsA[1]) || 0;
+                if (pct > 0) {
+                    await sb.from('premios').insert({
+                        customer_phone: o.customer_phone,
+                        customer_name: o.customer_name || '',
+                        descricao: `🏷️ ${pct}% OFF — ${pct}% de desconto`,
+                        jogo: 'cupom_estornado',
+                        tickets_usados: 0,
+                        diamantes_usados: 0,
+                        cancelado: false
+                    });
+                }
+            }
+        } catch(e) { console.warn('Erro ao restaurar cupom (A):', e); }
     }
 
     // Deleta o pedido do banco
@@ -4565,18 +4571,24 @@ async function executarCancelamento(orderId) {
     }
 
     // Restaura cupom se havia no pedido (info embutida no items)
-    const cupomMatchB = (o.items || '').match(/🏷️ CUPOM:(\d+):(.+)/);
-    if (cupomMatchB) {
-        const pct = Number(cupomMatchB[1]);
-        await sb.from('premios').insert({
-            customer_phone: o.customer_phone,
-            customer_name: o.customer_name || '',
-            descricao: `🏷️ ${pct}% OFF — ${pct}% de desconto`,
-            jogo: 'cupom_estornado',
-            tickets_usados: 0,
-            diamantes_usados: 0
-        }).catch(e => console.warn('Erro ao restaurar cupom:', e));
-    }
+    try {
+        const linhasCupomB = (o.items || '').split('\n').filter(l => l.includes('CUPOM:'));
+        if (linhasCupomB.length > 0) {
+            const partsB = linhasCupomB[0].split(':');
+            const pct = Number(partsB[1]) || 0;
+            if (pct > 0) {
+                await sb.from('premios').insert({
+                    customer_phone: o.customer_phone,
+                    customer_name: o.customer_name || '',
+                    descricao: `🏷️ ${pct}% OFF — ${pct}% de desconto`,
+                    jogo: 'cupom_estornado',
+                    tickets_usados: 0,
+                    diamantes_usados: 0,
+                    cancelado: false
+                });
+            }
+        }
+    } catch(e) { console.warn('Erro ao restaurar cupom (B):', e); }
 
     // Estornar tickets e diamantes pendentes (para qualquer método)
     {
