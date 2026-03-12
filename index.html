@@ -388,6 +388,21 @@ if ('serviceWorker' in navigator) {
             </div>
         </div>
 
+            <!-- MODAL EDITAR NOME CLIENTE -->
+            <div id="modalEditarNomeCliente" class="u-modal-overlay" style="display:none;">
+                <div class="u-modal-panel" style="max-width:360px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <div style="font-size:16px;font-weight:900;color:#e8d8f8;">📎 Editar Nome</div>
+                        <button onclick="fecharEditarNomeCliente()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+                    </div>
+                    <input id="editarNomeInput" type="text" class="input-text" placeholder="Nome do cliente" onkeydown="if(event.key==='Enter') salvarNomeCliente()" style="margin-bottom:14px;">
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="fecharEditarNomeCliente()" class="btn" style="flex:1;background:#2e1f4a;color:#e8d8f8;">Cancelar</button>
+                        <button onclick="salvarNomeCliente()" class="btn btn-success" style="flex:1;">✅ Salvar</button>
+                    </div>
+                </div>
+            </div>
+
         <div id="tab-orders" class="section">
 
 
@@ -1496,12 +1511,9 @@ let _clientesAdminCache = [];
 
 async function loadAdminClients() {
     const { data: rawData } = await sb.from("clientes").select("*").order("name");
-    _clientesAdminCache = (rawData || []).sort((a, b) => {
-        const rank = c => c.debt < 0 ? 0 : c.debt > 0 ? 1 : 2;
-        if (rank(a) !== rank(b)) return rank(a) - rank(b);
-        // Dentro do mesmo grupo, ordena pelo valor absoluto decrescente
-        return Math.abs(b.debt) - Math.abs(a.debt);
-    });
+    _clientesAdminCache = (rawData || []).sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base' })
+    );
 
     const total = _clientesAdminCache.filter(c => c.debt > 0).reduce((s, c) => s + c.debt, 0);
     const el = document.getElementById('headerFiadoValor');
@@ -1591,6 +1603,12 @@ function abrirDetalheCliente(phone) {
             : `<div style="font-size:15px;color:#9080b8;">Saldo zerado ✅</div>`;
 
     document.getElementById('detalheClienteBody').innerHTML = `
+        <button onclick="fecharDetalheCliente();setTimeout(()=>abrirEditarNomeClienteById(this.dataset.phone),150)" data-phone="${c.phone}"
+            style="width:100%;padding:10px;margin-bottom:12px;background:linear-gradient(135deg,#e67e22,#c0392b);
+            border:none;border-radius:14px;font-size:14px;font-weight:800;color:white;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:8px;">
+            📎 Editar Nome
+        </button>
         <div style="background:#110820;border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             ${saldoHtml}
         </div>
@@ -1615,6 +1633,36 @@ function abrirDetalheCliente(phone) {
 
 function fecharDetalheCliente() {
     document.getElementById('modalDetalheCliente').style.display = 'none';
+}
+
+function abrirEditarNomeClienteById(phone) {
+    const c = _clientesAdminCache && _clientesAdminCache.find(x => x.phone === phone);
+    const nome = c ? c.name : '';
+    abrirEditarNomeCliente(phone, nome);
+}
+
+function abrirEditarNomeCliente(phone, nomeAtual) {
+    const modal = document.getElementById("modalEditarNomeCliente");
+    document.getElementById("editarNomeInput").value = nomeAtual;
+    document.getElementById("editarNomeInput").dataset.phone = phone;
+    modal.style.display = "flex";
+    setTimeout(() => document.getElementById("editarNomeInput").focus(), 100);
+    modal.onclick = e => { if (e.target === modal) fecharEditarNomeCliente(); };
+}
+
+function fecharEditarNomeCliente() {
+    document.getElementById("modalEditarNomeCliente").style.display = "none";
+}
+
+async function salvarNomeCliente() {
+    const input = document.getElementById("editarNomeInput");
+    const novoNome = input.value.trim();
+    const phone = input.dataset.phone;
+    if (!novoNome) { showToast({ type:"confirm", title:"⚠️ Atenção", body:"O nome não pode ficar em branco." }); return; }
+    await sb.from("clientes").update({ name: novoNome }).eq("phone", phone);
+    fecharEditarNomeCliente();
+    showToast({ type:"confirm", title:"✅ Nome atualizado", body:"Nome salvo como \"" + novoNome + "\"" });
+    loadAdminClients();
 }
 
 function normalizarTelefone(input) {
@@ -5729,11 +5777,9 @@ function cancelarLongPress() {
 
 async function abrirModalEditarSaldoCliente() {
     const { data } = await sb.from("clientes").select("phone,name,debt").order("name");
-    const clientes = (data || []).sort((a, b) => {
-        const rank = c => c.debt < 0 ? 0 : c.debt > 0 ? 1 : 2;
-        if (rank(a) !== rank(b)) return rank(a) - rank(b);
-        return Math.abs(b.debt) - Math.abs(a.debt);
-    });
+    const clientes = (data || []).sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base' })
+    );
 
     const grid = document.getElementById('editarSaldoGrid');
     grid.innerHTML = clientes.map(c => {
