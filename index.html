@@ -698,20 +698,27 @@ if ('serviceWorker' in navigator) {
             <!-- Cabeçalho -->
             <div style="flex-shrink:0;background:#12082a;padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(139,92,246,0.2);">
                 <button onclick="fecharPainelClienteHistorico()" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;padding:7px 12px;color:#e8d8f8;font-size:15px;font-weight:700;cursor:pointer;">←</button>
-                <div>
+                <div style="display:flex;align-items:center;gap:10px;">
                     <div id="painelClienteNome" style="font-size:17px;font-weight:900;color:#fff;"></div>
-                    <div id="painelClientePhone" style="font-size:12px;color:#9080b8;margin-top:1px;"></div>
+                    <div id="pagSelBadge" style="display:none;background:#2980b9;color:white;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;"></div>
+                    <div id="pedSelBadge" style="display:none;background:#f97316;color:white;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;"></div>
+                    <div id="devSelBadge" style="display:none;background:#9b59b6;color:white;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;"></div>
                 </div>
+                    <div id="painelClientePhone" style="font-size:12px;color:#9080b8;margin-top:1px;"></div>
             </div>
             <!-- Tabs -->
             <div style="flex-shrink:0;display:flex;gap:0;background:#12082a;border-bottom:2px solid rgba(139,92,246,0.2);">
                 <button id="tabBtnPedidos" onclick="switchTabHistorico('pedidos')"
-                    style="flex:1;padding:12px;background:none;border:none;border-bottom:3px solid #8b5cf6;color:#8b5cf6;font-weight:800;font-size:14px;cursor:pointer;">
+                    style="flex:1;padding:12px;background:none;border:none;border-bottom:3px solid #8b5cf6;color:#8b5cf6;font-weight:800;font-size:13px;cursor:pointer;">
                     📋 Pedidos
                 </button>
                 <button id="tabBtnPagamentos" onclick="switchTabHistorico('pagamentos')"
-                    style="flex:1;padding:12px;background:none;border:none;border-bottom:3px solid transparent;color:#9080b8;font-weight:800;font-size:14px;cursor:pointer;">
+                    style="flex:1;padding:12px;background:none;border:none;border-bottom:3px solid transparent;color:#9080b8;font-weight:800;font-size:13px;cursor:pointer;">
                     💳 Pagamentos
+                </button>
+                <button id="tabBtnDevolucoes" onclick="switchTabHistorico('devolucoes')"
+                    style="flex:1;padding:12px;background:none;border:none;border-bottom:3px solid transparent;color:#9080b8;font-weight:800;font-size:13px;cursor:pointer;">
+                    🔄 Devoluções
                 </button>
             </div>
             <!-- Conteúdo -->
@@ -722,14 +729,12 @@ if ('serviceWorker' in navigator) {
                 </div>
                 <!-- Tab Pagamentos -->
                 <div id="tabContentPagamentos" style="display:none;">
-                    <!-- Resumo débito -->
-                    <div id="clienteDebtResumo" style="background:linear-gradient(135deg,#1a0f2e,#2d1b4e);border-radius:18px;padding:16px;margin-bottom:16px;"></div>
-                    <!-- Botão comprovante -->
-                    <button id="btnEnviarComprovante" onclick="enviarComprovanteDia()"
-                        style="width:100%;background:linear-gradient(135deg,#25d366,#1aad52);border:none;color:white;border-radius:16px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        <span style="font-size:18px;">📲</span> Enviar Comprovante do Dia
-                    </button>
+                    <div id="clienteDebtResumo" style="display:none;"></div>
                     <div id="clientePagamentosList" style="display:flex;flex-direction:column;gap:10px;"></div>
+                </div>
+                <!-- Tab Devoluções -->
+                <div id="tabContentDevolucoes" style="display:none;">
+                    <div id="clienteDevolucoesList" style="display:flex;flex-direction:column;gap:10px;"></div>
                 </div>
             </div>
         </div>
@@ -1821,10 +1826,6 @@ async function executarPayDebt(phone, val) {
     }
     // FIM TICKETS/DIAMANTES FIADO
     if (input) input.value = '';
-    // Registra notificação de pagamento
-    await inserirNotificacao(phone, 'pagamento', val, 'Pagamento confirmado pelo ADM');
-    fecharDetalheCliente();
-    loadAdminClients();
 
     // Monta o comprovante usando o template configurável
     const now = new Date();
@@ -1840,6 +1841,12 @@ async function executarPayDebt(phone, val) {
         .replace('{data}', dataHora)
         .replace('{valor}', val.toFixed(2).replace('.', ','))
         .replace('{saldo}', saldoTexto);
+
+    // Registra notificação de pagamento salvando só o miolo (sem cabeçalho/rodapé)
+    const mioloHistorico = `──────────────────\n👤 Cliente: ${c.name}\n📅 Data/Hora: ${dataHora}\n💰 Valor pago: R$ ${val.toFixed(2).replace('.', ',')}\n${saldoTexto}\n──────────────────`;
+    await inserirNotificacao(phone, 'pagamento', val, mioloHistorico);
+    fecharDetalheCliente();
+    loadAdminClients();
 
     // Guarda na variável global para o botão do toast acessar com segurança
     _comprovanteTemp = { phone, texto: comprovante };
@@ -2393,11 +2400,16 @@ async function executarCancelamentoPedido(orderId) {
         setTimeout(() => wrap.remove(), 300);
     }
 
-    // Registra notificação de reembolso com o total real cobrado
+    // Registra notificação de reembolso com o total real cobrado (inclui crédito usado)
     if (o.customer_phone) {
-        await inserirNotificacao(o.customer_phone, 'reembolso', Number(o.total) || 0, 'Pedido cancelado pelo ADM');
+        const creditoMatch = (o.items || '').match(/💳 CREDITO:([\d.]+)/);
+        const creditoUsado = creditoMatch ? Number(creditoMatch[1]) : (Number(o.credito_usado) || 0);
+        const valorReembolso = (Number(o.total) || 0) + creditoUsado;
+        const descReembolso = creditoUsado > 0
+            ? `Pedido cancelado — R$ ${Number(o.total).toFixed(2).replace('.',',')} + crédito R$ ${creditoUsado.toFixed(2).replace('.',',')} devolvido`
+            : 'Pedido cancelado pelo ADM';
+        await inserirNotificacao(o.customer_phone, 'reembolso', valorReembolso, descReembolso);
     }
-
     const isFiadoLocal = (o.payment_method || '').toUpperCase() === 'FIADO';
     const msg = isFiadoLocal
         ? `Pedido de ${o.customer_name} cancelado e débito revertido.`
@@ -3109,8 +3121,18 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
             }
         }
     } catch(e) { console.warn('Erro ao estornar tickets:', e); }
-    // Registra notificação de reembolso
-    await inserirNotificacao(phone, 'reembolso', Number(total) || 0, 'Pedido cancelado pelo ADM');
+    // Registra notificação de reembolso (busca items para calcular crédito)
+    try {
+        const { data: pedido } = await sb.from('pedidos').select('items,credito_usado').eq('id', orderId).maybeSingle();
+        const itemsTxt = pedido ? (pedido.items || '') : '';
+        const creditoMatch3 = itemsTxt.match(/💳 CREDITO:([\d.]+)/);
+        const creditoUsado3 = creditoMatch3 ? Number(creditoMatch3[1]) : (pedido ? Number(pedido.credito_usado) || 0 : 0);
+        const valorReembolso3 = (Number(total) || 0) + creditoUsado3;
+        const descReembolso3 = creditoUsado3 > 0
+            ? `Pedido cancelado — R$ ${Number(total).toFixed(2).replace('.',',')} + crédito R$ ${creditoUsado3.toFixed(2).replace('.',',')} devolvido`
+            : 'Pedido cancelado pelo ADM';
+        await inserirNotificacao(phone, 'reembolso', valorReembolso3, descReembolso3);
+    } catch(e) { await inserirNotificacao(phone, 'reembolso', Number(total) || 0, 'Pedido cancelado pelo ADM'); }
 
     // Remove do histórico local
     const historico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]');
@@ -4298,23 +4320,165 @@ async function loadHistoricoPagamentos() {
         return;
     }
 
-    list.innerHTML = data.map(c => {
-        const partes = c.name.trim().split(' ').filter(Boolean);
-        const iniciais = partes.length >= 2 ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase() : c.name.slice(0,2).toUpperCase();
-        const nomeExibido = partes[0];
-        const temDebito = Number(c.debt) > 0;
-        return `<div onclick="abrirPainelClienteHistorico('${c.phone}')"
-            style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
-            padding:14px 6px 10px;border-radius:18px;cursor:pointer;
-            background:#1a0f2e;border:2px solid rgba(139,92,246,0.25);
-            box-shadow:0 3px 12px rgba(0,0,0,0.35);">
-            ${renderAvatar(c.phone, iniciais, 'linear-gradient(135deg,#2980b9,#1a5276)')}
-            ${temDebito ? `<div style="position:absolute;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #1a0f2e;"></div>` : ''}
-            <div style="font-size:11px;font-weight:700;color:#e8d8f8;text-align:center;line-height:1.2;">
-                ${nomeExibido}
-            </div>
-        </div>`;
-    }).join('');
+    // Busca quais phones têm histórico de pagamento, pedidos e devoluções
+    const [{ data: pagData }, { data: pedidosData }, { data: devData }] = await Promise.all([
+        sb.from('notificacoes').select('customer_phone').eq('tipo', 'pagamento'),
+        sb.from('pedidos').select('customer_phone'),
+        sb.from('notificacoes').select('customer_phone').eq('tipo', 'reembolso')
+    ]);
+    const phonesComPagamento = new Set((pagData     || []).map(p => p.customer_phone));
+    const phonesComPedidos   = new Set((pedidosData || []).map(p => p.customer_phone));
+    const phonesComDevolucao = new Set((devData     || []).map(p => p.customer_phone));
+
+    list._modoSelecao = false;
+    list._selecionados = new Set();
+
+    // Barra de ação (acima da grid)
+    let barraAcao = document.getElementById('pagGridBarra');
+    if (!barraAcao) {
+        barraAcao = document.createElement('div');
+        barraAcao.id = 'pagGridBarra';
+        barraAcao.style.cssText = 'display:none;gap:8px;padding:10px 15px;background:#12082a;border-bottom:1px solid rgba(239,68,68,0.4);';
+        list.parentElement.insertBefore(barraAcao, list);
+    }
+
+    function renderGrid() {
+        const modoSel = list._modoSelecao;
+
+        // Barra
+        if (modoSel) {
+            barraAcao.style.display = 'flex';
+            barraAcao.innerHTML = `
+                <span style="flex:1;font-size:13px;font-weight:800;color:#ef4444;align-self:center;">${list._selecionados.size} selecionado(s)</span>
+                <button onclick="cancelarSelecaoGrid()" style="background:#2e1f4a;border:none;border-radius:12px;padding:9px 14px;color:#e8d8f8;font-size:13px;font-weight:700;cursor:pointer;">✕</button>
+                <button onclick="excluirSelecaoGrid()" style="background:#3d1f1f;border:none;border-radius:12px;padding:9px 16px;color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>`;
+        } else {
+            barraAcao.style.display = 'none';
+        }
+
+        list.innerHTML = '';
+        data.forEach((c, i) => {
+            const partes = c.name.trim().split(' ').filter(Boolean);
+            const iniciais = partes.length >= 2 ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase() : c.name.slice(0,2).toUpperCase();
+            const nomeExibido = partes[0];
+            const temDebito = Number(c.debt) > 0;
+            const temPedido    = phonesComPedidos.has(c.phone);
+            const temPagamento = phonesComPagamento.has(c.phone);
+            const temDevolucao = phonesComDevolucao.has(c.phone);
+            const selecionado = list._selecionados.has(i);
+
+            const card = document.createElement('div');
+            card.style.cssText = `position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px 10px;border-radius:18px;cursor:pointer;background:${selecionado ? '#3d1f1f' : '#1a0f2e'};border:2px solid ${selecionado ? '#ef4444' : 'rgba(139,92,246,0.25)'};box-shadow:0 3px 12px rgba(0,0,0,0.35);transition:background 0.15s;user-select:none;-webkit-user-select:none;`;
+            card.innerHTML = `
+                ${renderAvatar(c.phone, iniciais, selecionado ? 'linear-gradient(135deg,#ef4444,#7f1d1d)' : 'linear-gradient(135deg,#2980b9,#1a5276)')}
+                ${selecionado
+                    ? `<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;">✓</div>`
+                    : `${temPagamento  ? `<div style="position:absolute;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #1a0f2e;"></div>` : ''}
+                       ${temPedido     ? `<div style="position:absolute;top:6px;left:6px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #1a0f2e;"></div>` : ''}
+                       ${temDevolucao  ? `<div style="position:absolute;bottom:28px;right:6px;width:12px;height:12px;border-radius:50%;background:#9b59b6;border:2px solid #1a0f2e;"></div>` : ''}`
+                }
+                <div style="font-size:11px;font-weight:700;color:${selecionado ? '#ef4444' : '#e8d8f8'};text-align:center;line-height:1.2;">${nomeExibido}</div>`;
+
+            let pressTimer = null;
+            const iniciarLongPress = () => {
+                pressTimer = setTimeout(() => {
+                    list._modoSelecao = true;
+                    list._selecionados.add(i);
+                    renderGrid();
+                }, 600);
+            };
+            const cancelarLongPress = () => clearTimeout(pressTimer);
+
+            card.addEventListener('touchstart', iniciarLongPress, { passive: true });
+            card.addEventListener('touchend', cancelarLongPress);
+            card.addEventListener('touchmove', cancelarLongPress);
+            card.addEventListener('mousedown', iniciarLongPress);
+            card.addEventListener('mouseup', cancelarLongPress);
+            card.addEventListener('mouseleave', cancelarLongPress);
+
+            card.addEventListener('click', () => {
+                if (list._modoSelecao) {
+                    if (list._selecionados.has(i)) list._selecionados.delete(i);
+                    else list._selecionados.add(i);
+                    renderGrid();
+                } else {
+                    abrirPainelClienteHistorico(c.phone);
+                }
+            });
+
+            list.appendChild(card);
+        });
+    }
+
+    window.cancelarSelecaoGrid = () => {
+        list._modoSelecao = false;
+        list._selecionados.clear();
+        renderGrid();
+    };
+
+    window.excluirSelecaoGrid = () => {
+        if (list._selecionados.size === 0) return;
+        const qtd = list._selecionados.size;
+        let pop = document.getElementById('popExcluirGrid');
+        if (pop) pop.remove();
+        pop = document.createElement('div');
+        pop.id = 'popExcluirGrid';
+        pop.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);';
+        pop.innerHTML = `
+            <div style="background:#1a0f2e;border-radius:22px;padding:28px 24px;width:88%;max-width:340px;text-align:center;border:1px solid rgba(239,68,68,0.4);">
+                <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+                <div style="font-size:17px;font-weight:900;color:#e8d8f8;margin-bottom:6px;">Excluir dados de ${qtd} cliente${qtd>1?'s':''}?</div>
+                <div style="font-size:13px;color:#9080b8;margin-bottom:20px;">Escolha o que deseja apagar:</div>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+                    <label style="display:flex;align-items:center;gap:10px;background:#150b25;padding:12px;border-radius:12px;cursor:pointer;">
+                        <input type="checkbox" id="chkDelPag" checked style="width:18px;height:18px;accent-color:#ef4444;">
+                        <span style="color:#e8d8f8;font-size:14px;font-weight:600;">💳 Histórico de Pagamentos</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;background:#150b25;padding:12px;border-radius:12px;cursor:pointer;">
+                        <input type="checkbox" id="chkDelPed" checked style="width:18px;height:18px;accent-color:#ef4444;">
+                        <span style="color:#e8d8f8;font-size:14px;font-weight:600;">📋 Histórico de Pedidos</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;background:#150b25;padding:12px;border-radius:12px;cursor:pointer;">
+                        <input type="checkbox" id="chkDelDev" checked style="width:18px;height:18px;accent-color:#9b59b6;">
+                        <span style="color:#e8d8f8;font-size:14px;font-weight:600;">🔄 Histórico de Devoluções</span>
+                    </label>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('popExcluirGrid').remove()" style="flex:1;background:#2e1f4a;border:none;border-radius:14px;padding:13px;color:#e8d8f8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                    <button id="btnConfirmarExcluirGrid" style="flex:1;background:#ef4444;border:none;border-radius:14px;padding:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Excluir</button>
+                </div>
+            </div>`;
+        document.body.appendChild(pop);
+
+        document.getElementById('btnConfirmarExcluirGrid').onclick = async () => {
+            const delPag = document.getElementById('chkDelPag').checked;
+            const delPed = document.getElementById('chkDelPed').checked;
+            const delDev = document.getElementById('chkDelDev').checked;
+            if (!delPag && !delPed && !delDev) { mostrarToast('⚠️ Selecione ao menos uma opção'); return; }
+            pop.remove();
+            const phones = [...list._selecionados].map(i => data[i].phone);
+            if (delPag) {
+                for (const phone of phones) {
+                    await sb.from('notificacoes').delete().eq('customer_phone', phone).eq('tipo', 'pagamento');
+                }
+            }
+            if (delPed) {
+                for (const phone of phones) {
+                    await sb.from('pedidos').delete().eq('customer_phone', phone);
+                }
+            }
+            if (delDev) {
+                for (const phone of phones) {
+                    await sb.from('notificacoes').delete().eq('customer_phone', phone).eq('tipo', 'reembolso');
+                }
+            }
+            if (erros.length) mostrarToast(`❌ Erro ao excluir: ${erros.join(', ')}`);
+            else mostrarToast(`🗑️ Dados excluídos de ${phones.length} cliente${phones.length>1?'s':''}!`);
+            window.cancelarSelecaoGrid();
+        };
+    };
+
+    renderGrid();
 }
 
 let _painelCliente = null;
@@ -4345,50 +4509,192 @@ function fecharPainelClienteHistorico() {
 }
 
 function switchTabHistorico(tab) {
-    const isPedidos = tab === 'pedidos';
-    document.getElementById('tabContentPedidos').style.display = isPedidos ? 'block' : 'none';
-    document.getElementById('tabContentPagamentos').style.display = isPedidos ? 'none' : 'block';
-    document.getElementById('tabBtnPedidos').style.borderBottomColor = isPedidos ? '#8b5cf6' : 'transparent';
-    document.getElementById('tabBtnPedidos').style.color = isPedidos ? '#8b5cf6' : '#9080b8';
-    document.getElementById('tabBtnPagamentos').style.borderBottomColor = isPedidos ? 'transparent' : '#8b5cf6';
-    document.getElementById('tabBtnPagamentos').style.color = isPedidos ? '#9080b8' : '#8b5cf6';
+    const tabs = ['pedidos', 'pagamentos', 'devolucoes'];
+    const cores = { pedidos: '#8b5cf6', pagamentos: '#8b5cf6', devolucoes: '#f97316' };
+    tabs.forEach(t => {
+        const ativo = t === tab;
+        document.getElementById(`tabContent${t.charAt(0).toUpperCase()+t.slice(1)}`).style.display = ativo ? 'block' : 'none';
+        document.getElementById(`tabBtn${t.charAt(0).toUpperCase()+t.slice(1)}`).style.borderBottomColor = ativo ? cores[t] : 'transparent';
+        document.getElementById(`tabBtn${t.charAt(0).toUpperCase()+t.slice(1)}`).style.color = ativo ? cores[t] : '#9080b8';
+    });
+    if (tab === 'devolucoes' && _painelCliente) carregarDevolucoesCliente(_painelCliente);
 }
 
 async function carregarPedidosCliente(phone) {
     const list = document.getElementById('clientePedidosList');
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;">Carregando...</div>';
+
     const { data, error } = await sb.from('pedidos')
         .select('*')
         .eq('customer_phone', phone)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(15);
 
     if (error || !data || data.length === 0) {
         list.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;">Nenhum pedido encontrado.</div>';
         return;
     }
 
-    list.innerHTML = data.map(p => {
-        const dt = new Date(p.created_at);
-        const dataStr = dt.toLocaleDateString('pt-BR');
-        const horaStr = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-        const statusColor = p.entregue ? '#22c55e' : '#f97316';
-        const statusLabel = p.entregue ? '✅ Entregue' : '⏳ Pendente';
-        const metodo = p.payment_method === 'FIADO' ? '⏳ Pagar depois' : p.payment_method === 'PAGA NA ENTREGA' ? '🤝 Na entrega' : p.payment_method || '—';
-        return `<div style="background:#1a0f2e;border-radius:16px;padding:14px;border-left:4px solid ${statusColor};">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="font-size:12px;color:#9080b8;">${dataStr} às ${horaStr}</div>
-                <span style="font-size:12px;font-weight:700;color:${statusColor};">${statusLabel}</span>
-            </div>
-            <div style="font-size:13px;color:#e8d8f8;white-space:pre-line;margin-bottom:8px;line-height:1.6;">${(p.items||'').replace(/✅ /g,'')}</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:12px;color:#9080b8;">${metodo}</span>
-                <span style="font-size:17px;font-weight:900;color:#f97316;">R$ ${Number(p.total||0).toFixed(2).replace('.',',')}</span>
-            </div>
-        </div>`;
-    }).join('');
+    list._pedidos = data;
+    list._clientePhone = phone;
+    list._modoSelecao = false;
+    list._selecionados = new Set();
+
+    function renderPedidosList() {
+        const modoSel = list._modoSelecao;
+        list.innerHTML = '';
+
+        // Badge e botões no cabeçalho
+        const badge = document.getElementById('pedSelBadge');
+        const header = document.querySelector('#painelClienteHistorico > div:first-child');
+        let botoesBar = document.getElementById('pedBotoesSelecao');
+
+        if (modoSel) {
+            if (badge) { badge.style.display = 'inline-block'; badge.textContent = `${list._selecionados.size} ✓`; }
+            if (!botoesBar && header) {
+                botoesBar = document.createElement('div');
+                botoesBar.id = 'pedBotoesSelecao';
+                botoesBar.style.cssText = 'flex-shrink:0;display:flex;gap:8px;padding:10px 18px;background:#12082a;border-bottom:1px solid rgba(41,128,185,0.4);';
+                botoesBar.innerHTML = `
+                    <button onclick="excluirSelecionadosPedidos()" style="flex:1;background:#3d1f1f;border:none;border-radius:12px;padding:10px 0;color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                    <button onclick="cancelarSelecaoPedidos()" style="flex:1;background:#2e1f4a;border:none;border-radius:12px;padding:10px 0;color:#e8d8f8;font-size:13px;font-weight:700;cursor:pointer;">✕ Cancelar</button>
+                    <button onclick="enviarSelecionadosPedidos()" style="flex:1;background:#25d366;border:none;border-radius:12px;padding:10px 0;color:white;font-size:13px;font-weight:700;cursor:pointer;">📲 Enviar</button>`;
+                header.insertAdjacentElement('afterend', botoesBar);
+            }
+        } else {
+            if (badge) badge.style.display = 'none';
+            if (botoesBar) botoesBar.remove();
+        }
+
+        data.forEach((p, i) => {
+            const dt = new Date(p.created_at);
+            const dataStr = dt.toLocaleDateString('pt-BR');
+            const horaStr = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+            const statusColor = p.entregue ? '#22c55e' : '#f97316';
+            const statusLabel = p.entregue ? '✅ Entregue' : '⏳ Pendente';
+            const metodo = p.payment_method === 'FIADO' ? '⏳ Pagar depois' : p.payment_method === 'PAGA NA ENTREGA' ? '🤝 Na entrega' : p.payment_method || '—';
+            const selecionado = list._selecionados.has(i);
+
+            const card = document.createElement('div');
+            card.style.cssText = `background:${selecionado ? '#0f3460' : '#1a0f2e'};border-radius:16px;padding:14px;border-left:4px solid ${selecionado ? '#60a5fa' : statusColor};margin-bottom:6px;cursor:pointer;position:relative;transition:background 0.15s;user-select:none;-webkit-user-select:none;`;
+
+            if (modoSel && selecionado) {
+                card.innerHTML = `<div style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#60a5fa;display:flex;align-items:center;justify-content:center;font-size:12px;">✓</div>`;
+            }
+            card.innerHTML += `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div style="font-size:12px;color:#9080b8;">${dataStr} às ${horaStr}</div>
+                    <span style="font-size:12px;font-weight:700;color:${statusColor};">${statusLabel}</span>
+                </div>
+                <div style="font-size:13px;color:#e8d8f8;white-space:pre-line;margin-bottom:8px;line-height:1.6;">${(p.items||'').replace(/✅ /g,'')}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:12px;color:#9080b8;">${metodo}</span>
+                    <span style="font-size:17px;font-weight:900;color:#f97316;">R$ ${Number(p.total||0).toFixed(2).replace('.',',')}</span>
+                </div>`;
+
+            let pressTimer = null;
+            const iniciarLongPress = () => {
+                pressTimer = setTimeout(() => {
+                    list._modoSelecao = true;
+                    list._selecionados.add(i);
+                    renderPedidosList();
+                }, 600);
+            };
+            const cancelarLongPress = () => clearTimeout(pressTimer);
+
+            card.addEventListener('touchstart', iniciarLongPress, { passive: true });
+            card.addEventListener('touchend', cancelarLongPress);
+            card.addEventListener('touchmove', cancelarLongPress);
+            card.addEventListener('mousedown', iniciarLongPress);
+            card.addEventListener('mouseup', cancelarLongPress);
+            card.addEventListener('mouseleave', cancelarLongPress);
+
+            card.addEventListener('click', () => {
+                if (list._modoSelecao) {
+                    if (list._selecionados.has(i)) list._selecionados.delete(i);
+                    else list._selecionados.add(i);
+                    renderPedidosList();
+                } else {
+                    const dt = new Date(p.created_at);
+                    const dataStr = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric' });
+                    const horaStr = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit' });
+                    const clienteNome = document.getElementById('painelClienteNome').textContent;
+                    const itensTexto = (p.items || '').trim();
+                    const texto = `*histórico*\n${dataStr} / ${horaStr}\nCliente: ${clienteNome.toUpperCase()}\n\n${itensTexto}\n\nTotal: R$ ${Number(p.total||0).toFixed(2).replace('.',',')}`;
+                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+                }
+            });
+
+            list.appendChild(card);
+        });
+
+        const badgeAtual = document.getElementById('pedSelBadge');
+        if (badgeAtual && modoSel) badgeAtual.textContent = `${list._selecionados.size} ✓`;
+    }
+
+    window.enviarSelecionadosPedidos = () => {
+        if (list._selecionados.size === 0) return;
+        const clienteNome = document.getElementById('painelClienteNome').textContent;
+        const itens = [...list._selecionados]
+            .sort((a, b) => new Date(data[b].created_at) - new Date(data[a].created_at))
+            .map(i => {
+                const p = data[i];
+                const dt = new Date(p.created_at);
+                const dataStr = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric' });
+                const itensTexto = (p.items || '').replace(/✅ /g, '').trim();
+                return `📅 ${dataStr}\n${itensTexto}\n💰 Total R$ ${Number(p.total||0).toFixed(2).replace('.',',')}`;
+            });
+        const totalGeral = [...list._selecionados].reduce((acc, i) => acc + Number(data[i].total || 0), 0);
+        const texto = `🧾 *Histórico geral*\n\n👤 Cliente: ${clienteNome}\n──────────────────\n${itens.join('\n──────────────────\n')}\n──────────────────\n\n🛍️ *Totais em pedidos* 🛍️\n*R$ ${totalGeral.toFixed(2).replace('.', ',')}*`;
+        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+        window.cancelarSelecaoPedidos();
+    };
+
+    window.cancelarSelecaoPedidos = () => {
+        list._modoSelecao = false;
+        list._selecionados.clear();
+        renderPedidosList();
+    };
+
+    window.excluirSelecionadosPedidos = () => {
+        if (list._selecionados.size === 0) return;
+        const qtd = list._selecionados.size;
+        let pop = document.getElementById('popExcluirPed');
+        if (pop) pop.remove();
+        pop = document.createElement('div');
+        pop.id = 'popExcluirPed';
+        pop.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);';
+        pop.innerHTML = `
+            <div style="background:#1a0f2e;border-radius:22px;padding:28px 24px;width:88%;max-width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.6);border:1px solid rgba(239,68,68,0.3);">
+                <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+                <div style="font-size:17px;font-weight:900;color:#e8d8f8;margin-bottom:8px;">Excluir ${qtd} pedido${qtd > 1 ? 's' : ''}?</div>
+                <div style="font-size:13px;color:#9080b8;margin-bottom:24px;">Essa ação não pode ser desfeita.</div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('popExcluirPed').remove()" style="flex:1;background:#2e1f4a;border:none;border-radius:14px;padding:13px;color:#e8d8f8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                    <button id="btnConfirmarExcluirPed" style="flex:1;background:#ef4444;border:none;border-radius:14px;padding:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Excluir</button>
+                </div>
+            </div>`;
+        document.body.appendChild(pop);
+
+        document.getElementById('btnConfirmarExcluirPed').onclick = async () => {
+            pop.remove();
+            const ids = [...list._selecionados].map(i => data[i].id).filter(Boolean);
+            if (ids.length === 0) { window.cancelarSelecaoPedidos(); return; }
+            const { error } = await sb.from('pedidos').delete().in('id', ids);
+            if (error) { mostrarToast('❌ Erro ao excluir: ' + error.message); return; }
+            mostrarToast(`🗑️ ${ids.length} pedido(s) excluído(s)`);
+            const indicesToRemove = new Set(list._selecionados);
+            data.splice(0, data.length, ...data.filter((_, i) => !indicesToRemove.has(i)));
+            list._modoSelecao = false;
+            list._selecionados.clear();
+            renderPedidosList();
+        };
+    };
+
+    renderPedidosList();
 }
 
-function carregarPagamentosCliente(c) {
+async function carregarPagamentosCliente(c) {
     const debt = Number(c.debt || 0);
     const totalGasto = Number(c.total_gasto || 0);
     // Estimativa: quanto já pagou = total gasto - débito atual
@@ -4415,8 +4721,328 @@ function carregarPagamentosCliente(c) {
             </div>
         </div>`;
 
-    document.getElementById('clientePagamentosList').innerHTML =
-        '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Histórico detalhado de pagamentos em breve.</div>';
+    // Busca histórico real de pagamentos na tabela notificacoes
+    const list = document.getElementById('clientePagamentosList');
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Carregando...</div>';
+
+    const { data: pagamentos, error } = await sb.from('notificacoes')
+        .select('*')
+        .eq('customer_phone', c.phone)
+        .eq('tipo', 'pagamento')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+    if (error || !pagamentos || pagamentos.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Nenhum pagamento registrado.</div>';
+        return;
+    }
+
+    // Armazena os pagamentos no elemento para uso posterior
+    list._pagamentos = pagamentos;
+    list._clientePhone = c.phone;
+    list._modoSelecao = false;
+    list._selecionados = new Set();
+
+    function montarMsgCompleta(miolo) {
+        return msgComprovante
+            .replace('👤 Cliente: {nome}\n📅 Data/Hora: {data}\n💰 Valor pago: R$ {valor}\n{saldo}', miolo.replace(/^──────────────────\n/, '').replace(/\n──────────────────$/, ''))
+            || (miolo.includes('COMPROVANTE') ? miolo : `${msgComprovante.split('──────────────────')[0]}──────────────────\n${miolo.replace(/^──────────────────\n/, '').replace(/\n──────────────────$/, '')}\n──────────────────\n${msgComprovante.split('──────────────────')[2] || '✅ Obrigado pelo pagamento!'}`);
+    }
+
+    function renderPagamentosList() {
+        const modoSel = list._modoSelecao;
+        list.innerHTML = '';
+
+        // Atualiza badge no cabeçalho
+        const badge = document.getElementById('pagSelBadge');
+        const header = document.querySelector('#painelClienteHistorico > div:first-child');
+        let botoesBar = document.getElementById('pagBotoesSelecao');
+
+        if (modoSel) {
+            if (badge) { badge.style.display = 'inline-block'; badge.textContent = `${list._selecionados.size} ✓`; }
+            // Cria barra de botões abaixo do cabeçalho se não existir
+            if (!botoesBar && header) {
+                botoesBar = document.createElement('div');
+                botoesBar.id = 'pagBotoesSelecao';
+                botoesBar.style.cssText = 'flex-shrink:0;display:flex;gap:8px;padding:10px 18px;background:#12082a;border-bottom:1px solid rgba(41,128,185,0.4);';
+                botoesBar.innerHTML = `
+                    <button onclick="excluirSelecionadosPagamentos()" style="flex:1;background:#3d1f1f;border:none;border-radius:12px;padding:10px 0;color:#ef4444;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                    <button onclick="cancelarSelecaoPagamentos()" style="flex:1;background:#2e1f4a;border:none;border-radius:12px;padding:10px 0;color:#e8d8f8;font-size:13px;font-weight:700;cursor:pointer;">✕ Cancelar</button>`;
+                header.insertAdjacentElement('afterend', botoesBar);
+            }
+        } else {
+            if (badge) badge.style.display = 'none';
+            if (botoesBar) botoesBar.remove();
+        }
+
+        pagamentos.forEach((p, i) => {
+            const dt = new Date(p.created_at);
+            const dataHora = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            const valor = Number(p.valor || 0);
+            const descOk = p.descricao && p.descricao.includes("──") && !p.descricao.toLowerCase().includes("confirmado pelo adm");
+            const miolo = descOk ? p.descricao : `──────────────────\n👤 Cliente: ${c.name}\n📅 Data/Hora: ${dataHora}\n💰 Valor pago: R$ ${valor.toFixed(2).replace(".", ",")}\n──────────────────`;
+
+            const selecionado = list._selecionados.has(i);
+            const card = document.createElement('div');
+            card.style.cssText = `background:${selecionado ? '#3d1f1f' : '#1a0f2e'};border-radius:16px;padding:14px;border-left:4px solid ${selecionado ? '#ef4444' : '#2980b9'};margin-bottom:6px;cursor:pointer;position:relative;transition:background 0.15s;user-select:none;-webkit-user-select:none;`;
+            if (modoSel && selecionado) {
+                card.innerHTML = `<div style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;">✓</div>`;
+            }
+            card.innerHTML += `<div style="font-size:13px;color:#b0a0c8;white-space:pre-line;line-height:1.7;font-family:monospace;">${miolo}</div>`;
+
+            // Long press
+            let pressTimer = null;
+            const iniciarLongPress = () => {
+                pressTimer = setTimeout(() => {
+                    list._modoSelecao = true;
+                    list._selecionados.add(i);
+                    renderPagamentosList();
+                }, 600);
+            };
+            const cancelarLongPress = () => clearTimeout(pressTimer);
+
+            card.addEventListener('touchstart', iniciarLongPress, { passive: true });
+            card.addEventListener('touchend', cancelarLongPress);
+            card.addEventListener('touchmove', cancelarLongPress);
+            card.addEventListener('mousedown', iniciarLongPress);
+            card.addEventListener('mouseup', cancelarLongPress);
+            card.addEventListener('mouseleave', cancelarLongPress);
+
+            card.addEventListener('click', () => {
+                if (list._modoSelecao) {
+                    if (list._selecionados.has(i)) list._selecionados.delete(i);
+                    else list._selecionados.add(i);
+                    renderPagamentosList();
+                } else {
+                    // Clique simples: monta comprovante completo com cabeçalho e rodapé do template
+                    const partes = msgComprovante.split('──────────────────');
+                    const cabecalho = partes[0];
+                    const rodape = (partes[2] || '').replace(/^\n/, '');
+                    const mioloLimpo = miolo.replace(/^──────────────────\n/, '').replace(/\n──────────────────$/, '');
+                    const texto = `${cabecalho}──────────────────\n${mioloLimpo}\n──────────────────\n${rodape}`;
+                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+                }
+            });
+
+            list.appendChild(card);
+        });
+
+        // Atualiza badge no cabeçalho
+        const badgeAtual = document.getElementById('pagSelBadge');
+        if (badgeAtual && modoSel) badgeAtual.textContent = `${list._selecionados.size} ✓`;
+    }
+
+    // Funções globais para os botões da barra
+    window.cancelarSelecaoPagamentos = () => {
+        list._modoSelecao = false;
+        list._selecionados.clear();
+        renderPagamentosList();
+    };
+
+    function extrairSaldo(descricao) {
+        const linhas = (descricao || '').split('\n').map(l => l.trim()).filter(Boolean);
+        const l = linhas.find(x => x.includes('Saldo devedor') || x.includes('Crédito a favor') || x.toLowerCase().includes('quitado'));
+        if (!l) return '❓ Sem informação';
+        if (l.toLowerCase().includes('quitado')) return '♻️ Quitado';
+        if (l.includes('Crédito a favor')) {
+            const val = l.replace('Crédito a favor: R$', '').trim();
+            return `💸 Crédito: R$ ${val}`;
+        }
+        const val = l.replace('Saldo devedor restante: R$', '').trim();
+        return `⚠️ Saldo Devedor: R$ ${val}`;
+    }
+
+    window.enviarSelecionadosPagamentos = () => {
+        if (list._selecionados.size === 0) return;
+        const itens = [...list._selecionados].sort((a, b) => new Date(pagamentos[b].created_at) - new Date(pagamentos[a].created_at)).map(i => {
+            const p = pagamentos[i];
+            const dt = new Date(p.created_at);
+            const data = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric' });
+            const valor = Number(p.valor || 0);
+            return `📅 ${data}\n💰 Valor pago: R$ ${valor.toFixed(2).replace('.', ',')} ✅\n🚨 ${extrairSaldo(p.descricao)}`;
+        });
+        const totalPago = [...list._selecionados].reduce((acc, i) => acc + Number(pagamentos[i].valor || 0), 0);
+        const texto = `🧾 *Comprovante geral*\n\n👤 Cliente: ${c.name}\n──────────────────\n${itens.join('\n──────────────────\n')}\n──────────────────\n\n💹 *Totais pagos* 💹\n*R$ ${totalPago.toFixed(2).replace('.', ',')}*`;
+        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+        window.cancelarSelecaoPagamentos();
+    };
+
+    window.excluirSelecionadosPagamentos = () => {
+        if (list._selecionados.size === 0) return;
+        const qtd = list._selecionados.size;
+
+        // Popover de confirmação
+        let pop = document.getElementById('popExcluirPag');
+        if (pop) pop.remove();
+        pop = document.createElement('div');
+        pop.id = 'popExcluirPag';
+        pop.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);';
+        pop.innerHTML = `
+            <div style="background:#1a0f2e;border-radius:22px;padding:28px 24px;width:88%;max-width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.6);border:1px solid rgba(239,68,68,0.3);">
+                <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+                <div style="font-size:17px;font-weight:900;color:#e8d8f8;margin-bottom:8px;">Excluir ${qtd} pagamento${qtd > 1 ? 's' : ''}?</div>
+                <div style="font-size:13px;color:#9080b8;margin-bottom:24px;">Essa ação não pode ser desfeita.</div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('popExcluirPag').remove()" style="flex:1;background:#2e1f4a;border:none;border-radius:14px;padding:13px;color:#e8d8f8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                    <button id="btnConfirmarExcluir" style="flex:1;background:#ef4444;border:none;border-radius:14px;padding:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Excluir</button>
+                </div>
+            </div>`;
+        document.body.appendChild(pop);
+
+        document.getElementById('btnConfirmarExcluir').onclick = async () => {
+            pop.remove();
+            const ids = [...list._selecionados].map(i => pagamentos[i].id).filter(Boolean);
+            if (ids.length === 0) { window.cancelarSelecaoPagamentos(); return; }
+            const { error } = await sb.from('notificacoes').delete().in('id', ids);
+            if (error) { mostrarToast('❌ Erro ao excluir: ' + error.message); return; }
+            mostrarToast(`🗑️ ${ids.length} pagamento(s) excluído(s)`);
+            const indicesToRemove = new Set(list._selecionados);
+            pagamentos.splice(0, pagamentos.length, ...pagamentos.filter((_, i) => !indicesToRemove.has(i)));
+            list._modoSelecao = false;
+            list._selecionados.clear();
+            renderPagamentosList();
+        };
+    };
+
+
+    renderPagamentosList();
+}
+
+async function carregarDevolucoesCliente(c) {
+    const list = document.getElementById('clienteDevolucoesList');
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Carregando...</div>';
+
+    const { data: devolucoes, error } = await sb.from('notificacoes')
+        .select('*')
+        .eq('customer_phone', c.phone)
+        .eq('tipo', 'reembolso')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+    if (error || !devolucoes || devolucoes.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">Nenhuma devolução registrada.</div>';
+        return;
+    }
+
+    list._modoSelecao = false;
+    list._selecionados = new Set();
+
+    function renderDevolucoesList() {
+        const modoSel = list._modoSelecao;
+        list.innerHTML = '';
+
+        // Badge e botões no cabeçalho
+        const badge = document.getElementById('devSelBadge');
+        const header = document.querySelector('#painelClienteHistorico > div:first-child');
+        let botoesBar = document.getElementById('devBotoesSelecao');
+
+        if (modoSel) {
+            if (badge) { badge.style.display = 'inline-block'; badge.textContent = `${list._selecionados.size} ✓`; }
+            if (!botoesBar && header) {
+                botoesBar = document.createElement('div');
+                botoesBar.id = 'devBotoesSelecao';
+                botoesBar.style.cssText = 'flex-shrink:0;display:flex;gap:8px;padding:10px 18px;background:#12082a;border-bottom:1px solid rgba(155,89,182,0.4);';
+                botoesBar.innerHTML = `
+                    <button onclick="excluirSelecionadosDevolucoes()" style="flex:1;background:#2d1b4e;border:none;border-radius:12px;padding:10px 0;color:#9b59b6;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Excluir</button>
+                    <button onclick="cancelarSelecaoDevolucoes()" style="flex:1;background:#2e1f4a;border:none;border-radius:12px;padding:10px 0;color:#e8d8f8;font-size:13px;font-weight:700;cursor:pointer;">✕ Cancelar</button>`;
+                header.insertAdjacentElement('afterend', botoesBar);
+            }
+        } else {
+            if (badge) badge.style.display = 'none';
+            if (botoesBar) botoesBar.remove();
+        }
+
+        // Resumo total (só quando não está em modo seleção)
+        if (!modoSel) {
+            const totalDevolvido = devolucoes.reduce((acc, d) => acc + Number(d.valor || 0), 0);
+            const resumo = document.createElement('div');
+            resumo.style.cssText = 'background:#1a0f2e;border-radius:16px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;';
+            resumo.innerHTML = `<span style="font-size:13px;color:#9080b8;font-weight:600;">🔄 Total devolvido</span>
+                <span style="font-size:20px;font-weight:900;color:#9b59b6;">R$ ${totalDevolvido.toFixed(2).replace('.',',')}</span>`;
+            list.appendChild(resumo);
+        }
+
+        devolucoes.forEach((d, i) => {
+            const dt = new Date(d.created_at);
+            const dataHora = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            const valor = Number(d.valor || 0);
+            const selecionado = list._selecionados.has(i);
+
+            const card = document.createElement('div');
+            card.style.cssText = `background:${selecionado ? '#2d1b4e' : '#1a0f2e'};border-radius:16px;padding:14px;border-left:4px solid ${selecionado ? '#9b59b6' : '#f97316'};margin-bottom:4px;cursor:pointer;position:relative;transition:background 0.15s;user-select:none;-webkit-user-select:none;`;
+            if (modoSel && selecionado) {
+                card.innerHTML = `<div style="position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#9b59b6;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;">✓</div>`;
+            }
+            card.innerHTML += `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:12px;color:#9080b8;">📅 ${dataHora}</span>
+                    <span style="font-size:15px;font-weight:900;color:#9b59b6;">R$ ${valor.toFixed(2).replace('.',',')}</span>
+                </div>
+                <div style="font-size:12px;color:#9080b8;">🔄 ${d.descricao || 'Pedido cancelado'}</div>`;
+
+            let pressTimer = null;
+            const iniciarLongPress = () => { pressTimer = setTimeout(() => { list._modoSelecao = true; list._selecionados.add(i); renderDevolucoesList(); }, 600); };
+            const cancelarLongPress = () => clearTimeout(pressTimer);
+            card.addEventListener('touchstart', iniciarLongPress, { passive: true });
+            card.addEventListener('touchend', cancelarLongPress);
+            card.addEventListener('touchmove', cancelarLongPress);
+            card.addEventListener('mousedown', iniciarLongPress);
+            card.addEventListener('mouseup', cancelarLongPress);
+            card.addEventListener('mouseleave', cancelarLongPress);
+            card.addEventListener('click', () => {
+                if (list._modoSelecao) {
+                    if (list._selecionados.has(i)) list._selecionados.delete(i);
+                    else list._selecionados.add(i);
+                    renderDevolucoesList();
+                }
+            });
+            list.appendChild(card);
+        });
+
+        const badgeAtual = document.getElementById('devSelBadge');
+        if (badgeAtual && modoSel) badgeAtual.textContent = `${list._selecionados.size} ✓`;
+    }
+
+    window.cancelarSelecaoDevolucoes = () => {
+        list._modoSelecao = false;
+        list._selecionados.clear();
+        renderDevolucoesList();
+    };
+
+    window.excluirSelecionadosDevolucoes = () => {
+        if (list._selecionados.size === 0) return;
+        const qtd = list._selecionados.size;
+        let pop = document.getElementById('popExcluirDev');
+        if (pop) pop.remove();
+        pop = document.createElement('div');
+        pop.id = 'popExcluirDev';
+        pop.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);';
+        pop.innerHTML = `
+            <div style="background:#1a0f2e;border-radius:22px;padding:28px 24px;width:88%;max-width:340px;text-align:center;border:1px solid rgba(155,89,182,0.4);">
+                <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+                <div style="font-size:17px;font-weight:900;color:#e8d8f8;margin-bottom:8px;">Excluir ${qtd} devolução${qtd>1?'ões':''}?</div>
+                <div style="font-size:13px;color:#9080b8;margin-bottom:24px;">Essa ação não pode ser desfeita.</div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('popExcluirDev').remove()" style="flex:1;background:#2e1f4a;border:none;border-radius:14px;padding:13px;color:#e8d8f8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                    <button id="btnConfirmarExcluirDev" style="flex:1;background:#9b59b6;border:none;border-radius:14px;padding:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Excluir</button>
+                </div>
+            </div>`;
+        document.body.appendChild(pop);
+        document.getElementById('btnConfirmarExcluirDev').onclick = async () => {
+            pop.remove();
+            const ids = [...list._selecionados].map(i => devolucoes[i].id).filter(Boolean);
+            if (ids.length === 0) { window.cancelarSelecaoDevolucoes(); return; }
+            for (const id of ids) { await sb.from('notificacoes').delete().eq('id', id); }
+            mostrarToast(`🗑️ ${ids.length} devolução(ões) excluída(s)`);
+            const rem = new Set(list._selecionados);
+            devolucoes.splice(0, devolucoes.length, ...devolucoes.filter((_, i) => !rem.has(i)));
+            list._modoSelecao = false;
+            list._selecionados.clear();
+            renderDevolucoesList();
+        };
+    };
+
+    renderDevolucoesList();
 }
 
 async function enviarComprovanteDia() {
@@ -4761,12 +5387,16 @@ async function executarCancelamento(orderId) {
         setTimeout(() => card.remove(), 300);
     }
 
-    // Registra notificação de reembolso com o total real cobrado
+    // Registra notificação de reembolso com o total real cobrado (inclui crédito usado)
     if (o.customer_phone) {
-        await inserirNotificacao(o.customer_phone, 'reembolso', Number(o.total) || 0, 'Pedido cancelado pelo ADM');
+        const creditoMatch2 = (o.items || '').match(/💳 CREDITO:([\d.]+)/);
+        const creditoUsado2 = creditoMatch2 ? Number(creditoMatch2[1]) : (Number(o.credito_usado) || 0);
+        const valorReembolso2 = (Number(o.total) || 0) + creditoUsado2;
+        const descReembolso2 = creditoUsado2 > 0
+            ? `Pedido cancelado — R$ ${Number(o.total).toFixed(2).replace('.',',')} + crédito R$ ${creditoUsado2.toFixed(2).replace('.',',')} devolvido`
+            : 'Pedido cancelado pelo ADM';
+        await inserirNotificacao(o.customer_phone, 'reembolso', valorReembolso2, descReembolso2);
     }
-
-    updateFiadoHeader();
     const msg = isFiado
         ? `R$ ${Number(o.total).toFixed(2).replace('.', ',')} estornado do pagar depois de ${o.customer_name}.`
         : `Pedido de ${o.customer_name} removido do histórico.`;
