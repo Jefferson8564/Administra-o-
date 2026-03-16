@@ -1258,12 +1258,18 @@ async function verificarExecucoesPerdidas() {
         const hojeAlvo = new Date(agoraSP);
         hojeAlvo.setHours(hh, mm, 0, 0);
         const passouHorario = agoraSP >= hojeAlvo;
-        const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
-        const hoje = agoraSP.toLocaleDateString('pt-BR');
-        const jaExecutouHoje = log.some(entry => entry.ts && entry.ts.startsWith(hoje));
-        if (passouHorario && !jaExecutouHoje) {
-            console.log('[AutoZerar] Execucao perdida detectada, executando agora');
-            await executarZerarJanela(diaSemana === 0 ? 'domingo' : 'normal');
+        if (passouHorario) {
+            // Verifica no Supabase se já executou hoje (funciona em qualquer dispositivo)
+            const hoje = agoraSP.toLocaleDateString('pt-BR');
+            try {
+                const { data: logSB } = await sb.from('configs')
+                    .select('value').eq('key', 'autoZerar_ultimo').maybeSingle();
+                const jaExecutouHoje = logSB && logSB.value && logSB.value.startsWith(hoje);
+                if (!jaExecutouHoje) {
+                    console.log('[AutoZerar] Execucao perdida detectada, executando agora');
+                    await executarZerarJanela(diaSemana === 0 ? 'domingo' : 'normal');
+                }
+            } catch(e) { console.warn('[AutoZerar] Erro ao verificar log:', e); }
         }
         // agendamento já feito por carregarConfigZerar()
     }
@@ -2318,20 +2324,25 @@ function buildOrderCard(o) {
 }
 
 // APAGAR PEDIDO DIRETO DO SUPABASE
+const _pedidosOcultos = new Set();
+
 async function ocultarPedido(orderId) {
-    try {
-        const { error } = await sb.from('pedidos').delete().eq('id', orderId);
-        if (error) { showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível apagar o pedido.' }); return; }
-        delete ordersMap[orderId];
-        const wrap = document.getElementById('wrap_' + orderId);
-        if (wrap) {
-            wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
-            wrap.style.opacity = '0';
-            setTimeout(() => wrap.remove(), 300);
-        }
-    } catch(e) {
-        showToast({ type:'confirm', title:'❌ Erro', body:'Erro inesperado ao apagar o pedido.' });
-    }
+    // Some visualmente imediatamente (igual ao original)
+    const wraps = document.querySelectorAll("[id='wrap_" + orderId + "']");
+    wraps.forEach(wrap => {
+        wrap.style.transition = "opacity 0.25s, max-height 0.3s, margin 0.3s";
+        wrap.style.opacity = "0";
+        wrap.style.maxHeight = "0";
+        wrap.style.marginBottom = "0";
+        wrap.style.overflow = "hidden";
+        setTimeout(() => { wrap.style.display = "none"; }, 320);
+    });
+    _pedidosOcultos.add(orderId);
+    delete ordersMap[orderId];
+    // Apaga do Supabase em segundo plano
+    sb.from('pedidos').delete().eq('id', orderId).then(({ error }) => {
+        if (error) console.warn('[OK] Erro ao apagar pedido do banco:', error);
+    });
 }
 
 function confirmarCancelamentoPedido(orderId) {
@@ -2420,13 +2431,15 @@ async function executarCancelamentoPedido(orderId) {
         } catch(e) { console.warn('Erro ao remover da rota:', e); }
     }
     // FIM remoção da rota
-    // Remove o card visualmente
-    const wrap = document.getElementById('wrap_' + orderId);
-    if (wrap) {
-        wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
+    // Remove o card visualmente de todos os slides
+    document.querySelectorAll("[id='wrap_" + orderId + "']").forEach(wrap => {
+        wrap.style.transition = 'opacity 0.25s, max-height 0.3s, margin 0.3s';
         wrap.style.opacity = '0';
-        setTimeout(() => wrap.remove(), 300);
-    }
+        wrap.style.maxHeight = '0';
+        wrap.style.marginBottom = '0';
+        wrap.style.overflow = 'hidden';
+        setTimeout(() => { wrap.style.display = 'none'; }, 320);
+    });
 
     // Registra notificação de reembolso com o total real cobrado (inclui crédito usado)
     if (o.customer_phone) {
@@ -2650,24 +2663,28 @@ function agendarZerarDom() {
 }
 
 async function executarZerarJanela(tipo) {
-    const cfg = getConfigZerar();
-    const ateHora = (tipo === 'domingo') ? (cfg.ateDom || '15:00') : (cfg.ate || '15:00');
-
     const agora = new Date();
-    const [ateH, ateM] = ateHora.split(':').map(Number);
-    const _pAgora = _partesSP(agora);
-    const _hojeStr = `${_pAgora.year}-${_pAgora.month}-${_pAgora.day}`;
-    const _hStr = String(ateH).padStart(2,'0') + ':' + String(ateM).padStart(2,'0') + ':59';
-    const _estimaUTC = new Date(`${_hojeStr}T${_hStr}Z`);
-    const _pEst = _partesSP(_estimaUTC);
-    const _spMs = new Date(`${_pEst.year}-${_pEst.month}-${_pEst.day}T${_pEst.hour}:${_pEst.minute}:${_pEst.second}`).getTime();
-    const _offsetMs = _spMs - _estimaUTC.getTime();
-    const limiteUTC = new Date(new Date(`${_hojeStr}T${_hStr}`).getTime() - _offsetMs);
-    const limiteISO = limiteUTC.toISOString();
+    const agoraSP = horasBRT(agora);
+    const diaSemana = agoraSP.getDay();
+    const [virH, virM] = _getViradaAdm(diaSemana);
 
+    // Calcula a janela atual (igual ao entregador e ao cliente)
+    const passou = agoraSP.getHours() > virH || (agoraSP.getHours() === virH && agoraSP.getMinutes() >= virM);
+    let janelaAtual;
+    if (passou) {
+        // Já virou: janela é hoje
+        janelaAtual = `${String(agoraSP.getFullYear())}-${String(agoraSP.getMonth()+1).padStart(2,'0')}-${String(agoraSP.getDate()).padStart(2,'0')}`;
+    } else {
+        // Ainda não virou: janela ainda é de ontem
+        const ontem = new Date(agoraSP);
+        ontem.setDate(ontem.getDate() - 1);
+        janelaAtual = `${String(ontem.getFullYear())}-${String(ontem.getMonth()+1).padStart(2,'0')}-${String(ontem.getDate()).padStart(2,'0')}`;
+    }
+
+    // Apaga todos os pedidos de janelas ANTERIORES à janela atual
     const { data: pedidos } = await sb.from('pedidos')
         .select('id')
-        .lte('created_at', limiteISO);
+        .lt('janela_entrega', janelaAtual);
 
     if (!pedidos || pedidos.length === 0) {
         showToast({ type:'success', title:'📅 Limpeza executada', body:'Nenhum pedido encontrado para apagar.', duration:4000 });
@@ -2675,28 +2692,34 @@ async function executarZerarJanela(tipo) {
         return;
     }
 
-    for (const p of pedidos) {
-        await sb.from('pedidos').delete().eq('id', p.id);
+    const ids = pedidos.map(p => p.id);
+    const { error: delError } = await sb.from('pedidos').delete().in('id', ids);
+    if (delError) {
+        showToast({ type:'confirm', title:'❌ Erro na limpeza', body:'Não foi possível apagar os pedidos.', duration:4000 });
+        return;
     }
 
     _registrarLogZerar(agora, pedidos.length);
+    // Limpa cache em memória para não reexibir pedidos apagados
+    Object.keys(ordersMap).forEach(k => delete ordersMap[k]);
     showToast({
         type: 'success',
         title: '🗑️ Limpeza executada!',
         body: pedidos.length + ' pedido(s) apagados.',
         duration: 5000
     });
-    loadOrders();
+    await loadOrders();
 }
 
 function _registrarLogZerar(agora, qtd) {
+    const ts = agora.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' });
+    // Salva local
     const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
-    log.unshift({
-        ts: agora.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' }),
-        apagados: qtd
-    });
+    log.unshift({ ts, apagados: qtd });
     if (log.length > 20) log.pop();
     localStorage.setItem('autoZerar_log', JSON.stringify(log));
+    // Salva no Supabase para sincronizar entre dispositivos
+    sb.from('configs').upsert({ key: 'autoZerar_ultimo', value: ts }, { onConflict: 'key' }).catch(() => {});
 }
 
 // MENSAGENS
