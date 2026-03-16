@@ -573,20 +573,11 @@ if ('serviceWorker' in navigator) {
                     </div>
 
                     <!-- Forma de pagamento -->
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                        <div style="font-size:13px;font-weight:700;color:#9080b8;">💳 Pagamento</div>
+                    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;">
                         <button onclick="salvarPedidoParaCliente()" id="btnSalvarPedidoCliente" style="display:none;background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:white;border-radius:8px;padding:5px 10px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(142,68,173,0.35);">⭐ Salvar pedido</button>
                     </div>
-                    <div style="display:flex;gap:8px;margin-bottom:12px;">
-                        <div id="cpopt-FIADO" onclick="selecionarPagamentoCompra('FIADO')"
-                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid var(--success);background:#e8f5e9;color:var(--success);font-weight:700;font-size:13px;cursor:pointer;">
-                            🤝 Pagar na Entrega
-                        </div>
-                        <div id="cpopt-PAGA-NA-ENTREGA" onclick="selecionarPagamentoCompra('PAGA NA ENTREGA')"
-                            style="flex:1;padding:11px;text-align:center;border-radius:12px;border:2px solid #2e1f4a;background:#150b25;color:#e8d8f8;font-weight:700;font-size:13px;cursor:pointer;">
-                            🤝 Pagar na Entrega
-                        </div>
-                    </div>
+                    <div id="cpopt-FIADO" style="display:none;"></div>
+                    <div id="cpopt-PAGA-NA-ENTREGA" style="display:none;"></div>
 
                     <button onclick="confirmarCompra()" class="btn btn-success btn-block" style="padding:15px;font-size:16px;">✅ Confirmar Compra</button>
                 </div>
@@ -3296,7 +3287,7 @@ function abrirFotoPicker(phone) {
 }
 // 
 let compraCart = {};
-let compraPagamento = 'FIADO';
+let compraPagamento = 'PAGA NA ENTREGA';
 let compraClienteAtual = null;
 let compraProdutos = [];
 let todosClientesCompra = [];
@@ -3304,7 +3295,7 @@ let clientesOcultosCompra = [];
 
 async function loadCompraTab() {
     compraCart = {};
-    compraPagamento = 'FIADO';
+    compraPagamento = 'PAGA NA ENTREGA';
     compraClienteAtual = null;
     document.getElementById('compraClienteInfo').textContent = '';
     document.getElementById('compraTotalLabel').textContent = 'R$ 0,00';
@@ -3547,13 +3538,14 @@ function renderCompraProdList() {
                         background:#ef4444;color:white;font-size:24px;font-weight:700;
                         cursor:pointer;display:flex;align-items:center;justify-content:center;
                         flex-shrink:0;line-height:1;">−</button>
-                    <span id="cspan_${p.id}" style="flex:1;text-align:center;font-weight:900;font-size:22px;
-                        color:#fff;display:block;">
-                        ${compraCart[p.id] || 0}
-                    </span>
-                    <input type="number" id="cqty_${p.id}" value="${compraCart[p.id] || 0}"
-                        onchange="setQtyCompra('${p.id}', this.value)"
-                        style="display:none;">
+                    <input type="number" id="cspan_${p.id}"
+                        value="${compraCart[p.id] || 0}"
+                        min="0"
+                        oninput="setQtyCompra('${p.id}', this.value)"
+                        style="flex:1;text-align:center;font-weight:900;font-size:22px;
+                        color:#fff;background:transparent !important;border:none;outline:none;
+                        width:100%;-moz-appearance:textfield;-webkit-appearance:none;
+                        color-scheme:light dark;">
                     <button onclick="qtyCompra('${p.id}',1)"
                         style="width:34px;height:34px;border-radius:50%;border:none;
                         background:#22c55e;color:white;font-size:24px;font-weight:700;
@@ -3568,10 +3560,8 @@ function renderCompraProdList() {
 function qtyCompra(id, d) {
     compraCart[id] = (compraCart[id] || 0) + d;
     if (compraCart[id] <= 0) delete compraCart[id];
-    const el = document.getElementById('cqty_' + id);
+    const el = document.getElementById('cspan_' + id);
     if (el) el.value = compraCart[id] || 0;
-    const sp = document.getElementById('cspan_' + id);
-    if (sp) sp.textContent = compraCart[id] || 0;
     atualizarTotalCompra();
 }
 
@@ -3579,8 +3569,6 @@ function setQtyCompra(id, val) {
     const n = parseInt(val);
     if (isNaN(n) || n <= 0) delete compraCart[id];
     else compraCart[id] = n;
-    const sp = document.getElementById('cspan_' + id);
-    if (sp) sp.textContent = compraCart[id] || 0;
     atualizarTotalCompra();
 }
 
@@ -3839,7 +3827,16 @@ async function executarCompra(total, pedidoTexto) {
         }
     } catch(e) { console.warn('RA compra admin:', e); }
     // FIM ROTA ALEATÓRIA
-    showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 8000 });
+
+    // Monta mensagem e abre WhatsApp do cliente
+    const msgWpp = `*NOVO PEDIDO*\nCliente: ${compraClienteAtual.name}\n\n${pedidoTexto.trim()}\n\nTotal: R$ ${total.toFixed(2).replace('.', ',')}`;
+    const phoneWpp = compraClienteAtual.phone;
+
+    showToast({ type: 'success', title: `✅ Compra registrada!`, body: `Pedido de ${compraClienteAtual.name} salvo com sucesso.`, duration: 4000 });
+
+    setTimeout(() => {
+        window.open(`https://api.whatsapp.com/send?phone=55${phoneWpp}&text=${encodeURIComponent(msgWpp)}`, '_blank');
+    }, 500);
 
     compraCart = {};
     renderCompraProdList();
