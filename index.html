@@ -47,6 +47,7 @@
             color: #e8d8f8;
         }
         
+        .cupom-pct-btn.ativo { border-color: #7c3aed !important; background: linear-gradient(135deg,#7c3aed,#4f46e5) !important; color: white !important; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #1c0e08; }
         ::-webkit-scrollbar-thumb { background: #4a2d7a; border-radius: 4px; }
@@ -1616,10 +1617,14 @@ function abrirDetalheCliente(phone) {
             <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;flex:1;" placeholder="Valor a lançar">
             <button onclick="payDebt('${c.phone}')" class="btn btn-success btn-pay-lancar" style="white-space:nowrap;">✅ Lançar</button>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
             ${temDebito ? `<button onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})" class="btn btn-success btn-block">📱 Cobrar no WhatsApp</button>` : ''}
             <button onclick="deleteClient('${c.phone}')" class="btn btn-danger ${temDebito ? '' : 'btn-block'}">🗑️</button>
-        </div>`;
+        </div>
+        <button onclick="abrirDarCupom('${c.phone}','${c.name.replace(/'/g,"\\'")}')"
+            style="width:100%;padding:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:14px;font-size:14px;font-weight:800;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+            🏷️ Dar Cupom de Desconto
+        </button>`;
 
     const modal = document.getElementById('modalDetalheCliente');
     document.getElementById('detalheWppBtn').href = `https://wa.me/55${phone}`;
@@ -1629,6 +1634,62 @@ function abrirDetalheCliente(phone) {
 
 function fecharDetalheCliente() {
     document.getElementById('modalDetalheCliente').style.display = 'none';
+}
+
+// ── DAR CUPOM MANUAL ──────────────────────────────────────────────────────
+function abrirDarCupom(phone, nome) {
+    document.getElementById('darCupomPhone').value = phone;
+    document.getElementById('darCupomNome').textContent = nome;
+    // Limpa seleção anterior
+    document.querySelectorAll('.cupom-pct-btn').forEach(b => b.classList.remove('ativo'));
+    document.getElementById('darCupomCustom') && (document.getElementById('darCupomCustom').value = '');
+    document.getElementById('darCupomQtd').value = '1';
+    const modal = document.getElementById('modalDarCupom');
+    modal.style.display = 'flex';
+    modal.onclick = e => { if (e.target === modal) fecharDarCupom(); };
+}
+
+function fecharDarCupom() {
+    document.getElementById('modalDarCupom').style.display = 'none';
+}
+
+function selecionarPctCupom(btn, pct) {
+    document.querySelectorAll('.cupom-pct-btn').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    btn.dataset.pct = pct;
+}
+
+async function confirmarDarCupom() {
+    const phone = document.getElementById('darCupomPhone').value;
+    const nome  = document.getElementById('darCupomNome').textContent;
+    const ativo = document.querySelector('.cupom-pct-btn.ativo');
+    const pct   = ativo ? parseInt(ativo.dataset.pct) : 0;
+    const qtd   = parseInt(document.getElementById('darCupomQtd').value) || 1;
+
+    if (!pct || pct < 1 || pct > 100) {
+        showToast({ type:'confirm', title:'⚠️ Atenção', body:'Selecione o percentual de desconto acima.' });
+        return;
+    }
+    if (qtd < 1 || qtd > 999) {
+        showToast({ type:'confirm', title:'⚠️ Atenção', body:'Informe uma quantidade entre 1 e 999.' });
+        return;
+    }
+    try {
+        const inserir = Array.from({ length: qtd }, () => ({
+            customer_name:    nome,
+            customer_phone:   phone,
+            jogo:             'admin',
+            descricao:        `🏷️ ${pct}% OFF — Cupom dado pelo admin`,
+            tickets_usados:   0,
+            diamantes_usados: 0,
+        }));
+        await sb.from('premios').insert(inserir);
+        fecharDarCupom();
+        fecharDetalheCliente();
+        showToast({ type:'success', title:`🏷️ ${qtd} cupom${qtd > 1 ? 'ns' : ''} de ${pct}% enviado${qtd > 1 ? 's' : ''}!`, body:`${nome} recebeu ${qtd}x ${pct}% de desconto.`, duration:5000 });
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível dar o cupom. Tente novamente.' });
+    }
 }
 
 function abrirEditarNomeClienteById(phone) {
@@ -1825,7 +1886,7 @@ async function executarPayDebt(phone, val) {
         ? `Saldo devedor restante: R$ ${novoSaldo.toFixed(2).replace('.', ',')}`
         : novoSaldo < 0
             ? `Crédito a favor: R$ ${Math.abs(novoSaldo).toFixed(2).replace('.', ',')}`
-            : `✅ Pagar depois quitado completamente!`;
+            : `✅ Quitado ♻️`;
 
     const comprovante = msgComprovante
         .replace('{nome}', c.name)
@@ -1839,21 +1900,17 @@ async function executarPayDebt(phone, val) {
     fecharDetalheCliente();
     loadAdminClients();
 
-    // Guarda na variável global para o botão do toast acessar com segurança
-    _comprovanteTemp = { phone, texto: comprovante };
-
     _payDebtProcessando = false;
     iniciarCooldownPagamento();
     showToast({
         type: 'success',
         title: `💰 Pagamento de R$ ${val.toFixed(2).replace('.', ',')} registrado!`,
-        body: `Deseja enviar o comprovante para ${c.name} no WhatsApp?`,
-        actions: [
-            { label: '❌ Não', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
-            { label: '📲 Enviar Comprovante', bg: '#25d366', color: 'white', fn: 'enviarComprovanteWpp()' }
-        ],
-        duration: 10000
+        body: `Comprovante enviado para ${c.name} no WhatsApp!`,
+        duration: 4000
     });
+
+    // Abre o WhatsApp direto com o comprovante
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(comprovante)}`, '_blank');
 }
 
 function enviarComprovanteWpp() {
@@ -2131,12 +2188,6 @@ async function loadOrders() {
     _totalAbas = abas.length;
     _abaAtual = 0;
 
-    // Botão restart no topo (mostra pedidos ocultos)
-    const restartBtn = `<button onclick="restartPedidos()" title="Mostrar todos os pedidos ocultos"
-        style="flex-shrink:0;padding:8px 12px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:#110820;color:#9080b8;transition:0.2s;">
-        🔄
-    </button>`;
-
     // Renderiza barra de abas
     const tabsBar = document.getElementById('rotaTabsBar');
     tabsBar.innerHTML = abas.map((a, i) => `
@@ -2144,7 +2195,7 @@ async function loadOrders() {
             style="flex-shrink:0;padding:8px 14px;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;white-space:nowrap;
             background:${i===0 ? a.cor : '#110820'};color:${i===0 ? 'white' : '#9080b8'};">
             ${a.label} <span style="opacity:0.8;font-size:11px;">${a.orders.length}</span>
-        </button>`).join('') + restartBtn;
+        </button>`).join('');
 
     // Renderiza slides
     const slides = document.getElementById('orderSlides');
@@ -2266,35 +2317,21 @@ function buildOrderCard(o) {
     </div>`;
 }
 
-// OCULTAR / RESTART PEDIDOS
-const _pedidosOcultos = new Set();
-
-function ocultarPedido(orderId) {
-    const wraps = document.querySelectorAll("[id='wrap_" + orderId + "']");
-    if (!wraps.length) return;
-    wraps.forEach(wrap => {
-        wrap.style.transition = "opacity 0.25s, max-height 0.3s, margin 0.3s";
-        wrap.style.opacity = "0";
-        wrap.style.maxHeight = "0";
-        wrap.style.marginBottom = "0";
-        wrap.style.overflow = "hidden";
-        setTimeout(() => { wrap.style.display = "none"; }, 320);
-    });
-    _pedidosOcultos.add(orderId);
-}
-
-function restartPedidos() {
-    _pedidosOcultos.forEach(id => {
-        document.querySelectorAll("[id='wrap_" + id + "']").forEach(wrap => {
-            wrap.style.display = "";
-            wrap.style.maxHeight = "";
-            wrap.style.marginBottom = "";
-            wrap.style.overflow = "";
-            requestAnimationFrame(() => { wrap.style.opacity = "1"; });
-        });
-    });
-    _pedidosOcultos.clear();
-    showToast({ type: "success", title: "🔄 Pedidos restaurados!", body: "Todos os pedidos estão visíveis novamente.", duration: 2000 });
+// APAGAR PEDIDO DIRETO DO SUPABASE
+async function ocultarPedido(orderId) {
+    try {
+        const { error } = await sb.from('pedidos').delete().eq('id', orderId);
+        if (error) { showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível apagar o pedido.' }); return; }
+        delete ordersMap[orderId];
+        const wrap = document.getElementById('wrap_' + orderId);
+        if (wrap) {
+            wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
+            wrap.style.opacity = '0';
+            setTimeout(() => wrap.remove(), 300);
+        }
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Erro inesperado ao apagar o pedido.' });
+    }
 }
 
 function confirmarCancelamentoPedido(orderId) {
@@ -7975,6 +8012,38 @@ function mostrarToast(msg) {
                 <button onclick="voltarEditarSaldoEtapa1()" class="btn btn-block" style="background:#110820;color:#9080b8;">← Voltar</button>
                 <button onclick="salvarEditarSaldo()" class="btn btn-blue btn-block" style="padding:13px;font-size:15px;">💾 Salvar</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dar Cupom -->
+<div id="modalDarCupom" class="u-modal-overlay" style="display:none;">
+    <div class="u-modal-panel" style="max-width:360px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:16px;font-weight:900;color:#e8d8f8;">🏷️ Dar Cupom</div>
+            <button onclick="fecharDarCupom()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+        </div>
+        <div style="font-size:13px;color:#9080b8;margin-bottom:14px;">Cliente: <strong id="darCupomNome" style="color:#e8d8f8;"></strong></div>
+        <input type="hidden" id="darCupomPhone">
+        <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Escolha o desconto</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,5)"  style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">5%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,10)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">10%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,15)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">15%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,20)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">20%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,25)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">25%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,30)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">30%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,40)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">40%</button>
+            <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,50)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">50%</button>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Quantidade de cupons</div>
+        <div style="position:relative;margin-bottom:14px;">
+            <input type="number" id="darCupomQtd" min="1" max="999" class="input-text" placeholder="Ex: 1" value="1" style="margin:0;padding-right:60px;">
+            <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#9080b8;font-weight:700;font-size:12px;">cupons</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button onclick="fecharDarCupom()" class="btn" style="flex:1;background:#2e1f4a;color:#e8d8f8;">Cancelar</button>
+            <button onclick="confirmarDarCupom()" class="btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-weight:800;">✅ Confirmar</button>
         </div>
     </div>
 </div>
