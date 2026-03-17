@@ -380,7 +380,7 @@ if ('serviceWorker' in navigator) {
                     <div class="u-row-sb-mb">
                         <div id="detalheClienteHeader" style="display:flex;align-items:center;gap:12px;"></div>
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <a id="detalheWppBtn" href="#" target="_blank" style="background:#25d366;border:none;border-radius:10px;padding:6px 12px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;">📲</a>
+                            <button id="detalheDeleteBtn" onclick="" style="background:#e74c3c;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:white;font-size:16px;">🗑️</button>
                             <button onclick="fecharDetalheCliente()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
                         </div>
                     </div>
@@ -1350,15 +1350,25 @@ window.addEventListener('popstate', function(e) {
     }
 
     // 1. Fechar qualquer modal visível primeiro
-    const modais = [
-        'modalPedidoSalvoCliente', 'modalEditarSaldo',
-        'modalEditarRota', 'modalEndereco',
-        'modalExcluir', 'modalProtegidos'
+    const modaisList = [
+        { id: 'modalDetalheCliente',     fn: () => { try { fecharDetalheCliente(); } catch(e) { document.getElementById('modalDetalheCliente').style.display='none'; } } },
+        { id: 'modalDarCupom',           fn: () => { try { fecharDarCupom(); } catch(e) { document.getElementById('modalDarCupom').style.display='none'; } } },
+        { id: 'modalEditarNomeCliente',  fn: () => { try { fecharEditarNomeCliente(); } catch(e) { document.getElementById('modalEditarNomeCliente').style.display='none'; } } },
+        { id: 'modalEditorMsg',          fn: () => { try { fecharEditorMsg(); } catch(e) { document.getElementById('modalEditorMsg').style.display='none'; } } },
+        { id: 'modalPedidoSalvoCliente', fn: () => { document.getElementById('modalPedidoSalvoCliente').style.display='none'; } },
+        { id: 'modalEditarSaldo',        fn: () => { try { fecharEditarSaldo(); } catch(e) { document.getElementById('modalEditarSaldo').style.display='none'; } } },
+        { id: 'modalEditarRota',         fn: () => { document.getElementById('modalEditarRota').style.display='none'; } },
+        { id: 'modalEndereco',           fn: () => { try { fecharModalEndereco(); } catch(e) { document.getElementById('modalEndereco').style.display='none'; } } },
+        { id: 'modalHistoricoExec',      fn: () => { document.getElementById('modalHistoricoExec').style.display='none'; } },
+        { id: 'modalSummaryDetalhe',     fn: () => { const el=document.getElementById('modalSummaryDetalhe'); if(el) el.style.display='none'; } },
+        { id: 'modalExcluir',            fn: () => { document.getElementById('modalExcluir').style.display='none'; } },
+        { id: 'modalProtegidos',         fn: () => { document.getElementById('modalProtegidos').style.display='none'; } },
+        { id: 'painelClienteHistorico',  fn: () => { try { fecharPainelClienteHistorico(); } catch(e) { document.getElementById('painelClienteHistorico').style.display='none'; } } },
     ];
-    for (const id of modais) {
-        const el = document.getElementById(id);
+    for (const m of modaisList) {
+        const el = document.getElementById(m.id);
         if (el && el.style.display !== 'none' && el.style.display !== '') {
-            el.style.display = 'none';
+            m.fn();
             // Reempurra estado para não sair da seção ao fechar modal
             history.pushState(state, '');
             return;
@@ -1615,25 +1625,26 @@ function abrirDetalheCliente(phone) {
         <div style="background:#110820;border-radius:16px;padding:14px;margin-bottom:12px;text-align:center;">
             ${saldoHtml}
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;background:#110820;border-radius:14px;padding:12px 14px;margin-bottom:12px;">
-            <span style="font-size:13px;font-weight:700;color:#9080b8;">Pagar Depois</span>
-            <label class="switch"><input type="checkbox" ${c.fiado === false ? '' : 'checked'} onchange="toggleFiado('${c.phone}', this.checked)"><span class="slider"></span></label>
-        </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;">
             <input type="number" id="pay_${c.phone}" class="input-text" style="margin:0;flex:1;" placeholder="Valor a lançar">
-            <button onclick="payDebt('${c.phone}')" class="btn btn-success btn-pay-lancar" style="white-space:nowrap;">✅ Lançar</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;">
-            ${temDebito ? `<button onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})" class="btn btn-success btn-block">📱 Cobrar no WhatsApp</button>` : ''}
-            <button onclick="deleteClient('${c.phone}')" class="btn btn-danger ${temDebito ? '' : 'btn-block'}">🗑️</button>
+            <button onclick="cobrarCliente('${c.phone}','${c.name.replace(/'/g,"\\'")}',${c.debt})" class="btn btn-success btn-pay-lancar" style="flex:1;white-space:nowrap;">👾 Cobrar</button>
+            <button onclick="payDebt('${c.phone}')" class="btn btn-success" style="flex:1;white-space:nowrap;">✅ Pagamento ♻️</button>
         </div>
-        <button onclick="abrirDarCupom('${c.phone}','${c.name.replace(/'/g,"\\'")}')"
-            style="width:100%;padding:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:14px;font-size:14px;font-weight:800;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-            🏷️ Dar Cupom de Desconto
-        </button>`;
+        <div style="display:flex;gap:8px;margin-bottom:4px;">
+            <button onclick="abrirDarCupom('${c.phone}','${c.name.replace(/'/g,"\\'")}')"
+                style="flex:1;padding:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:14px;font-size:14px;font-weight:800;color:white;cursor:pointer;">
+                👑 Cupom 👑
+            </button>
+            <a id="detalheWppBtn" href="https://wa.me/55${c.phone}" target="_blank"
+                style="flex:1;padding:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:14px;font-size:14px;font-weight:800;color:white;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+                👁️ Ver Cliente
+            </a>
+        </div>`;
 
     const modal = document.getElementById('modalDetalheCliente');
-    document.getElementById('detalheWppBtn').href = `https://wa.me/55${phone}`;
+    document.getElementById('detalheDeleteBtn').onclick = () => deleteClient(phone);
     modal.style.display = 'flex';
     modal.onclick = e => { if (e.target === modal) fecharDetalheCliente(); };
 }
@@ -1809,7 +1820,7 @@ function iniciarCooldownPagamento() {
                 b.disabled = false;
                 b.style.opacity = '';
                 b.style.cursor = '';
-                b.textContent = '✅ Lançar';
+                b.textContent = '✅ Pagamento ♻️';
             });
         }
     }, 1000);
@@ -1870,13 +1881,7 @@ async function executarPayDebt(phone, val) {
         if (errUpdate) {
             mostrarToast(`❌ Erro ao salvar tickets/diamantes: ${errUpdate.message}`);
         } else {
-            const msgs = [];
-            if (novosTickets   > 0) msgs.push(`🎟️ ${novosTickets} ticket${novosTickets>1?'s':''}`);
-            if (novosDiamantes > 0) msgs.push(`💎 ${novosDiamantes} diamante${novosDiamantes>1?'s':''}`);
-            if (msgs.length) {
-                showToast({ type:'success', title: msgs.join(' + ') + ' liberado(s)!',
-                    body: `${c.name} ganhou ao confirmar o pagamento! 🎉`, duration: 6000 });
-            }
+            // popup de tickets/diamantes removido
         }
     } catch(e) {
         mostrarToast(`❌ Erro tickets/diamantes: ${e.message}`);
