@@ -333,7 +333,11 @@ if ('serviceWorker' in navigator) {
                 <h4 id="prodFormTitle">➕ Cadastrar Salgado</h4>
                 <input type="hidden" id="editProductId">
                 <input type="text" id="newPName" class="input-text" placeholder="Ex: Coxinha de Frango">
-                <input type="number" id="newPPrice" class="input-text" placeholder="Preço (ex: 7.00)" step="0.50">
+                <input type="number" id="newPPrice" class="input-text" placeholder="Preço original (ex: 7.00)" step="0.50">
+                <div style="background:#110820;border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1.5px solid #2e1f4a;">
+                    <div style="font-weight:700;font-size:13px;color:#f59e0b;margin-bottom:8px;">🏷️ Preço de Oferta (clientes novos — 30 dias)</div>
+                    <input type="number" id="newPPromo" class="input-text" placeholder="Deixe vazio = sem oferta (ex: 5.00)" step="0.50" style="margin-bottom:0;">
+                </div>
                 <input type="file" id="newPImg" class="input-text" accept="image/*">
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
                     <div>
@@ -552,7 +556,10 @@ if ('serviceWorker' in navigator) {
                         <button onclick="voltarEtapa1Compra()" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;padding:7px 12px;color:#e8d8f8;font-size:15px;font-weight:700;cursor:pointer;">←</button>
                         <span id="compraHeaderNome" style="font-size:17px;font-weight:900;color:#fff;"></span>
                     </div>
-                    <span id="compraHeaderEstrela" style="display:none;font-size:24px;cursor:pointer;" onclick="abrirModalPedidoSalvo()">⭐</span>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span id="compraHeaderRefazer" style="display:none;font-size:22px;cursor:pointer;line-height:1;" onclick="abrirRefazerAdmin(compraClienteAtual?.phone)" title="Refazer Pedido">🤖</span>
+                        <span id="compraHeaderEstrela" style="display:none;font-size:24px;cursor:pointer;" onclick="abrirModalPedidoSalvo()">⭐</span>
+                    </div>
                 </div>
 
                 <!-- Área rolável: produtos -->
@@ -603,33 +610,24 @@ if ('serviceWorker' in navigator) {
 
         <!-- ABA REFAZER PEDIDOS -->
         <div id="tab-refazer" class="section">
-            <!-- Banner de agendamento automático -->
-            <div id="agendamentoBanner" style="background:linear-gradient(135deg,#1a1a2e,#4a235a);border-radius:18px;padding:16px;margin-bottom:14px;color:white;">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <div style="font-weight:800;font-size:15px;">🤖 Pedido Automático</div>
-                        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px;">📅 Segunda a Sábado · sempre ativo</div>
-                        <div id="agendamentoStatus" style="font-size:12px;opacity:0.75;margin-top:3px;">Carregando status...</div>
-                    </div>
+            <!-- CARD REFAZER PEDIDO (AUTOMÁTICO) - VISUALIZAÇÃO -->
+            <div class="card-box" style="border-top:4px solid #8e44ad;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h4 style="margin:0;color:#8e44ad;">🤖 Dias de Refazer Pedido</h4>
+                    <button onclick="carregarClientesRefazer()" style="padding:7px 16px;background:linear-gradient(135deg,#8e44ad,#6c2fa8);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">🔄 Carregar</button>
                 </div>
-                <!-- Editor de horário -->
-                <div style="margin-top:12px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
-                    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🕐 Horário do disparo automático</div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <input type="time" id="autoRefazerHorario" value="03:00"
-                            style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:white;font-size:20px;font-weight:900;padding:8px 12px;outline:none;flex:1;">
-                        <button onclick="salvarHorarioRefazer()" style="padding:9px 14px;background:linear-gradient(135deg,#8e44ad,#6c3483);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">💾 Salvar</button>
-                    </div>
-                </div>
-                <div id="agendamentoInfo" style="margin-top:10px;font-size:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 12px;">
-                    ✅ Os clientes <strong>marcados (selecionados)</strong> abaixo terão o pedido lançado automaticamente no horário configurado.
-                </div>
-                <div id="agendamentoUltimo" style="margin-top:8px;font-size:11px;opacity:0.55;display:none;"></div>
-            </div>
 
-            <div id="refazerList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
-            <div id="refazerResumo" style="display:none; position:sticky; bottom:0; background:#1a0f2e; padding:14px; border-top:2px solid #2e1f4a; margin-top:10px;">
-                <div id="refazerSelecionados" style="font-size:13px; color:#9080b8;"></div>
+                <div style="font-size:12px;color:#9080b8;margin-bottom:12px;">Visualize os dias que cada cliente configurou para refazer pedidos:</div>
+
+                <!-- Campo de busca -->
+                <input type="text" id="searchClienteRefazer" class="input-text" placeholder="🔍 Buscar cliente..." onkeyup="filtrarClientesRefazer()" style="margin-bottom:12px;">
+
+                <!-- Lista de clientes -->
+                <div id="listaClientesRefazer" style="display:flex;flex-direction:column;gap:10px;min-height:200px;">
+                    <div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">
+                        Clique em "Carregar" para ver os clientes
+                    </div>
+                </div>
             </div>
         </div>
         <!-- ABA HISTÓRICO DE COMPRAS -->
@@ -1353,6 +1351,7 @@ window.addEventListener('popstate', function(e) {
     const modaisList = [
         { id: 'modalDetalheCliente',     fn: () => { try { fecharDetalheCliente(); } catch(e) { document.getElementById('modalDetalheCliente').style.display='none'; } } },
         { id: 'modalDarCupom',           fn: () => { try { fecharDarCupom(); } catch(e) { document.getElementById('modalDarCupom').style.display='none'; } } },
+        { id: 'modalRefazerAdmin',       fn: () => { try { fecharRefazerAdmin(); } catch(e) { document.getElementById('modalRefazerAdmin').style.display='none'; } } },
         { id: 'modalEditarNomeCliente',  fn: () => { try { fecharEditarNomeCliente(); } catch(e) { document.getElementById('modalEditarNomeCliente').style.display='none'; } } },
         { id: 'modalEditorMsg',          fn: () => { try { fecharEditorMsg(); } catch(e) { document.getElementById('modalEditorMsg').style.display='none'; } } },
         { id: 'modalPedidoSalvoCliente', fn: () => { document.getElementById('modalPedidoSalvoCliente').style.display='none'; } },
@@ -1431,7 +1430,12 @@ async function loadAdminProducts() {
                 <div>
                     <strong>${p.name}</strong>
                     <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:5px;${p.available === false ? 'background:#ffcccc;color:#c0392b;' : 'background:#d5f5e3;color:#1e8449;'}">${p.available === false ? 'Indisponível' : 'Disponível'}</span>
-                    <br><span style="color:var(--primary);">R$ ${Number(p.price).toFixed(2)}</span>
+                    <br>
+                    <span style="color:var(--primary);">R$ ${Number(p.price).toFixed(2)}</span>
+                    ${p.price_promo != null
+                        ? `<span style="font-size:11px;background:rgba(245,158,11,0.15);color:#f59e0b;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;">🏷️ Oferta R$ ${Number(p.price_promo).toFixed(2)}</span>`
+                        : `<span style="font-size:11px;color:#6b7280;margin-left:6px;">Sem oferta</span>`
+                    }
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -1450,6 +1454,7 @@ async function editProduct(id) {
     document.getElementById('editProductId').value = p.id;
     document.getElementById('newPName').value = p.name;
     document.getElementById('newPPrice').value = p.price;
+    document.getElementById('newPPromo').value = p.price_promo != null ? p.price_promo : '';
     document.getElementById('newPAvailable').checked = p.available !== false;
     document.getElementById('prodFormTitle').textContent = "✏️ Editar Salgado";
     document.getElementById('btnCancelEdit').style.display = "block";
@@ -1461,6 +1466,7 @@ function resetProdForm() {
     document.getElementById('editProductId').value = "";
     document.getElementById('newPName').value = "";
     document.getElementById('newPPrice').value = "";
+    document.getElementById('newPPromo').value = "";
     document.getElementById('newPImg').value = "";
     document.getElementById('newPAvailable').checked = true;
     document.getElementById('prodFormTitle').textContent = "➕ Cadastrar Salgado";
@@ -1472,6 +1478,8 @@ async function saveProduct() {
     const id = document.getElementById('editProductId').value;
     const name = document.getElementById('newPName').value.trim();
     const price = parseFloat(document.getElementById('newPPrice').value);
+    const promoRaw = document.getElementById('newPPromo').value.trim();
+    const price_promo = promoRaw !== '' ? parseFloat(promoRaw) : null;
     const available = document.getElementById('newPAvailable').checked;
     const file = document.getElementById('newPImg').files[0];
     if (!name || !price) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha nome e preço do produto!' }); return; }
@@ -1485,11 +1493,11 @@ async function saveProduct() {
         imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
     }
     if (id) {
-        const updates = { name, price, available };
+        const updates = { name, price, price_promo, available };
         if (imageUrl) updates.image_url = imageUrl;
         await sb.from("cardapio").update(updates).eq("id", id);
     } else {
-        await sb.from("cardapio").insert({ name, price, available, image_url: imageUrl });
+        await sb.from("cardapio").insert({ name, price, price_promo, available, image_url: imageUrl });
     }
     resetProdForm(); loadAdminProducts();
     btn.disabled = false; btn.textContent = "Salvar Produto";
@@ -1664,6 +1672,100 @@ function abrirDarCupom(phone, nome) {
     const modal = document.getElementById('modalDarCupom');
     modal.style.display = 'flex';
     modal.onclick = e => { if (e.target === modal) fecharDarCupom(); };
+}
+
+
+// ── REFAZER PEDIDO (ADMIN) ────────────────────────────────────────────────
+let _refazerAdminPhone = null;
+let _refazerAdminDias = new Set();
+const _diasSemanaAdmin = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+function abrirRefazerAdmin(phone) {
+    const c = (_clientesAdminCache.find(x => x.phone === phone))
+           || (typeof todosClientesCompra !== 'undefined' && todosClientesCompra.find(x => x.phone === phone))
+           || (compraClienteAtual?.phone === phone ? compraClienteAtual : null);
+    if (!c) return;
+    _refazerAdminPhone = phone;
+    _refazerAdminDias = new Set(c.dias_refazer && c.dias_refazer.length > 0 ? c.dias_refazer : [0,1,2,3,4,5]);
+    document.getElementById('refazerAdminNomeCliente').innerHTML =
+        `Cliente: <strong style="color:#e8d8f8;">${c.name}</strong>`;
+    renderDiasAdmin();
+    const modal = document.getElementById('modalRefazerAdmin');
+    modal.style.display = 'flex';
+}
+
+function fecharRefazerAdmin() {
+    document.getElementById('modalRefazerAdmin').style.display = 'none';
+    _refazerAdminPhone = null;
+}
+
+function toggleDiaAdmin(idx) {
+    if (_refazerAdminDias.has(idx)) _refazerAdminDias.delete(idx);
+    else _refazerAdminDias.add(idx);
+    renderDiasAdmin();
+}
+
+function renderDiasAdmin() {
+    const container = document.getElementById('diasContainerAdmin');
+    if (!container) return;
+    container.innerHTML = _diasSemanaAdmin.map((dia, idx) => {
+        const sel = _refazerAdminDias.has(idx);
+        return `<button onclick="toggleDiaAdmin(${idx})" style="
+            padding:13px 16px; margin-bottom:9px; width:100%;
+            border:2px solid ${sel ? '#2ecc71' : 'rgba(255,255,255,0.15)'};
+            background:${sel ? 'rgba(46,204,113,0.15)' : 'rgba(255,255,255,0.04)'};
+            color:${sel ? '#2ecc71' : 'rgba(255,255,255,0.55)'};
+            border-radius:14px; font-weight:700; font-size:14px;
+            cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+            -webkit-tap-highlight-color:transparent;">
+            ${sel ? '✓' : '○'} ${dia}
+        </button>`;
+    }).join('');
+}
+
+async function salvarDiasRefazerAdmin() {
+    if (!_refazerAdminPhone) return;
+    const diasArray = [..._refazerAdminDias].sort((a,b) => a-b);
+    try {
+        const { error } = await sb.from('clientes')
+            .update({ dias_refazer: diasArray })
+            .eq('phone', _refazerAdminPhone);
+        if (error) throw error;
+        const c = _clientesAdminCache.find(x => x.phone === _refazerAdminPhone);
+        if (c) c.dias_refazer = diasArray;
+        if (typeof todosClientesCompra !== 'undefined') {
+            const cc = todosClientesCompra.find(x => x.phone === _refazerAdminPhone);
+            if (cc) cc.dias_refazer = diasArray;
+        }
+        const iconElS = document.getElementById('compraHeaderRefazer');
+        if (iconElS) iconElS.style.filter = 'none';
+        fecharRefazerAdmin();
+        showToast({ type:'success', title:'🤖 Refazer ativado!', body:`Dias salvos para ${c ? c.name : ''}.`, duration:4000 });
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível salvar os dias.' });
+    }
+}
+
+async function desativarRefazerAdmin() {
+    if (!_refazerAdminPhone) return;
+    try {
+        const { error } = await sb.from('clientes')
+            .update({ dias_refazer: null })
+            .eq('phone', _refazerAdminPhone);
+        if (error) throw error;
+        const c = _clientesAdminCache.find(x => x.phone === _refazerAdminPhone);
+        if (c) c.dias_refazer = null;
+        if (typeof todosClientesCompra !== 'undefined') {
+            const cc = todosClientesCompra.find(x => x.phone === _refazerAdminPhone);
+            if (cc) cc.dias_refazer = null;
+        }
+        const iconElD = document.getElementById('compraHeaderRefazer');
+        if (iconElD) iconElD.style.filter = 'grayscale(1) opacity(0.45)';
+        fecharRefazerAdmin();
+        showToast({ type:'success', title:'🤖 Refazer desativado!', body:`${c ? c.name : ''} não terá mais pedidos automáticos.`, duration:4000 });
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível desativar.' });
+    }
 }
 
 function fecharDarCupom() {
@@ -3457,6 +3559,7 @@ function voltarEtapa1Compra() {
     document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
     document.getElementById('compraPedidoSalvoBox').style.display = 'none';
     document.getElementById('compraHeaderEstrela').style.display = 'none';
+    document.getElementById('compraHeaderRefazer').style.display = 'none';
     document.getElementById('sectionTitle').textContent = '🛒 Compra no Nome';
 }
 
@@ -3476,6 +3579,11 @@ async function onCompraClienteChange(c) {
     document.getElementById('sectionTitle').textContent = `👤 ${c.name}`;
     document.getElementById('compraHeaderNome').textContent = c.name;
     document.getElementById('btnSalvarPedidoCliente').style.display = 'inline-block';
+    const refazerIconEl = document.getElementById('compraHeaderRefazer');
+    if (refazerIconEl) {
+        refazerIconEl.style.display = 'inline';
+        refazerIconEl.style.filter = (c.dias_refazer && c.dias_refazer.length > 0) ? 'none' : 'grayscale(1) opacity(0.45)';
+    }
 
     // Buscar pedido salvo do cliente
     const { data: clienteSalvo } = await sb.from("clientes").select("saved_order, saved_order_total").eq("phone", c.phone).maybeSingle();
@@ -3908,6 +4016,7 @@ async function executarCompra(total, pedidoTexto) {
     document.getElementById('compraClienteInfo').style.display = 'none';
     document.getElementById('compraPedidoSalvoBox').style.display = 'none';
     document.getElementById('compraHeaderEstrela').style.display = 'none';
+    document.getElementById('compraHeaderRefazer').style.display = 'none';
     document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
     // Desmarca o cliente selecionado na lista
     if (compraClienteAtual) {
@@ -7981,6 +8090,70 @@ function mostrarToast(msg) {
     t._tmr = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
+// ===== REFAZER PEDIDO - VISUALIZAÇÃO DOS CLIENTES =====
+const diasNomes = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+let clientesRefazerCache = [];
+
+async function carregarClientesRefazer() {
+    try {
+        const { data } = await sb.from('clientes')
+            .select('phone, name, dias_refazer')
+            .order('name', { ascending: true });
+        
+        if (!data) {
+            showToast('⚠️ Erro ao carregar clientes');
+            return;
+        }
+        
+        clientesRefazerCache = data;
+        renderClientesRefazer(clientesRefazerCache);
+        showToast(`✅ ${data.length} clientes carregados`);
+    } catch(e) {
+        console.error('Erro ao carregar clientes:', e);
+        showToast('❌ Erro ao carregar dados');
+    }
+}
+
+function renderClientesRefazer(clientes) {
+    const container = document.getElementById('listaClientesRefazer');
+    if (!container) return;
+    
+    // Filtrar apenas clientes com refazer ativo
+    const clientesAtivos = clientes.filter(c => c.dias_refazer && c.dias_refazer.length > 0);
+    
+    if (clientesAtivos.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;">Nenhum cliente com refazer pedido ativo</div>';
+        return;
+    }
+    
+    container.innerHTML = clientesAtivos.map(cliente => {
+        const dias = cliente.dias_refazer;
+        
+        return `
+            <div style="background:#150b25;border:1.5px solid #2e1f4a;border-radius:14px;padding:12px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;color:#e8d8f8;font-size:13px;word-break:break-word;">${cliente.name}</div>
+                        <div style="font-size:11px;color:#9080b8;margin-top:2px;margin-bottom:6px;">${cliente.phone}</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                            ${dias.map(d => `<span style="background:rgba(142,68,173,0.25);color:#b388ff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;">${diasNomes[d]}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filtrarClientesRefazer() {
+    const search = document.getElementById('searchClienteRefazer').value.toLowerCase();
+    const filtrados = clientesRefazerCache.filter(c => 
+        c.name.toLowerCase().includes(search) || 
+        c.phone.includes(search)
+    );
+    renderClientesRefazer(filtrados);
+}
+
 </script>
 
 <!-- Modal Editar Rota -->
@@ -8075,6 +8248,30 @@ function mostrarToast(msg) {
         </div>
     </div>
 </div>
+
+<!-- ===== MODAL: REFAZER PEDIDO (ADMIN) ===== -->
+<div id="modalRefazerAdmin" class="u-modal-overlay" style="display:none;" onclick="if(event.target===this)fecharRefazerAdmin()">
+    <div class="u-modal-panel" style="max-width:360px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:16px;font-weight:900;color:#e8d8f8;">🤖 Refazer Pedido</div>
+            <button onclick="fecharRefazerAdmin()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+        </div>
+        <div id="refazerAdminNomeCliente" style="font-size:13px;color:#9080b8;margin-bottom:14px;"></div>
+        <div style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.6;margin-bottom:16px;">
+            Selecione os dias que o pedido do cliente será refeito automaticamente:
+        </div>
+        <div id="diasContainerAdmin" style="margin-bottom:20px;"></div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="desativarRefazerAdmin()" style="flex:1;padding:13px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border:none;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;">
+                Desligar
+            </button>
+            <button onclick="salvarDiasRefazerAdmin()" style="flex:1;padding:13px;background:linear-gradient(135deg,#1a6b3a,#145a2e);color:white;border:none;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;">
+                ✓ Salvar e Ligar
+            </button>
+        </div>
+    </div>
+</div>
+
 
 </div><!-- /adminApp -->
 
