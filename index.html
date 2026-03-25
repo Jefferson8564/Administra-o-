@@ -1228,8 +1228,6 @@ async function verificarExecucoesPerdidas() {
 
     // Auto-Refazer (sempre ativo, só seg-sab)
     {
-        const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec') || '';
-        const jaExecutouHoje = ultimaExec.startsWith(hoje);
         const horario = getHorarioRefazer();
         const [hh, mm] = horario.split(':').map(Number);
         const agoraSP = horasBRT(new Date());
@@ -1238,9 +1236,16 @@ async function verificarExecucoesPerdidas() {
         hojeAlvoSP.setHours(hh, mm, 0, 0);
         const passouHorario = agoraSP >= hojeAlvoSP;
         // Só executa recuperação se for seg-sab
-        if (passouHorario && !jaExecutouHoje && diaSemana !== 0) {
-            console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
-            await executarAutoRefazer();
+        if (passouHorario && diaSemana !== 0) {
+            try {
+                const { data: logSB } = await sb.from('configs')
+                    .select('value').eq('key', 'autoRefazer_ultimo').maybeSingle();
+                const jaExecutouHoje = logSB && logSB.value && logSB.value.startsWith(hoje);
+                if (!jaExecutouHoje) {
+                    console.log('[AutoRefazer] Execucao perdida detectada, executando agora');
+                    await executarAutoRefazer();
+                }
+            } catch(e) { console.warn('[AutoRefazer] Erro ao verificar log:', e); }
         }
         agendarAutoRefazer();
     }
@@ -2982,9 +2987,18 @@ function atualizarBannerAgendamento() {
     if (ultimaExec) {
         ultimo.innerHTML = `⏱️ Última execução: ${ultimaExec} &nbsp;<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
         ultimo.style.display = 'block';
-    } else if (temHistorico) {
-        ultimo.innerHTML = `<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
-        ultimo.style.display = 'block';
+    } else {
+        // Tenta buscar do Supabase (caso esteja em outro dispositivo)
+        sb.from('configs').select('value').eq('key','autoRefazer_ultimo').maybeSingle().then(({ data }) => {
+            if (data && data.value) {
+                localStorage.setItem('autoRefazer_ultimaExec', data.value);
+                ultimo.innerHTML = `⏱️ Última execução: ${data.value} &nbsp;<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
+                ultimo.style.display = 'block';
+            } else if (temHistorico) {
+                ultimo.innerHTML = `<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
+                ultimo.style.display = 'block';
+            }
+        }).catch(() => {});
     }
 }
 
@@ -3065,7 +3079,8 @@ async function executarAutoRefazer() {
             customer_phone: s.phone,
             total: totalParaUsar,
             payment_method: 'FIADO',
-            items: c.saved_order
+            items: c.saved_order,
+            created_at: new Date(new Date().toLocaleString('en-US', {timeZone:'America/Sao_Paulo'})).toISOString().replace('Z', '-03:00')
         }).select().single();
 
         // Atualiza o débito do cliente
@@ -3079,6 +3094,17 @@ async function executarAutoRefazer() {
 
     const agora = new Date();
     const agoraStr = agora.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' });
+
+    // Salva no Supabase (garante 1x por dia em qualquer dispositivo)
+    try {
+        const { data: logExiste } = await sb.from('configs').select('key').eq('key', 'autoRefazer_ultimo').maybeSingle();
+        if (logExiste) {
+            await sb.from('configs').update({ value: agoraStr }).eq('key', 'autoRefazer_ultimo');
+        } else {
+            await sb.from('configs').insert({ key: 'autoRefazer_ultimo', value: agoraStr });
+        }
+    } catch(e) { console.warn('[AutoRefazer] Erro ao salvar log no Supabase:', e); }
+
     localStorage.setItem('autoRefazer_ultimaExec', agoraStr);
 
     // Salva histórico de execuções (máx 30)
@@ -3349,7 +3375,8 @@ async function executarTodosRefazer() {
             customer_phone: s.phone,
             total: totalFinal,
             payment_method: 'FIADO',
-            items: itemsFinais
+            items: itemsFinais,
+            created_at: new Date(new Date().toLocaleString('en-US', {timeZone:'America/Sao_Paulo'})).toISOString().replace('Z', '-03:00')
         });
 
         // Atualiza o débito do cliente
@@ -3703,7 +3730,13 @@ function renderCompraProdList() {
                 padding:10px 10px 12px;flex:1;display:flex;flex-direction:column;gap:10px;">
                 <div>
                     <div style="font-weight:800;font-size:14px;color:#fff;line-height:1.3;">${p.name}</div>
-                    <div style="font-weight:700;font-size:13px;color:rgba(255,255,255,0.85);margin-top:2px;">R$ ${Number(p.price).toFixed(2).replace('.',',')}</div>
+                    ${p.price_promo != null
+                        ? `<div style="margin-top:2px;">
+                            <span style="font-weight:700;font-size:12px;color:rgba(255,255,255,0.45);text-decoration:line-through;margin-right:4px;">R$ ${Number(p.price).toFixed(2).replace('.',',')}</span>
+                            <span style="font-weight:900;font-size:14px;color:#fbbf24;">🏷️ R$ ${Number(p.price_promo).toFixed(2).replace('.',',')}</span>
+                           </div>`
+                        : `<div style="font-weight:700;font-size:13px;color:rgba(255,255,255,0.85);margin-top:2px;">R$ ${Number(p.price).toFixed(2).replace('.',',')}</div>`
+                    }
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;background:#f97316;border-radius:50px;padding:4px 6px;">
                     <button onclick="qtyCompra('${p.id}',-1)"
@@ -3749,7 +3782,7 @@ function atualizarTotalCompra() {
     let total = 0;
     for (let id in compraCart) {
         const p = compraProdutos.find(x => x.id == id);
-        if (p) total += p.price * compraCart[id];
+        if (p) total += (p.price_promo != null ? p.price_promo : p.price) * compraCart[id];
     }
     document.getElementById('compraTotalLabel').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
 }
@@ -3840,9 +3873,10 @@ async function confirmarCompra() {
     for (let id in compraCart) {
         const p = compraProdutos.find(x => x.id == id);
         if (p) {
+            const precoUsar = p.price_promo != null ? p.price_promo : p.price;
             pedidoTexto += `✅ ${compraCart[id]}x ${p.name}\n`;
             pedidoHTML += `${compraCart[id]}x ${p.name}\n`;
-            total += p.price * compraCart[id];
+            total += precoUsar * compraCart[id];
         }
     }
 
@@ -3867,7 +3901,8 @@ async function executarCompra(total, pedidoTexto) {
         customer_phone: compraClienteAtual.phone,
         total: total,
         payment_method: compraPagamento,
-        items: pedidoTexto
+        items: pedidoTexto,
+        created_at: new Date(new Date().toLocaleString('en-US', {timeZone:'America/Sao_Paulo'})).toISOString().replace('Z', '-03:00')
     });
 
     // Ambos os métodos somam na dívida do cliente (tudo vira fiado)
