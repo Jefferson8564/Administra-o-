@@ -620,25 +620,33 @@ if ('serviceWorker' in navigator) {
 
         <!-- ABA REFAZER PEDIDOS -->
         <div id="tab-refazer" class="section">
-            <!-- CARD REFAZER PEDIDO (AUTOMÁTICO) - VISUALIZAÇÃO -->
-            <div class="card-box" style="border-top:4px solid #8e44ad;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <h4 style="margin:0;color:#8e44ad;">🤖 Dias de Refazer Pedido</h4>
-                    <button onclick="carregarClientesRefazer()" style="padding:7px 16px;background:linear-gradient(135deg,#8e44ad,#6c2fa8);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;">🔄 Carregar</button>
+
+            <!-- CARD HOJE -->
+            <div class="card-box" style="border-top:4px solid #8e44ad;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <h4 style="margin:0;color:#8e44ad;font-size:15px;">📅 Hoje</h4>
+                    <button onclick="carregarClientesRefazer()" style="padding:6px 14px;background:linear-gradient(135deg,#8e44ad,#6c2fa8);color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🔄</button>
                 </div>
-
-                <div style="font-size:12px;color:#9080b8;margin-bottom:12px;">Visualize os dias que cada cliente configurou para refazer pedidos:</div>
-
-                <!-- Campo de busca -->
-                <input type="text" id="searchClienteRefazer" class="input-text" placeholder="🔍 Buscar cliente..." onkeyup="filtrarClientesRefazer()" style="margin-bottom:12px;">
-
-                <!-- Lista de clientes -->
-                <div id="listaClientesRefazer" style="display:flex;flex-direction:column;gap:10px;min-height:200px;">
-                    <div style="text-align:center;padding:20px;color:#9080b8;font-size:13px;">
-                        Clique em "Carregar" para ver os clientes
-                    </div>
+                <!-- Dia + horário agendado -->
+                <div id="refazerHojeBanner" style="background:#1a0f2e;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#b388ff;font-weight:700;"></div>
+                <!-- Status de execução -->
+                <div id="refazerExecStatus" style="display:none;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-weight:700;"></div>
+                <!-- Grade de clientes de hoje -->
+                <div id="refazerHojeGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                    <div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>
                 </div>
             </div>
+
+            <!-- CARD TODOS OS CLIENTES -->
+            <div class="card-box" style="border-top:4px solid #4a2d7a;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <h4 style="margin:0;color:#9080b8;font-size:14px;">👥 Todos os clientes</h4>
+                    <span id="refazerTotalBadge" style="background:#2d1b4e;color:#b388ff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;"></span>
+                </div>
+                <input type="text" id="searchClienteRefazer" class="input-text" placeholder="🔍 Buscar cliente..." onkeyup="filtrarClientesRefazer()" style="margin-bottom:10px;">
+                <div id="listaClientesRefazer" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+
         </div>
         <!-- ABA HISTÓRICO DE COMPRAS -->
         <div id="tab-historico" class="section">
@@ -753,7 +761,6 @@ if ('serviceWorker' in navigator) {
                     <button onclick="fecharModalEndereco()" class="u-close-btn">✕</button>
                 </div>
                 <div id="modalEnderecoNome" style="font-size:15px;font-weight:800;color:#e8d8f8;margin-bottom:16px;"></div>
-                <input type="text" id="enderecoTexto" class="input-text" placeholder="Rua, número, bairro... (opcional)">
                 <div class="u-lbl-mb">📌 Coordenadas</div>
                 <div style="position:relative;margin-bottom:6px;">
                     <input type="text" id="enderecoCoords" class="input-text"
@@ -1312,7 +1319,7 @@ function openSection(section) {
             document.getElementById('editCobrancaTemplate').value = msgCobranca;
             document.getElementById('editComprovanteTemplate').value = msgComprovante;
         }},
-        refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: loadRefazerPedidos },
+        refazer: { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: carregarClientesRefazer },
         compra:  { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
         historico: { id: 'tab-historico', title: '🛍️ Histórico de Compras', fn: loadHistoricoFiado },
         pagamentos: { id: 'tab-pagamentos', title: '💳 Histórico de Pagamentos', fn: loadHistoricoPagamentos },
@@ -1681,17 +1688,57 @@ function fecharDetalheCliente() {
 }
 
 // ── DAR CUPOM MANUAL ──────────────────────────────────────────────────────
-function abrirDarCupom(phone, nome) {
+async function abrirDarCupom(phone, nome) {
     document.getElementById('darCupomPhone').value = phone;
     document.getElementById('darCupomNome').textContent = nome;
     // Limpa seleção anterior
     document.querySelectorAll('.cupom-pct-btn').forEach(b => b.classList.remove('ativo'));
     document.getElementById('darCupomCustom') && (document.getElementById('darCupomCustom').value = '');
     document.getElementById('darCupomQtd').value = '1';
+    // Reset toggle enquanto carrega
+    atualizarToggleOferta(false);
     const modal = document.getElementById('modalDarCupom');
     modal.style.display = 'flex';
     modal.onclick = e => { if (e.target === modal) fecharDarCupom(); };
+    // Buscar estado atual de oferta_ativa
+    try {
+        const { data } = await sb.from('clientes').select('oferta_ativa').eq('phone', phone).maybeSingle();
+        atualizarToggleOferta(data?.oferta_ativa === true);
+    } catch(e) {}
 }
+
+function atualizarToggleOferta(ativo) {
+    document.getElementById('darCupomOfertaAtiva').value = ativo ? 'true' : 'false';
+    const btn  = document.getElementById('ofertaToggleBtn');
+    const circ = document.getElementById('ofertaToggleCircle');
+    if (ativo) {
+        btn.style.background = 'linear-gradient(135deg,#7c3aed,#4f46e5)';
+        btn.style.borderColor = '#7c3aed';
+        circ.style.background = 'white';
+        circ.style.left = '26px';
+    } else {
+        btn.style.background = '#2e1f4a';
+        btn.style.borderColor = '#3d2860';
+        circ.style.background = '#6b5a8a';
+        circ.style.left = '2px';
+    }
+}
+
+async function toggleOfertaAdm() {
+    const phone = document.getElementById('darCupomPhone').value;
+    const atual = document.getElementById('darCupomOfertaAtiva').value === 'true';
+    const novo  = !atual;
+    atualizarToggleOferta(novo);
+    try {
+        await sb.from('clientes').update({ oferta_ativa: novo }).eq('phone', phone);
+        showToast({ type: 'success', title: novo ? '🏷️ Oferta ativada!' : '🔕 Oferta desativada', body: `${document.getElementById('darCupomNome').textContent}`, duration: 3000 });
+    } catch(e) {
+        // Reverter se der erro
+        atualizarToggleOferta(atual);
+        showToast({ type: 'confirm', title: '❌ Erro', body: 'Não foi possível alterar a oferta.' });
+    }
+}
+
 
 
 // ── REFAZER PEDIDO (ADMIN) ────────────────────────────────────────────────
@@ -1992,11 +2039,7 @@ async function executarPayDebt(phone, val) {
         const { error: errUpdate } = await sb.from('clientes').update({
             total_gasto:         novoTotalGasto,
             tickets:             ticketsJaConf   + novosTickets,
-            tickets_pendentes:   0,
-            tickets_liberar_em:  null,
-            diamantes:           diamantesJaConf + novosDiamantes,
-            diamantes_pendentes: 0,
-            diamantes_liberar_em: null
+            diamantes:           diamantesJaConf + novosDiamantes
         }).eq('phone', phone);
 
         if (errUpdate) {
@@ -2874,10 +2917,26 @@ async function executarZerarJanela(tipo) {
         janelaAtual = `${String(ontem.getFullYear())}-${String(ontem.getMonth()+1).padStart(2,'0')}-${String(ontem.getDate()).padStart(2,'0')}`;
     }
 
-    // Apaga todos os pedidos de janelas ANTERIORES à janela atual
-    const { data: pedidos } = await sb.from('pedidos')
+    // Cutoff ISO: data da janela atual no horário da virada em SP (-03:00)
+    // Pedidos criados ANTES desse momento pertencem à janela anterior → deletar
+    const cutoffISO = `${janelaAtual}T${String(virH).padStart(2,'0')}:${String(virM).padStart(2,'0')}:00-03:00`;
+
+    // Apaga pedidos de janelas anteriores:
+    // • com janela_entrega definida (campo legado): janela_entrega < janelaAtual
+    // • sem janela_entrega (NULL, que é o padrão): usa created_at como fallback
+    const { data: pedidosComJanela } = await sb.from('pedidos')
         .select('id')
         .lt('janela_entrega', janelaAtual);
+
+    const { data: pedidosSemJanela } = await sb.from('pedidos')
+        .select('id')
+        .is('janela_entrega', null)
+        .lt('created_at', cutoffISO);
+
+    const idsCom  = (pedidosComJanela  || []).map(p => p.id);
+    const idsSem  = (pedidosSemJanela  || []).map(p => p.id);
+    const idsUniq = [...new Set([...idsCom, ...idsSem])];
+    const pedidos = idsUniq.map(id => ({ id }));
 
     if (!pedidos || pedidos.length === 0) {
         showToast({ type:'success', title:'📅 Limpeza executada', body:'Nenhum pedido encontrado para apagar.', duration:4000 });
@@ -2885,7 +2944,7 @@ async function executarZerarJanela(tipo) {
         return;
     }
 
-    const ids = pedidos.map(p => p.id);
+    const ids = idsUniq;
     const { error: delError } = await sb.from('pedidos').delete().in('id', ids);
     if (delError) {
         showToast({ type:'confirm', title:'❌ Erro na limpeza', body:'Não foi possível apagar os pedidos.', duration:4000 });
@@ -3013,7 +3072,7 @@ function toggleBloqueioRefazer(phone, event) {
         refazerBloqueados.push(phone);
     }
     localStorage.setItem('refazer_bloqueados', JSON.stringify(refazerBloqueados));
-    loadRefazerPedidos();
+    carregarClientesRefazer();
 }
 let autoRefazerTimer = null;
 
@@ -3065,10 +3124,10 @@ function atualizarBannerAgendamento() {
 
     const ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
     const temHistorico = JSON.parse(localStorage.getItem('autoRefazer_historico') || '[]').length > 0;
-    if (ultimaExec) {
+    if (ultimaExec && ultimo) {
         ultimo.innerHTML = `⏱️ Última execução: ${ultimaExec} &nbsp;<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
         ultimo.style.display = 'block';
-    } else {
+    } else if (ultimo) {
         // Tenta buscar do Supabase (caso esteja em outro dispositivo)
         sb.from('configs').select('value').eq('key','autoRefazer_ultimo').maybeSingle().then(({ data }) => {
             if (data && data.value) {
@@ -3145,9 +3204,20 @@ async function executarAutoRefazer() {
 
         // Busca o pedido SALVO (⭐) do cliente direto do Supabase
         const { data: c } = await sb.from("clientes")
-            .select("debt, saved_order, saved_order_total")
+            .select("debt, saved_order, saved_order_total, dias_refazer")
             .eq("phone", s.phone).single();
         if (!c) continue;
+
+        // Verifica se hoje é um dia configurado para este cliente
+        // dias_refazer: 0=Seg, 1=Ter, 2=Qua, 3=Qui, 4=Sex, 5=Sáb, 6=Dom
+        if (c.dias_refazer && c.dias_refazer.length > 0) {
+            const getd = horasBRT(new Date()).getDay(); // 0=Dom, 1=Seg..6=Sáb
+            const adminIdx = getd === 0 ? 6 : getd - 1; // converte para índice admin
+            if (!c.dias_refazer.includes(adminIdx)) {
+                pulados.push(s.name + ' (fora do dia)');
+                continue;
+            }
+        }
 
         if (!c.saved_order || !c.saved_order.trim()) {
             pulados.push(s.name + ' (sem pedido salvo)');
@@ -3370,18 +3440,17 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
 
     // Estornar tickets pendentes (reverter total_gasto e remover pendentes)
     try {
-        const { data: gt } = await sb.from('clientes').select('tickets,tickets_pendentes,total_gasto,tickets_liberar_em').eq('phone', phone).maybeSingle();
+        const { data: gt } = await sb.from('clientes').select('tickets,total_gasto').eq('phone', phone).maybeSingle();
         if (gt) {
             const { data: cfg } = await sb.from('configs').select('value').eq('key', 'ticket_valor_reais').maybeSingle();
             const valorPorTicket = cfg ? Number(cfg.value) : 0;
             const novoTotalGasto = Math.max(0, Number(gt.total_gasto) - Number(total));
             if (valorPorTicket > 0) {
                 const ticketsTotaisNovos = Math.floor(novoTotalGasto / valorPorTicket);
-                const ticketsJaConfirmados = gt.tickets || 0;
-                const novosPendentes = Math.max(0, ticketsTotaisNovos - ticketsJaConfirmados);
+                const novosTickets = Math.min(gt.tickets || 0, ticketsTotaisNovos);
                 await sb.from('clientes').update({
                     total_gasto: novoTotalGasto,
-                    tickets_pendentes: novosPendentes
+                    tickets: novosTickets
                 }).eq('phone', phone);
             }
         }
@@ -3469,7 +3538,7 @@ async function executarTodosRefazer() {
 
     refazerSelecionados = {};
     salvarSelecoes();
-    loadRefazerPedidos();
+    carregarClientesRefazer();
     updateFiadoHeader();
     showToast({ type: 'success', title: `✅ Pedidos lançados!`, body: `${sel.length} pedido(s) adicionados no pagar depois.\nTotal: R$ ${totalGeral}`, duration: 8000 });
 }
@@ -3549,7 +3618,7 @@ function abrirFotoPicker(phone) {
                     const id = activeSection.id;
                     if (id === 'tab-compra') renderListaClientesCompra();
                     else if (id === 'tab-pagamentos') loadHistoricoPagamentos();
-                    else if (id === 'tab-refazer') loadRefazerPedidos();
+                    else if (id === 'tab-refazer') carregarClientesRefazer();
                     else if (id === 'tab-enderecos') renderEnderecos(todosClientesEnderecos);
                     else if (id === 'tab-clients') loadAdminClients();
                 }
@@ -3680,8 +3749,7 @@ async function onCompraClienteChange(c) {
         debt: parseFloat(c.debt),
         fiado: c.fiado,
         delivery_lat: c.delivery_lat || null,
-        delivery_lon: c.delivery_lon || null,
-        delivery_address: c.delivery_address || null
+        delivery_lon: c.delivery_lon || null
     };
     document.getElementById('compraClienteInfo').textContent = `👤 ${c.name}`;
     document.getElementById('sectionTitle').textContent = `👤 ${c.name}`;
@@ -4000,17 +4068,17 @@ async function executarCompra(total, pedidoTexto) {
             const valorPorTicket = cfgTk ? Number(cfgTk.value) : 0;
             if (valorPorTicket > 0) {
                 const phoneCliente = compraClienteAtual.phone;
-                const { data: gt } = await sb.from('clientes').select('tickets,tickets_pendentes,total_gasto').eq('phone', phoneCliente).maybeSingle();
+                const { data: gt } = await sb.from('clientes').select('tickets,total_gasto').eq('phone', phoneCliente).maybeSingle();
 
                 const totalGastoAtual      = gt ? Number(gt.total_gasto || 0) : 0;
                 const novoTotalGasto       = totalGastoAtual + total;
                 const ticketsJaConfirmados = gt ? Number(gt.tickets || 0) : 0;
                 const ticketsTotais        = Math.floor(novoTotalGasto / valorPorTicket);
-                const novosPendentes       = Math.max(0, ticketsTotais - ticketsJaConfirmados);
+                const novosTickets         = Math.max(0, ticketsTotais - ticketsJaConfirmados);
 
                 await sb.from('clientes').update({
                     total_gasto: novoTotalGasto,
-                    tickets_pendentes: novosPendentes
+                    tickets: ticketsJaConfirmados + novosTickets
                 }).eq('phone', phoneCliente);
             }
         } catch(e) { console.warn('Erro ao gerar tickets pendentes da compra admin:', e); }
@@ -4047,7 +4115,7 @@ async function executarCompra(total, pedidoTexto) {
                     const novaParada = {
                         ...tmpl,
                         coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
-                        endereco: tmpl.endereco || cli.delivery_address || '',
+                        endereco: tmpl.endereco || `${cli.delivery_lat}, ${cli.delivery_lon}`,
                         nome: tmpl.nome || cli.name,
                         status: 'pendente'
                     };
@@ -4099,7 +4167,7 @@ async function executarCompra(total, pedidoTexto) {
                                 id: 'admin_' + Date.now(),
                                 phone: cli.phone,
                                 nome: cli.name,
-                                endereco: cli.delivery_address || `${cli.delivery_lat}, ${cli.delivery_lon}`,
+                                endereco: `${cli.delivery_lat}, ${cli.delivery_lon}`,
                                 coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
                                 hora_pedido: _hStr,
                                 status: 'pendente'
@@ -5621,7 +5689,7 @@ async function executarCancelamento(orderId) {
         try {
             const phone = o.customer_phone;
             const [gtRes, cfgTk, cfgDi] = await Promise.all([
-                sb.from('clientes').select('tickets,tickets_pendentes,total_gasto,diamantes,diamantes_pendentes').eq('phone', phone).maybeSingle(),
+                sb.from('clientes').select('tickets,total_gasto,diamantes').eq('phone', phone).maybeSingle(),
                 sb.from('configs').select('value').eq('key', 'ticket_valor_reais').maybeSingle(),
                 sb.from('configs').select('value').eq('key', 'diamante_valor_reais').maybeSingle(),
             ]);
@@ -5630,12 +5698,12 @@ async function executarCancelamento(orderId) {
                 const novoTotalGasto   = Math.max(0, Number(gt.total_gasto) - Number(o.total));
                 const valorPorTicket   = cfgTk?.data ? Number(cfgTk.data.value) : 0;
                 const valorPorDiamante = cfgDi?.data ? Number(cfgDi.data.value) : 0;
-                const novosPendTk  = valorPorTicket   > 0 ? Math.max(0, Math.floor(novoTotalGasto / valorPorTicket)   - (gt.tickets   || 0)) : (gt.tickets_pendentes   || 0);
-                const novosPendDi  = valorPorDiamante > 0 ? Math.max(0, Math.floor(novoTotalGasto / valorPorDiamante) - (gt.diamantes || 0)) : (gt.diamantes_pendentes || 0);
+                const novosTickets   = valorPorTicket   > 0 ? Math.min(gt.tickets   || 0, Math.floor(novoTotalGasto / valorPorTicket))   : (gt.tickets   || 0);
+                const novosDiamantes = valorPorDiamante > 0 ? Math.min(gt.diamantes || 0, Math.floor(novoTotalGasto / valorPorDiamante)) : (gt.diamantes || 0);
                 await sb.from('clientes').update({
-                    total_gasto:          novoTotalGasto,
-                    tickets_pendentes:    novosPendTk,
-                    diamantes_pendentes:  novosPendDi
+                    total_gasto: novoTotalGasto,
+                    tickets:     novosTickets,
+                    diamantes:   novosDiamantes
                 }).eq('phone', phone);
             }
         } catch(e) { console.warn('Erro ao estornar tickets/diamantes:', e); }
@@ -6142,7 +6210,7 @@ async function loadEnderecos() {
 
     // Tenta buscar com colunas de endereço
     const { data, error } = await sb.from('clientes')
-        .select('phone,name,delivery_address,delivery_lat,delivery_lon')
+        .select('phone,name,delivery_lat,delivery_lon')
         .order('name');
 
     if (error) {
@@ -6160,13 +6228,12 @@ async function loadEnderecos() {
         }
 
         // Clientes encontrados mas colunas de endereço não existem — mostra aviso SQL
-        todosClientesEnderecos = dataFallback.map(c => ({...c, delivery_address: null, delivery_lat: null, delivery_lon: null}));
+        todosClientesEnderecos = dataFallback.map(c => ({...c, delivery_lat: null, delivery_lon: null}));
         el.innerHTML = `<div style="background:#fff3cd;border:1px solid #f0c040;border-radius:14px;padding:16px;margin-bottom:14px;color:#856404;font-size:13px;line-height:1.6;">
             ⚠️ <strong>Execute este SQL no Supabase para habilitar endereços:</strong><br><br>
             <code style="display:block;background:#1a1a2e;color:#2ecc71;padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;word-break:break-all;">
-                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_address text;<br>
-                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_lat float8;<br>
-                ALTER TABLE cadastros ADD COLUMN IF NOT EXISTS delivery_lon float8;
+                ALTER TABLE clientes ADD COLUMN IF NOT EXISTS delivery_lat float8;<br>
+                ALTER TABLE clientes ADD COLUMN IF NOT EXISTS delivery_lon float8;
             </code>
         </div>`;
         renderEnderecos(todosClientesEnderecos);
@@ -6228,7 +6295,6 @@ function abrirModalEndereco(phone) {
     if (!c) return;
     enderecoClienteAtual = c;
     document.getElementById('modalEnderecoNome').textContent = `👤 ${c.name || c.phone}`;
-    document.getElementById('enderecoTexto').value = c.delivery_address || '';
     // Monta campo único de coordenadas
     if (c.delivery_lat && c.delivery_lon) {
         const latStr = String(c.delivery_lat).replace('.', ',');
@@ -6315,7 +6381,6 @@ function parseCoordsInput(valor) {
 
 async function salvarEndereco() {
     if (!enderecoClienteAtual) return;
-    const endereco = document.getElementById('enderecoTexto').value.trim();
     const coordsRaw = document.getElementById('enderecoCoords').value;
     const parsed = parseCoordsInput(coordsRaw);
     if (!parsed) {
@@ -6323,16 +6388,15 @@ async function salvarEndereco() {
     }
     const { lat, lon } = parsed;
     await sb.from('clientes').update({
-        delivery_address: endereco || null,
         delivery_lat: lat,
         delivery_lon: lon
     }).eq('phone', enderecoClienteAtual.phone);
     // Atualiza cache local
     const idx = todosClientesEnderecos.findIndex(x => x.phone === enderecoClienteAtual.phone);
-    if (idx >= 0) { todosClientesEnderecos[idx].delivery_address = endereco || null; todosClientesEnderecos[idx].delivery_lat = lat; todosClientesEnderecos[idx].delivery_lon = lon; }
+    if (idx >= 0) { todosClientesEnderecos[idx].delivery_lat = lat; todosClientesEnderecos[idx].delivery_lon = lon; }
     // Atualiza clientesCache também (para onParadaClienteChange)
     const cc = clientesCache.find(x => x.phone === enderecoClienteAtual.phone);
-    if (cc) { cc.delivery_address = endereco || null; cc.delivery_lat = lat; cc.delivery_lon = lon; }
+    if (cc) { cc.delivery_lat = lat; cc.delivery_lon = lon; }
     fecharModalEndereco();
     renderEnderecos(todosClientesEnderecos);
     showToast({ type: 'success', title: '✅ Endereço salvo!', body: `${enderecoClienteAtual.name || enderecoClienteAtual.phone} · ${lat}, ${lon}`, duration: 3000 });
@@ -6361,7 +6425,7 @@ async function adicionarParadasSelecionadas() {
             id: Date.now().toString() + '_' + sel.phone,
             cliente_phone: sel.phone,
             nome: sel.nome || 'Sem nome',
-            endereco: c.delivery_address || `${(+c.delivery_lat).toFixed(4)}, ${(+c.delivery_lon).toFixed(4)}`,
+            endereco: `${(+c.delivery_lat).toFixed(4)}, ${(+c.delivery_lon).toFixed(4)}`,
             coords: [parseFloat(c.delivery_lat), parseFloat(c.delivery_lon)],
             eta_min: Math.round((rotaParadas.length + 1) * mediaMinPorParada),
             status: 'pendente'
@@ -7313,7 +7377,7 @@ async function adicionarNaFilaRAAdm(pedido) {
     if (!pedido?.customer_phone) return;
 
     const { data: cli } = await sb.from('clientes')
-        .select('name, phone, delivery_lat, delivery_lon, delivery_address')
+        .select('name, phone, delivery_lat, delivery_lon')
         .eq('phone', pedido.customer_phone).maybeSingle();
     if (!cli?.delivery_lat || !cli?.delivery_lon) return;
 
@@ -7325,7 +7389,7 @@ async function adicionarNaFilaRAAdm(pedido) {
         id: Date.now().toString(),
         phone: cli.phone,
         nome: cli.name || pedido.customer_name,
-        endereco: cli.delivery_address || '',
+        endereco: `${cli.delivery_lat}, ${cli.delivery_lon}`,
         coords: [parseFloat(cli.delivery_lat), parseFloat(cli.delivery_lon)],
         hora_pedido: agoraISO().substring(11, 16),
         status: 'pendente'
@@ -8207,67 +8271,208 @@ function mostrarToast(msg) {
 }
 
 // ===== REFAZER PEDIDO - VISUALIZAÇÃO DOS CLIENTES =====
-const diasNomes = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+// dias_refazer index: 0=Seg, 1=Ter, 2=Qua, 3=Qui, 4=Sex, 5=Sáb, 6=Dom
+const diasNomes = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+const diasNomesLong = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 let clientesRefazerCache = [];
 
+// getDay() → adminIdx: 0=Dom→6, 1=Seg→0 ... 6=Sáb→5
+function _adminIdxDeHoje() {
+    const d = horasBRT(new Date()).getDay();
+    return d === 0 ? 6 : d - 1;
+}
+
 async function carregarClientesRefazer() {
+    // Atualiza banner do horário agendado
+    _atualizarBannerHoje(); // async — roda em paralelo, sem bloquear o load
+
+    const hojeGrid = document.getElementById('refazerHojeGrid');
+    const listaEl  = document.getElementById('listaClientesRefazer');
+    if (hojeGrid) hojeGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
+    if (listaEl)  listaEl.innerHTML  = '<div style="text-align:center;padding:18px;color:#9080b8;font-size:13px;">⏳ Carregando...</div>';
+
     try {
         const { data } = await sb.from('clientes')
-            .select('phone, name, dias_refazer')
+            .select('phone, name, dias_refazer, saved_order')
             .order('name', { ascending: true });
-        
-        if (!data) {
-            showToast('⚠️ Erro ao carregar clientes');
-            return;
-        }
-        
+
+        if (!data) { showToast('⚠️ Erro ao carregar clientes'); return; }
+
         clientesRefazerCache = data;
-        renderClientesRefazer(clientesRefazerCache);
-        showToast(`✅ ${data.length} clientes carregados`);
+        _renderHoje(data);
+        _renderTodosRefazer(data);
     } catch(e) {
         console.error('Erro ao carregar clientes:', e);
         showToast('❌ Erro ao carregar dados');
     }
 }
 
-function renderClientesRefazer(clientes) {
-    const container = document.getElementById('listaClientesRefazer');
-    if (!container) return;
-    
-    // Filtrar apenas clientes com refazer ativo
-    const clientesAtivos = clientes.filter(c => c.dias_refazer && c.dias_refazer.length > 0);
-    
-    if (clientesAtivos.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;">Nenhum cliente com refazer pedido ativo</div>';
+async function _atualizarBannerHoje() {
+    const banner   = document.getElementById('refazerHojeBanner');
+    const statusEl = document.getElementById('refazerExecStatus');
+    if (!banner) return;
+
+    const horario  = getHorarioRefazer();
+    const adminIdx = _adminIdxDeHoje();
+    const diaName  = diasNomesLong[adminIdx];
+    const domingo  = adminIdx === 6;
+
+    if (domingo) {
+        banner.innerHTML = `📅 <strong>Hoje é Domingo</strong> — automático não roda aos domingos`;
+        banner.style.color = '#9080b8';
+        if (statusEl) statusEl.style.display = 'none';
         return;
     }
-    
-    container.innerHTML = clientesAtivos.map(cliente => {
-        const dias = cliente.dias_refazer;
-        
-        return `
-            <div style="background:#150b25;border:1.5px solid #2e1f4a;border-radius:14px;padding:12px;overflow:hidden;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:700;color:#e8d8f8;font-size:13px;word-break:break-word;">${cliente.name}</div>
-                        <div style="font-size:11px;color:#9080b8;margin-top:2px;margin-bottom:6px;">${cliente.phone}</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                            ${dias.map(d => `<span style="background:rgba(142,68,173,0.25);color:#b388ff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;">${diasNomes[d]}</span>`).join('')}
-                        </div>
+
+    banner.innerHTML = `📅 <strong>Hoje: ${diaName}</strong> · 🕐 Disparo às <strong>${horario}</strong>`;
+    banner.style.color = '#b388ff';
+
+    if (!statusEl) return;
+
+    // Verifica se já executou hoje
+    const agoraSP  = horasBRT(new Date());
+    const hoje     = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const [hh, mm] = horario.split(':').map(Number);
+    const alvo     = new Date(agoraSP);
+    alvo.setHours(hh, mm, 0, 0);
+    const passou   = agoraSP >= alvo;
+
+    // Checa localStorage primeiro, depois Supabase
+    let ultimaExec = localStorage.getItem('autoRefazer_ultimaExec');
+    if (!ultimaExec) {
+        try {
+            const { data } = await sb.from('configs').select('value').eq('key','autoRefazer_ultimo').maybeSingle();
+            if (data && data.value) { ultimaExec = data.value; localStorage.setItem('autoRefazer_ultimaExec', ultimaExec); }
+        } catch(e) {}
+    }
+    const jaExecutouHoje = ultimaExec && ultimaExec.startsWith(hoje);
+
+    if (jaExecutouHoje) {
+        // Mostra horário real da execução
+        const horExec = ultimaExec.split(', ')[1] || '';
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(34,197,94,0.12)';
+        statusEl.style.border = '1.5px solid #22c55e';
+        statusEl.style.color = '#4ade80';
+        statusEl.innerHTML = `✅ Executado hoje às ${horExec} &nbsp;<button onclick="verHistoricoExecucoes()" style="background:rgba(255,255,255,0.12);border:none;border-radius:8px;padding:3px 8px;color:white;font-size:11px;cursor:pointer;">📋 Ver histórico</button>`;
+    } else if (passou) {
+        // Passou do horário e não executou — mostra alerta + botão
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(231,76,60,0.12)';
+        statusEl.style.border = '1.5px solid #e74c3c';
+        statusEl.style.color = '#e74c3c';
+        statusEl.innerHTML = `⚠️ Passou das ${horario} e não executou ainda &nbsp;<button onclick="_dispararManual()" style="background:#e74c3c;border:none;border-radius:8px;padding:5px 12px;color:white;font-size:12px;font-weight:800;cursor:pointer;">▶ Disparar agora</button>`;
+    } else {
+        // Ainda falta tempo
+        const diff = alvo - agoraSP;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(142,68,173,0.1)';
+        statusEl.style.border = '1.5px solid #4a2d7a';
+        statusEl.style.color = '#9080b8';
+        statusEl.innerHTML = `🕐 Faltam ${h}h ${m}min para o disparo automático`;
+    }
+}
+
+async function _dispararManual() {
+    const btn = document.querySelector('#refazerExecStatus button');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Executando...'; }
+    await executarAutoRefazer();
+    _atualizarBannerHoje();
+}
+
+function _renderHoje(clientes) {
+    const grid = document.getElementById('refazerHojeGrid');
+    if (!grid) return;
+    const adminIdx = _adminIdxDeHoje();
+    const domingo  = adminIdx === 6;
+
+    // Clientes do dia de hoje (ignora domingo pois automático não roda)
+    const deHoje = clientes.filter(c =>
+        !domingo && c.dias_refazer && c.dias_refazer.includes(adminIdx) && c.saved_order && c.saved_order.trim()
+    );
+
+    if (domingo) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">Domingo — sem pedidos automáticos</div>';
+        return;
+    }
+    if (deHoje.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">Nenhum cliente agendado para hoje</div>';
+        return;
+    }
+
+    grid.innerHTML = deHoje.map(c => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : c.name.slice(0,2).toUpperCase();
+        const primeiro = partes[0];
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;
+                    padding:14px 6px 10px;border-radius:18px;
+                    background:linear-gradient(135deg,#1a3a1a,#162b16);
+                    border:2px solid #22c55e;
+                    box-shadow:0 3px 12px rgba(34,197,94,0.2);">
+                    <div style="width:48px;height:48px;border-radius:50%;
+                        background:linear-gradient(135deg,#22c55e,#16a34a);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:16px;font-weight:900;color:white;">${iniciais}</div>
+                    <div style="font-size:11px;font-weight:700;color:#86efac;text-align:center;line-height:1.2;">${primeiro}</div>
+                    <div style="font-size:9px;color:#4ade80;font-weight:700;">✓ agendado</div>
+                </div>`;
+    }).join('');
+
+    const badge = document.getElementById('refazerTotalBadge');
+}
+
+function _renderTodosRefazer(clientes) {
+    const container = document.getElementById('listaClientesRefazer');
+    const badge     = document.getElementById('refazerTotalBadge');
+    if (!container) return;
+
+    const adminIdx = _adminIdxDeHoje();
+    const comRefazer = clientes.filter(c => c.dias_refazer && c.dias_refazer.length > 0);
+
+    if (badge) badge.textContent = comRefazer.length > 0 ? `${comRefazer.length} ativos` : 'nenhum';
+
+    if (comRefazer.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#9080b8;">Nenhum cliente com refazer ativo</div>';
+        return;
+    }
+
+    container.innerHTML = comRefazer.map(c => {
+        const isHoje = c.dias_refazer.includes(adminIdx) && adminIdx !== 6;
+        const temPedido = c.saved_order && c.saved_order.trim();
+        const corBorda  = isHoje ? '#22c55e' : '#2e1f4a';
+        const corBg     = isHoje ? 'linear-gradient(135deg,#0f2a0f,#0d2210)' : '#150b25';
+        return `<div style="background:${corBg};border:1.5px solid ${corBorda};border-radius:14px;padding:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                        <div style="font-weight:700;color:#e8d8f8;font-size:13px;">${c.name}</div>
+                        ${isHoje ? '<span style="font-size:10px;background:#22c55e;color:#fff;font-weight:800;padding:1px 7px;border-radius:10px;">HOJE</span>' : ''}
+                        ${!temPedido ? '<span style="font-size:10px;background:#4a1a1a;color:#e74c3c;font-weight:800;padding:1px 7px;border-radius:10px;">sem pedido salvo</span>' : ''}
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        ${c.dias_refazer.map(d => {
+                            const ativo = d === adminIdx && adminIdx !== 6;
+                            return `<span style="padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;
+                                background:${ativo ? 'rgba(34,197,94,0.25)' : 'rgba(142,68,173,0.2)'};
+                                color:${ativo ? '#4ade80' : '#b388ff'};">${diasNomes[d]}</span>`;
+                        }).join('')}
                     </div>
                 </div>
             </div>
-        `;
+        </div>`;
     }).join('');
 }
 
 function filtrarClientesRefazer() {
-    const search = document.getElementById('searchClienteRefazer').value.toLowerCase();
-    const filtrados = clientesRefazerCache.filter(c => 
-        c.name.toLowerCase().includes(search) || 
-        c.phone.includes(search)
+    const search = document.getElementById('searchClienteRefazer')?.value.toLowerCase() || '';
+    const filtrados = clientesRefazerCache.filter(c =>
+        c.name.toLowerCase().includes(search) || c.phone.includes(search)
     );
-    renderClientesRefazer(filtrados);
+    _renderTodosRefazer(filtrados);
 }
 
 </script>
@@ -8342,6 +8547,7 @@ function filtrarClientesRefazer() {
         </div>
         <div style="font-size:13px;color:#9080b8;margin-bottom:14px;">Cliente: <strong id="darCupomNome" style="color:#e8d8f8;"></strong></div>
         <input type="hidden" id="darCupomPhone">
+        <input type="hidden" id="darCupomOfertaAtiva" value="false">
         <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Escolha o desconto</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
             <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,5)"  style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">5%</button>
@@ -8352,6 +8558,18 @@ function filtrarClientesRefazer() {
             <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,30)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">30%</button>
             <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,40)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">40%</button>
             <button class="cupom-pct-btn" onclick="selecionarPctCupom(this,50)" style="padding:12px 0;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:12px;color:#e8d8f8;font-size:14px;font-weight:800;cursor:pointer;">50%</button>
+        </div>
+        <!-- Toggle Oferta -->
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#1a0f2e;border:2px solid #2e1f4a;border-radius:14px;padding:12px 16px;margin-bottom:14px;">
+            <div>
+                <div style="font-size:13px;font-weight:800;color:#e8d8f8;">🏷️ Oferta Especial</div>
+                <div style="font-size:11px;color:#9080b8;margin-top:2px;">Ativa preço promocional no app</div>
+            </div>
+            <div onclick="toggleOfertaAdm()" id="ofertaToggleBtnWrap" style="cursor:pointer;">
+                <div id="ofertaToggleBtn" style="width:52px;height:28px;border-radius:14px;background:#2e1f4a;border:2px solid #3d2860;position:relative;transition:all 0.2s;">
+                    <div id="ofertaToggleCircle" style="width:20px;height:20px;border-radius:50%;background:#6b5a8a;position:absolute;top:2px;left:2px;transition:all 0.2s;"></div>
+                </div>
+            </div>
         </div>
         <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Quantidade de cupons</div>
         <div style="position:relative;margin-bottom:14px;">
