@@ -2164,14 +2164,7 @@ async function loadOrderSummary() {
     const horaBRT = parseInt(agoraBRT.substring(11, 13));
     const dataBRT = agoraBRT.substring(0, 10);
 
-    let dataInicio;
-    if (horaBRT < 12) {
-        const dOntem = new Date(new Date(dataBRT + 'T15:00:00-03:00').getTime() - 86400000);
-        const pOntem = _partesSP(dOntem);
-        dataInicio = `${pOntem.year}-${pOntem.month}-${pOntem.day}T15:00:00-03:00`;
-    } else {
-        dataInicio = dataBRT + 'T15:00:00-03:00';
-    }
+    const dataInicio = dataBRT + 'T00:00:00-03:00';
 
     const { data } = await sb.from("pedidos")
         .select("items, customer_name")
@@ -2185,6 +2178,8 @@ async function loadOrderSummary() {
         const porTipo = {};
         const linhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
         linhas.forEach(linha => {
+            // Remove prefixos do Index: "• ", "- ", "* " e espaços extras
+            linha = linha.replace(/^[\u2022\-\*]\s*/, '').trim();
             const match = linha.match(/^(\d+)[xX]\s*(.+)$/);
             if (match) {
                 const qtd = parseInt(match[1]);
@@ -2452,7 +2447,8 @@ function buildOrderCard(o) {
         : dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + ' às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
     // Items: clean and list — SEPARAR POR CATEGORIA
-    const itemLines = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+    const itemLines = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean)
+        .map(l => l.replace(/^[\u2022\-\*]\s*/, '').trim()).filter(Boolean);
     
     // Separar itens em Fritos e Crus
     const fritos = [];
