@@ -12,6 +12,7 @@
     <style>
         :root { --primary: #c75b24; --success: #25d366; --dark: #1a1a2e; --blue: #3498db; --danger: #e74c3c; --warning: #f1c40f; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        button, [onclick], label, .client-card, .order-card, .day-btn, .nav-btn, .action-btn { user-select: none; -webkit-user-select: none; }
         body { background: #1c0e08; min-height: 100vh; color-scheme: dark; overflow-x: hidden; }
         html { overflow-x: hidden; }
 
@@ -182,6 +183,23 @@
         .u-dia-btn { text-align:center;padding:9px 3px;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s; }
         .u-dia-label { font-size:10px;font-weight:700;color:#9080b8; }
         .u-time-input { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:16px;font-weight:800;padding:8px 10px;width:100%;outline:none; }
+
+        /* ── ROTAS ── */
+        .rota-card { background:#1a0f2e;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid #2e1f4a;cursor:pointer;transition:transform 0.12s,border-color 0.2s; }
+        .rota-card:active { transform:scale(0.97); }
+        .rota-badge { display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;font-size:22px;font-weight:900;color:white;flex-shrink:0; }
+        .rota-dia-pill { display:inline-block;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;background:rgba(139,92,246,0.15);color:#c084fc;border:1px solid rgba(139,92,246,0.25);margin:2px; }
+        .rota-dia-pill.ativo { background:rgba(139,92,246,0.35);border-color:rgba(139,92,246,0.6); }
+        .cli-rota-card { display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px 10px;border-radius:16px;cursor:pointer;border:2px solid #2e1f4a;background:#1a0f2e;transition:all 0.15s;text-align:center; }
+        .cli-rota-card.selecionado { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.15); }
+        .rota-modal-dia { padding:8px 0;border-radius:10px;border:2px solid #2e1f4a;background:#150b25;cursor:pointer;transition:0.2s;text-align:center;font-size:12px;font-weight:700;color:#9080b8; }
+        .rota-modal-dia.ativo { border-color:#8b5cf6;background:rgba(139,92,246,0.2);color:#c084fc; }
+
+        /* ── ORDEM DE ENTREGA ── */
+        .ordem-item { display:flex;align-items:center;gap:10px;padding:12px 14px;background:#1a0f2e;border-radius:14px;margin-bottom:8px;border:1px solid #2e1f4a;touch-action:none;user-select:none;-webkit-user-select:none; }
+        .ordem-handle { font-size:20px;color:#4a3a6a;cursor:grab;padding:4px 6px;flex-shrink:0;line-height:1; }
+        .ordem-handle:active { cursor:grabbing;color:#8b5cf6; }
+        .ordem-num { font-size:12px;font-weight:800;color:#6b5c8a;min-width:24px;text-align:right;flex-shrink:0; }
     </style>
 <script>
 if ('serviceWorker' in navigator) {
@@ -251,6 +269,11 @@ if ('serviceWorker' in navigator) {
                 <span class="home-card-icon">🎟️💎</span>
                 <div class="home-card-label">Tickets & Diamantes</div>
                 <div class="home-card-sub">Valor por compra</div>
+            </button>
+            <button class="home-card" style="border-top:4px solid #a855f7;" onclick="openSection('rotas')">
+                <span class="home-card-icon">🗺️</span>
+                <div class="home-card-label">Rotas</div>
+                <div class="home-card-sub">Grupos de entrega</div>
             </button>
         </div>
 
@@ -364,6 +387,33 @@ if ('serviceWorker' in navigator) {
                     </div>
                 </div>
             </div>
+
+        <!-- SEÇÃO COORDENADAS -->
+        <div id="tab-coordenadas" class="section">
+            <div style="font-size:12px;color:#9080b8;text-align:center;margin-bottom:14px;">
+                🟢 Com coordenada &nbsp;·&nbsp; 🔴 Sem coordenada — toque para editar
+            </div>
+            <div id="coordenadaClienteList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+        </div>
+
+        <!-- MODAL EDITAR COORDENADA -->
+        <div id="modalEditarCoordenada" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:4000;align-items:flex-end;justify-content:center;">
+            <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;margin:0 auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <div style="font-size:16px;font-weight:900;color:#e8d8f8;">📍 Coordenada do Cliente</div>
+                    <button onclick="fecharModalCoordenada()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+                </div>
+                <div id="coordModalClienteInfo" style="background:#1a0f2e;border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:14px;font-weight:700;color:#e8d8f8;"></div>
+                <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">📌 Coordenadas (lat, long)</div>
+                <input type="text" id="coordenadaInput" class="input-text" placeholder="Ex: -8.123456, -35.654321" style="margin-bottom:6px;">
+                <div style="font-size:11px;color:#9080b8;margin-bottom:16px;">Cole as coordenadas do Google Maps ou digite manualmente.</div>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="fecharModalCoordenada()" class="btn" style="flex:1;background:#2e1f4a;color:#e8d8f8;">Cancelar</button>
+                    <button onclick="limparCoordenada()" class="btn" style="flex:1;background:#3d1f1f;color:#e74c3c;">🗑️ Limpar</button>
+                    <button onclick="salvarCoordenada()" class="btn" style="flex:2;background:linear-gradient(135deg,#10b981,#059669);color:white;font-weight:800;">💾 Salvar</button>
+                </div>
+            </div>
+        </div>
 
         <div id="tab-orders" class="section">
 
@@ -887,8 +937,7 @@ async function verificarExecucoesPerdidas() {
         const hojeAlvoSP = new Date(agoraSP);
         hojeAlvoSP.setHours(hh, mm, 0, 0);
         const passouHorario = agoraSP >= hojeAlvoSP;
-        // Só executa recuperação se for seg-sab
-        if (passouHorario && diaSemana !== 0) {
+        if (passouHorario) {
             try {
                 const { data: logSB } = await sb.from('configs')
                     .select('value').eq('key', 'autoRefazer_ultimo').maybeSingle();
@@ -944,14 +993,16 @@ function openSection(section) {
     document.getElementById('innerApp').style.display = 'block';
     document.getElementById('mainHeader').style.display = 'none';
     document.getElementById('headerSalgados').style.display = section === 'pedidos' ? 'block' : 'none';
-    document.querySelectorAll('#innerApp .section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
+    document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
     const map = {
-        salgados:  { id: 'tab-prods',   title: '🍕 Salgados',   fn: loadAdminProducts },
-        clientes:  { id: 'tab-clients', title: '👥 Clientes',   fn: loadAdminClients },
-        pedidos:   { id: 'tab-orders',  title: '📋 Pedidos',    fn: () => { loadOrders(); carregarConfigZerar(); } },
-        compra:    { id: 'tab-compra',   title: '🛒 Compra no Nome',  fn: loadCompraTab },
-        refazer:   { id: 'tab-refazer', title: '🔁 Refazer Pedidos', fn: carregarClientesRefazer },
-        mensagens: { id: 'tab-msg',     title: '💬 Mensagens',  fn: () => {} },
+        salgados:      { id: 'tab-prods',        title: '🍕 Salgados',           fn: loadAdminProducts },
+        clientes:      { id: 'tab-clients',      title: '👥 Clientes',           fn: loadAdminClients },
+        pedidos:       { id: 'tab-orders',       title: '📋 Pedidos',            fn: () => { loadOrders(); carregarConfigZerar(); } },
+        compra:        { id: 'tab-compra',       title: '🛒 Compra no Nome',     fn: loadCompraTab },
+        refazer:       { id: 'tab-refazer',      title: '🔁 Refazer Pedidos',    fn: carregarClientesRefazer },
+        mensagens:     { id: 'tab-msg',          title: '💬 Mensagens',          fn: () => {} },
+        coordenadas:   { id: 'tab-coordenadas',  title: '📍 Coordenadas',        fn: loadCoordenadas },
+        rotas:         { id: 'tab-rotas',         title: '🗺️ Rotas',              fn: loadRotas },
     };
 
     // Seções simples (direto por ID, sem tab)
@@ -984,6 +1035,14 @@ history.replaceState({ page: 'home' }, '');
 
 window.addEventListener('popstate', function(e) {
     const state = e.state;
+
+    // Modais de rota: têm pushState próprio, fechar sem re-push
+    const _mcrEl = document.getElementById('modalClientesRota');
+    if (_mcrEl && _mcrEl.style.display === 'flex') { fecharModalClientesRota(); return; }
+    const _mrEl = document.getElementById('modalRota');
+    if (_mrEl && _mrEl.style.display === 'flex') { fecharModalRota(); return; }
+    const _morEl = document.getElementById('modalOrdemRota');
+    if (_morEl && _morEl.style.display === 'flex') { fecharModalOrdemRota(); return; }
 
     // 1. Fechar qualquer modal visível primeiro
     const modaisList = [
@@ -1039,7 +1098,7 @@ function goHome(fromPopstate) {
     if (!fromPopstate) history.back();
     document.getElementById('innerApp').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
-
+    document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
     document.getElementById('headerSalgados').style.display = 'none';
     document.getElementById('mainHeader').style.display = 'flex';
     updateFiadoHeader();
@@ -2574,7 +2633,7 @@ function agendarAutoRefazer() {
     alvo.setHours(hh, mm, 0, 0);
     let t = 0;
     while (t++ < 8) {
-        if (alvo.getDay() !== 0 && alvo > agoraSP) break; // seg-sab e no futuro
+        if (alvo > agoraSP) break;
         alvo.setDate(alvo.getDate() + 1);
         alvo.setHours(hh, mm, 0, 0);
     }
@@ -2582,7 +2641,7 @@ function agendarAutoRefazer() {
     const msAte = alvo - agoraSP;
     autoRefazerTimer = setTimeout(async () => {
         const diaNaHora = horasBRT(new Date()).getDay();
-        if (diaNaHora !== 0) { // garante que não executa no domingo
+        {
             await executarAutoRefazer();
         }
         agendarAutoRefazer();
@@ -2592,78 +2651,71 @@ function agendarAutoRefazer() {
 }
 
 async function executarAutoRefazer() {
-    const sel = carregarSelecoes();
-    const lista = Object.values(sel);
+    // Mesma lógica do grid "Hoje": fonte é o Supabase filtrado por dias_refazer + saved_order
+    const _getd     = horasBRT(new Date()).getDay(); // 0=Dom
+    const _adminIdx = _getd === 0 ? 6 : _getd - 1;  // dias_refazer: 0=Seg..6=Dom
+
+    const { data: todosClientes } = await sb.from('clientes')
+        .select('phone, name, debt, saved_order, saved_order_total, dias_refazer, show_name')
+        .order('name');
+
+    // Filtra igual ao grid: tem o dia de hoje em dias_refazer E tem pedido salvo
+    const lista = (todosClientes || []).filter(c =>
+        c.dias_refazer && c.dias_refazer.includes(_adminIdx) &&
+        c.saved_order  && c.saved_order.trim()
+    );
+
     if (lista.length === 0) return;
 
+    const desmarcados = (() => { try { return JSON.parse(localStorage.getItem('refazer_desmarcados') || '[]'); } catch(e) { return []; } })();
+    const bloqueados  = (() => { try { return JSON.parse(localStorage.getItem('refazer_bloqueados')  || '[]'); } catch(e) { return []; } })();
+
     // Quebra da regra: pedido feito após as 15h do dia anterior (SP)
-    const _pOntem12h = _partesSP(new Date(Date.now() - 86400000));
-    const _isoRef = agoraISO();
-    const _offsetSP = (_isoRef.match(/([+-]\d{2}:\d{2})$/) || [,'-03:00'])[1];
+    const _pOntem12h   = _partesSP(new Date(Date.now() - 86400000));
+    const _isoRef      = agoraISO();
+    const _offsetSP    = (_isoRef.match(/([+-]\d{2}:\d{2})$/) || [,'-03:00'])[1];
     const _ontem12hISO = `${_pOntem12h.year}-${_pOntem12h.month}-${_pOntem12h.day}T15:00:00${_offsetSP}`;
 
     const lancados = [];
-    const pulados = [];
+    const pulados  = [];
 
-    const bloqueados = JSON.parse(localStorage.getItem('refazer_bloqueados') || '[]');
-
-    for (const s of lista) {
-        // Pula clientes bloqueados do automático
-        if (bloqueados.includes(s.phone)) {
-            pulados.push(s.name + ' (bloqueado)');
+    for (const c of lista) {
+        if (desmarcados.includes(c.phone)) {
+            pulados.push(c.name + ' (desligado)');
+            continue;
+        }
+        if (bloqueados.includes(c.phone)) {
+            pulados.push(c.name + ' (bloqueado)');
             continue;
         }
 
-        const { data: pedidoRecente } = await sb.from("pedidos")
-            .select("id")
-            .eq("customer_phone", s.phone)
-            .gte("created_at", _ontem12hISO)
+        const { data: pedidoRecente } = await sb.from('pedidos')
+            .select('id')
+            .eq('customer_phone', c.phone)
+            .gte('created_at', _ontem12hISO)
             .limit(1);
 
         if (pedidoRecente && pedidoRecente.length > 0) {
-            pulados.push(s.name);
+            pulados.push(c.name);
             continue;
         }
 
-        // Busca o pedido SALVO (⭐) do cliente direto do Supabase
-        const { data: c } = await sb.from("clientes")
-            .select("debt, saved_order, saved_order_total, dias_refazer")
-            .eq("phone", s.phone).single();
-        if (!c) continue;
-
-        // Verifica se hoje é um dia configurado para este cliente
-        // dias_refazer: 0=Seg, 1=Ter, 2=Qua, 3=Qui, 4=Sex, 5=Sáb, 6=Dom
-        if (c.dias_refazer && c.dias_refazer.length > 0) {
-            const getd = horasBRT(new Date()).getDay(); // 0=Dom, 1=Seg..6=Sáb
-            const adminIdx = getd === 0 ? 6 : getd - 1; // converte para índice admin
-            if (!c.dias_refazer.includes(adminIdx)) {
-                pulados.push(s.name + ' (fora do dia)');
-                continue;
-            }
-        }
-
-        if (!c.saved_order || !c.saved_order.trim()) {
-            pulados.push(s.name + ' (sem pedido salvo)');
-            continue;
-        }
-
-        const totalParaUsar = Number(c.saved_order_total) || Number(s.total) || 0;
-        const { data: novoPedido } = await sb.from("pedidos").insert({
-            customer_name: s.name,
-            customer_phone: s.phone,
-            total: totalParaUsar,
+        const totalParaUsar = Number(c.saved_order_total) || 0;
+        const { data: novoPedido } = await sb.from('pedidos').insert({
+            customer_name:  c.name,
+            customer_phone: c.phone,
+            total:          totalParaUsar,
             payment_method: 'FIADO',
-            items: c.saved_order,
-            created_at: agoraISO()
+            items:          c.saved_order,
+            created_at:     agoraISO()
         }).select().single();
 
-        // Atualiza o débito do cliente
         try {
             const debtAtual = Number(c.debt || 0);
-            await sb.from('clientes').update({ debt: debtAtual + totalParaUsar }).eq('phone', s.phone);
+            await sb.from('clientes').update({ debt: debtAtual + totalParaUsar }).eq('phone', c.phone);
         } catch(e) { console.warn('Erro ao atualizar dívida no refazer automático:', e); }
 
-        lancados.push({ name: s.name, phone: s.phone, total: totalParaUsar, orderId: novoPedido ? novoPedido.id : null });
+        lancados.push({ name: c.name, phone: c.phone, total: totalParaUsar, orderId: novoPedido ? novoPedido.id : null });
     }
 
     const agora = new Date();
@@ -2690,7 +2742,8 @@ async function executarAutoRefazer() {
     // Salva badges dos pulados para exibir nos cards
     const badgesPulados = JSON.parse(localStorage.getItem('autoRefazer_pulados') || '{}');
     pulados.forEach(nome => {
-        const found = Object.values(sel).find(x => x.name === nome);
+        const nomeBase = nome.replace(/ \(.*\)$/, '');
+        const found = lista.find(x => x.name === nomeBase);
         const phone = found ? found.phone : null;
         if (phone) badgesPulados[phone] = agoraStr;
     });
@@ -4378,13 +4431,6 @@ async function _atualizarBannerHoje() {
     const diaName  = diasNomesLong[adminIdx];
     const domingo  = adminIdx === 6;
 
-    if (domingo) {
-        banner.innerHTML = `📅 <strong>Hoje é Domingo</strong> — automático não roda aos domingos`;
-        banner.style.color = '#9080b8';
-        if (statusEl) statusEl.style.display = 'none';
-        return;
-    }
-
     banner.innerHTML = `📅 <strong>Hoje: ${diaName}</strong> · 🕐 Disparo às <strong>${horario}</strong>`;
     banner.style.color = '#b388ff';
 
@@ -4449,15 +4495,10 @@ function _renderHoje(clientes) {
     const adminIdx = _adminIdxDeHoje();
     const domingo  = adminIdx === 6;
 
-    // Clientes do dia de hoje (ignora domingo pois automático não roda)
     const deHoje = clientes.filter(c =>
-        !domingo && c.dias_refazer && c.dias_refazer.includes(adminIdx) && c.saved_order && c.saved_order.trim()
+        c.dias_refazer && c.dias_refazer.includes(adminIdx) && c.saved_order && c.saved_order.trim()
     );
 
-    if (domingo) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">Domingo — sem pedidos automáticos</div>';
-        return;
-    }
     if (deHoje.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:18px;color:#9080b8;font-size:13px;">Nenhum cliente agendado para hoje</div>';
         return;
@@ -5037,7 +5078,631 @@ async function executarCompra(total, pedidoTexto) {
     document.getElementById('btnSalvarPedidoCliente').style.display = 'none';
     try { await carregarSaldoClientes(); } catch(e) {}
 }
-// ===== FIM COMPRA NO NOME =====
+// ===== COORDENADAS DE CLIENTES =====
+let _coordClientePhone = null;
+let _coordFromRotas = false;
+
+async function loadCoordenadas() {
+    const list = document.getElementById('coordenadaClienteList');
+    list.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:24px;">Carregando...</div>';
+    const { data: rawData } = await sb.from('clientes').select('phone,name,coordenadas').order('name');
+    const clientes = (rawData || []).sort((a, b) =>
+        (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base' })
+    );
+    if (!clientes.length) {
+        list.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:24px;">Nenhum cliente cadastrado.</div>';
+        return;
+    }
+    list.innerHTML = clientes.map(c => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : c.name.slice(0,2).toUpperCase();
+        const nomeExibido = partes[0];
+        const temCoord = c.coordenadas && c.coordenadas.trim().length > 0;
+        const borderColor = temCoord ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.5)';
+        const dotColor    = temCoord ? '#10b981' : '#ef4444';
+        const dotEmoji    = temCoord ? '🟢' : '🔴';
+        const bgGradient  = temCoord
+            ? 'linear-gradient(135deg,#065f46,#047857)'
+            : 'linear-gradient(135deg,#6c3483,#4a235a)';
+        return `<div onclick="abrirModalCoordenada('${c.phone}','${c.name.replace(/'/g,"\\'")}','${(c.coordenadas||'').replace(/'/g,"\\'")}') "
+            style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+            padding:14px 6px 10px;border-radius:18px;cursor:pointer;
+            background:#1a0f2e;border:2px solid ${borderColor};
+            box-shadow:0 3px 12px rgba(0,0,0,0.35);transition:transform 0.12s;-webkit-tap-highlight-color:transparent;"
+            onmousedown="this.style.transform='scale(0.93)'" onmouseup="this.style.transform='scale(1)'"
+            ontouchstart="this.style.transform='scale(0.93)'" ontouchend="this.style.transform='scale(1)'">
+            <div style="position:absolute;top:6px;right:8px;font-size:11px;">${dotEmoji}</div>
+            <div style="width:52px;height:52px;border-radius:50%;background:${bgGradient};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:white;box-shadow:0 2px 8px rgba(0,0,0,0.4);">${iniciais}</div>
+            <div style="font-size:11px;font-weight:700;color:#e8d8f8;text-align:center;line-height:1.2;">${nomeExibido}</div>
+            ${temCoord ? `<div style="font-size:9px;color:#6ee7b7;text-align:center;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">📌 ${c.coordenadas.trim().slice(0,20)}</div>` : '<div style="font-size:9px;color:#f87171;">sem coord.</div>'}
+        </div>`;
+    }).join('');
+}
+
+function abrirModalCoordenada(phone, nome, coordAtual) {
+    _coordClientePhone = phone;
+    document.getElementById('coordModalClienteInfo').innerHTML = `<span style="font-size:18px;">👤</span> ${nome}<br><span style="font-size:11px;color:#9080b8;font-weight:400;">${phone}</span>`;
+    document.getElementById('coordenadaInput').value = coordAtual || '';
+    const modal = document.getElementById('modalEditarCoordenada');
+    modal.style.display = 'flex';
+    modal.onclick = e => { if (e.target === modal) fecharModalCoordenada(); };
+    setTimeout(() => document.getElementById('coordenadaInput').focus(), 150);
+}
+
+function fecharModalCoordenada() {
+    document.getElementById('modalEditarCoordenada').style.display = 'none';
+    _coordClientePhone = null;
+    _coordFromRotas = false;
+}
+
+async function salvarCoordenada() {
+    if (!_coordClientePhone) return;
+    const val = document.getElementById('coordenadaInput').value.trim();
+    if (!val) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Digite a coordenada antes de salvar.', duration:3000 }); return; }
+    try {
+        const { error } = await sb.from('clientes').update({ coordenadas: val }).eq('phone', _coordClientePhone);
+        if (error) throw error;
+        const phone = _coordClientePhone;
+        const fromRotas = _coordFromRotas;
+        fecharModalCoordenada();
+        showToast({ type:'success', title:'📍 Coordenada salva!', body:'Localização atualizada com sucesso.', duration:3000 });
+        if (fromRotas) {
+            const c = _rotaClientesCache.find(x => x.phone === phone);
+            if (c) c.coordenadas = val;
+            renderClientesRotaGrid(_rotaClientesCache);
+        } else { loadCoordenadas(); }
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível salvar. Tente novamente.', duration:4000 });
+    }
+}
+
+async function limparCoordenada() {
+    if (!_coordClientePhone) return;
+    try {
+        const { error } = await sb.from('clientes').update({ coordenadas: null }).eq('phone', _coordClientePhone);
+        if (error) throw error;
+        const phone = _coordClientePhone;
+        const fromRotas = _coordFromRotas;
+        fecharModalCoordenada();
+        showToast({ type:'success', title:'🗑️ Coordenada removida!', body:'Localização apagada do cliente.', duration:3000 });
+        if (fromRotas) {
+            const c = _rotaClientesCache.find(x => x.phone === phone);
+            if (c) c.coordenadas = null;
+            renderClientesRotaGrid(_rotaClientesCache);
+        } else { loadCoordenadas(); }
+    } catch(e) {
+        showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível limpar.', duration:4000 });
+    }
+}
+// ===== FIM COORDENADAS =====
+
+
+// ── helpers rota ──
+function _rotasDoCliente(rota) {
+    if (!rota) return [];
+    return rota.split(',').map(r => r.trim()).filter(Boolean);
+}
+function _nomesDasRotas(rota) {
+    return _rotasDoCliente(rota).map(r => r.includes('-') ? r.split('-')[0].trim() : r);
+}
+function _posNaRota(rota, rotaNome) {
+    const entrada = _rotasDoCliente(rota).find(r => {
+        const n = r.includes('-') ? r.split('-')[0].trim() : r;
+        return n === rotaNome;
+    });
+    if (!entrada || !entrada.includes('-')) return null;
+    const p = parseInt(entrada.split('-')[1]);
+    return isNaN(p) ? null : p;
+}
+function _clienteTemRota(rota, rotaNome) {
+    return _nomesDasRotas(rota).includes(rotaNome);
+}
+function _adicionarRota(rota, rotaNome, pos) {
+    const atual = _rotasDoCliente(rota).filter(r => {
+        const n = r.includes('-') ? r.split('-')[0].trim() : r;
+        return n !== rotaNome;
+    });
+    atual.push(rotaNome + '-' + pos);
+    return atual.join(',');
+}
+function _removerRota(rota, rotaNome) {
+    const novas = _rotasDoCliente(rota).filter(r => {
+        const n = r.includes('-') ? r.split('-')[0].trim() : r;
+        return n !== rotaNome;
+    });
+    return novas.join(',') || null;
+}
+
+// ===== ROTAS =====
+let _rotaEditando = null;
+let _rotaDiasSelecionados = [];
+let _rotaCorSelecionada = '#8b5cf6';
+let _rotaClientesCache = [];
+let _rotaClientesSelecionados = new Set();
+let _rotaAtualId = null;
+let _rotaAtualNome = '';
+
+const DIAS_LABEL = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+async function loadRotas() {
+    const lista = document.getElementById('rotasLista');
+    lista.innerHTML = '<div style="text-align:center;padding:24px;color:#9080b8;font-size:13px;">Carregando...</div>';
+
+    const { data: rotas, error } = await sb.from('rotas').select('*').order('nome');
+    if (error) { lista.innerHTML = '<div style="color:#ef4444;text-align:center;padding:20px;">Erro ao carregar rotas.</div>'; return; }
+
+    // Busca contagem de clientes por rota (formato "nome-posicao,nome-posicao")
+    const { data: clientes } = await sb.from('clientes').select('phone,rota');
+    const contagem = {};
+    (clientes || []).forEach(c => {
+        if (!c.rota) return;
+        c.rota.split(',').map(r => r.trim()).filter(Boolean).forEach(r => {
+            const nome = r.includes('-') ? r.split('-')[0].trim() : r.trim();
+            contagem[nome] = (contagem[nome] || 0) + 1;
+        });
+    });
+
+    if (!rotas || rotas.length === 0) {
+        lista.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;">
+                <div style="font-size:48px;margin-bottom:12px;">🗺️</div>
+                <div style="font-size:15px;font-weight:700;color:#e8d8f8;margin-bottom:6px;">Nenhuma rota cadastrada</div>
+                <div style="font-size:13px;color:#9080b8;">Crie sua primeira rota clicando em <strong>+ Nova Rota</strong></div>
+            </div>`;
+        return;
+    }
+
+    lista.innerHTML = rotas.map(r => {
+        const dias = r.dias_semana ? r.dias_semana.split(',').map(Number).filter(d => !isNaN(d)) : [];
+        const diasHtml = DIAS_LABEL.map((d, i) =>
+            `<span class="rota-dia-pill ${dias.includes(i) ? 'ativo' : ''}">${d}</span>`
+        ).join('');
+        const qtdCli = contagem[r.nome] || 0;
+        const cor = r.cor || '#8b5cf6';
+
+        return `<div class="rota-card" onclick="abrirModalClientesRota('${r.id}','${r.nome.replace(/'/g,"\\'")}','${cor}')">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div class="rota-badge" style="background:${cor};">${r.nome.charAt(0).toUpperCase()}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:16px;font-weight:900;color:#e8d8f8;">Rota ${r.nome}</div>
+                    <div style="font-size:12px;color:#9080b8;margin-top:2px;">
+                        ${r.horario_saida ? '🕐 Saída: <strong style="color:#c084fc;">' + r.horario_saida + '</strong>' : '🕐 Sem horário'}
+                        &nbsp;·&nbsp;
+                        <span style="color:#a78bfa;">${qtdCli} cliente${qtdCli !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button onclick="event.stopPropagation();abrirModalOrdemRota('${r.id}','${r.nome.replace(/'/g,"\\'")}','${cor}')"
+                        style="padding:6px 10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#34d399;font-size:13px;cursor:pointer;" title="Ordenar clientes">⇅</button>
+                    <button onclick="event.stopPropagation();abrirEditarRota('${r.id}')"
+                        style="padding:6px 10px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#c084fc;font-size:13px;cursor:pointer;">✏️</button>
+                    <button onclick="event.stopPropagation();confirmarExcluirRota('${r.id}','${r.nome.replace(/'/g,"\\'")}' )"
+                        style="padding:6px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;color:#f87171;font-size:13px;cursor:pointer;">🗑️</button>
+                </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:2px;">${diasHtml}</div>
+        </div>`;
+    }).join('');
+}
+
+function abrirModalNovaRota() {
+    _rotaEditando = null;
+    _rotaDiasSelecionados = [];
+    _rotaCorSelecionada = '#8b5cf6';
+    document.getElementById('rotaEditId').value = '';
+    document.getElementById('rotaNome').value = '';
+    document.getElementById('rotaHorario').value = '';
+    document.getElementById('modalRotaTitulo').textContent = '🗺️ Nova Rota';
+    _atualizarDiasUI();
+    _atualizarCoresUI();
+    document.getElementById('modalRota').style.display = 'flex';
+    history.pushState({ page: 'section', section: 'rotas' }, '');
+    setTimeout(() => document.getElementById('rotaNome').focus(), 150);
+}
+
+async function abrirEditarRota(id) {
+    const { data: r } = await sb.from('rotas').select('*').eq('id', id).maybeSingle();
+    if (!r) return;
+    _rotaEditando = r;
+    _rotaDiasSelecionados = r.dias_semana ? r.dias_semana.split(',').map(Number).filter(d => !isNaN(d)) : [];
+    _rotaCorSelecionada = r.cor || '#8b5cf6';
+    document.getElementById('rotaEditId').value = r.id;
+    document.getElementById('rotaNome').value = r.nome;
+    document.getElementById('rotaHorario').value = r.horario_saida || '';
+    document.getElementById('modalRotaTitulo').textContent = '✏️ Editar Rota';
+    _atualizarDiasUI();
+    _atualizarCoresUI();
+    document.getElementById('modalRota').style.display = 'flex';
+    history.pushState({ page: 'section', section: 'rotas' }, '');
+}
+
+function fecharModalRota() {
+    document.getElementById('modalRota').style.display = 'none';
+}
+
+function toggleRotaDia(dia) {
+    const idx = _rotaDiasSelecionados.indexOf(dia);
+    if (idx >= 0) _rotaDiasSelecionados.splice(idx, 1);
+    else _rotaDiasSelecionados.push(dia);
+    _atualizarDiasUI();
+}
+
+function _atualizarDiasUI() {
+    document.querySelectorAll('#rotaDiasGrid .rota-modal-dia').forEach(el => {
+        const d = parseInt(el.dataset.dia);
+        el.classList.toggle('ativo', _rotaDiasSelecionados.includes(d));
+    });
+}
+
+function selecionarCorRota(cor) {
+    _rotaCorSelecionada = cor;
+    _atualizarCoresUI();
+}
+
+function _atualizarCoresUI() {
+    document.querySelectorAll('#rotaCoresGrid div[data-cor]').forEach(el => {
+        el.style.borderColor = el.dataset.cor === _rotaCorSelecionada ? 'white' : 'transparent';
+        el.style.transform = el.dataset.cor === _rotaCorSelecionada ? 'scale(1.2)' : 'scale(1)';
+    });
+}
+
+async function salvarRota() {
+    const nome = document.getElementById('rotaNome').value.trim();
+    const horario = document.getElementById('rotaHorario').value.trim();
+    const editId = document.getElementById('rotaEditId').value;
+
+    if (!nome) { mostrarToast('⚠️ Digite o nome da rota!'); return; }
+
+    const payload = {
+        nome,
+        horario_saida: horario || null,
+        dias_semana: _rotaDiasSelecionados.sort((a,b)=>a-b).join(','),
+        cor: _rotaCorSelecionada,
+    };
+
+    try {
+        if (editId) {
+            const { error } = await sb.from('rotas').update(payload).eq('id', editId);
+            if (error) throw error;
+            mostrarToast('✅ Rota atualizada!');
+        } else {
+            const { error } = await sb.from('rotas').insert(payload);
+            if (error) throw error;
+            mostrarToast('✅ Rota criada!');
+        }
+        fecharModalRota();
+        loadRotas();
+    } catch(e) {
+        mostrarToast('❌ Erro: ' + (e.message || 'Tente novamente'));
+    }
+}
+
+async function confirmarExcluirRota(id, nome) {
+    let pop = document.getElementById('popExcluirRota');
+    if (pop) pop.remove();
+    pop = document.createElement('div');
+    pop.id = 'popExcluirRota';
+    pop.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);';
+    pop.innerHTML = `
+        <div style="background:#1a0f2e;border-radius:22px;padding:28px 24px;width:88%;max-width:340px;text-align:center;border:1px solid rgba(239,68,68,0.3);">
+            <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+            <div style="font-size:17px;font-weight:900;color:#e8d8f8;margin-bottom:8px;">Excluir Rota "${nome}"?</div>
+            <div style="font-size:13px;color:#9080b8;margin-bottom:24px;">Os clientes desta rota ficarão sem rota atribuída.</div>
+            <div style="display:flex;gap:10px;">
+                <button onclick="document.getElementById('popExcluirRota').remove()" style="flex:1;background:#2e1f4a;border:none;border-radius:14px;padding:13px;color:#e8d8f8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                <button id="btnConfExcRota" style="flex:1;background:#ef4444;border:none;border-radius:14px;padding:13px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Excluir</button>
+            </div>
+        </div>`;
+    document.body.appendChild(pop);
+    document.getElementById('btnConfExcRota').onclick = async () => {
+        pop.remove();
+        const { data: cliAll } = await sb.from('clientes').select('phone,rota').not('rota','is',null);
+        for (const c of (cliAll || [])) {
+            if (_clienteTemRota(c.rota, nome)) {
+                await sb.from('clientes').update({ rota: _removerRota(c.rota, nome) }).eq('phone', c.phone);
+            }
+        }
+        await sb.from('rotas').delete().eq('id', id);
+        mostrarToast('🗑️ Rota excluída');
+        loadRotas();
+    };
+}
+
+// ── Modal Clientes da Rota ──
+async function abrirModalClientesRota(rotaId, rotaNome, cor) {
+    _rotaAtualId = rotaId;
+    _rotaAtualNome = rotaNome;
+    document.getElementById('modalClientesRotaTitulo').innerHTML =
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:${cor};font-weight:900;font-size:16px;color:white;margin-right:8px;">${rotaNome.charAt(0).toUpperCase()}</span> Clientes da Rota`;
+    document.getElementById('buscaClienteRota').value = '';
+
+    const { data: clientes } = await sb.from('clientes').select('phone,name,rota,coordenadas').order('name');
+    _rotaClientesCache = clientes || [];
+    _rotaClientesSelecionados = new Set(
+        _rotaClientesCache.filter(c => _clienteTemRota(c.rota, rotaNome)).map(c => c.phone)
+    );
+
+    renderClientesRotaGrid(_rotaClientesCache);
+    document.getElementById('modalClientesRota').style.display = 'flex';
+    history.pushState({ page: 'section', section: 'rotas' }, '');
+}
+
+function fecharModalClientesRota() {
+    document.getElementById('modalClientesRota').style.display = 'none';
+}
+
+function renderClientesRotaGrid(lista) {
+    const grid = document.getElementById('clientesRotaGrid');
+    if (!lista.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:20px;">Nenhum cliente encontrado</div>';
+        return;
+    }
+    grid.innerHTML = lista.map(c => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const iniciais = partes.length >= 2
+            ? (partes[0][0] + partes[partes.length-1][0]).toUpperCase()
+            : c.name.slice(0,2).toUpperCase();
+        const primeiro = partes[0];
+        const selecionado = _rotaClientesSelecionados.has(c.phone);
+        const outrasRotas = _nomesDasRotas(c.rota).filter(n => n !== _rotaAtualNome);
+        const outraRota = outrasRotas.length > 0;
+        const temCoord = c.coordenadas && c.coordenadas.trim().length > 0;
+        const borderColor = selecionado ? '#a78bfa' : (temCoord ? '#22c55e' : '#ef4444');
+        const coordDot = temCoord
+            ? `<div style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #150b25;"></div>`
+            : `<div style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #150b25;"></div>`;
+
+        return `<div class="cli-rota-card ${selecionado ? 'selecionado' : ''}" id="cliRota_${c.phone}"
+            onclick="toggleClienteRota('${c.phone}')"
+            oncontextmenu="event.preventDefault();abrirCoordFromRota('${c.phone}','${c.name.replace(/'/g,"\\'")}','${(c.coordenadas||'').replace(/'/g,"\\'")}');return false;"
+            ontouchstart="_lpRotaStart(event,'${c.phone}','${c.name.replace(/'/g,"\\'")}','${(c.coordenadas||'').replace(/'/g,"\\'")}')"
+            ontouchend="_lpRotaEnd()" ontouchmove="_lpRotaEnd()">
+            <div style="position:relative;">
+                <div style="width:48px;height:48px;border-radius:50%;background:${selecionado ? 'linear-gradient(135deg,#7c3aed,#5b21b6)' : 'linear-gradient(135deg,#2e1f4a,#1a0f2e)'};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:white;border:2px solid ${borderColor};">${iniciais}</div>
+                ${coordDot}
+                ${selecionado ? '<div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:#22c55e;border:2px solid #150b25;display:flex;align-items:center;justify-content:center;font-size:9px;">✓</div>' : ''}
+            </div>
+            <div style="font-size:11px;font-weight:700;color:${selecionado ? '#c084fc' : '#e8d8f8'};line-height:1.2;">${primeiro}</div>
+            ${outraRota ? `<div style="font-size:9px;color:#f59e0b;line-height:1.3;">${outrasRotas.map(r => 'Rota '+r).join(', ')}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function toggleClienteRota(phone) {
+    if (_rotaClientesSelecionados.has(phone)) {
+        _rotaClientesSelecionados.delete(phone);
+    } else {
+        const c = _rotaClientesCache.find(x => x.phone === phone);
+        if (!c || !c.coordenadas || !c.coordenadas.trim()) {
+            mostrarToast('📍 Adicione a coordenada antes de incluir na rota!');
+            return;
+        }
+        _rotaClientesSelecionados.add(phone);
+    }
+    renderClientesRotaGrid(
+        _rotaClientesCache.filter(c =>
+            !document.getElementById('buscaClienteRota').value ||
+            c.name.toLowerCase().includes(document.getElementById('buscaClienteRota').value.toLowerCase())
+        )
+    );
+}
+
+function filtrarClientesRota() {
+    const q = document.getElementById('buscaClienteRota').value.toLowerCase();
+    const filtrados = q ? _rotaClientesCache.filter(c => c.name.toLowerCase().includes(q)) : _rotaClientesCache;
+    renderClientesRotaGrid(filtrados);
+}
+
+async function salvarClientesRota() {
+    if (!_rotaAtualNome) return;
+    try {
+        const rota = _rotaAtualNome;
+        const updates = [];
+
+        // Quantos clientes já estavam na rota e continuam selecionados (mantêm posição)
+        const qtdExistentes = _rotaClientesCache.filter(c =>
+            _clienteTemRota(c.rota, rota) && _rotaClientesSelecionados.has(c.phone)
+        ).length;
+
+        // Novos clientes ordenados alfabeticamente → posição após os existentes
+        const novos = _rotaClientesCache
+            .filter(c => !_clienteTemRota(c.rota, rota) && _rotaClientesSelecionados.has(c.phone))
+            .sort((a,b) => a.name.localeCompare(b.name));
+
+        for (const c of _rotaClientesCache) {
+            const estavaNaRota = _clienteTemRota(c.rota, rota);
+            const estaAgora = _rotaClientesSelecionados.has(c.phone);
+            if (estavaNaRota === estaAgora) continue;
+
+            let novaRota;
+            if (estaAgora) {
+                // Posição após os que já estavam
+                const pos = qtdExistentes + novos.findIndex(x => x.phone === c.phone) + 1;
+                novaRota = _adicionarRota(c.rota, rota, pos);
+            } else {
+                novaRota = _removerRota(c.rota, rota);
+            }
+            updates.push({ phone: c.phone, rota: novaRota });
+        }
+
+        const BATCH = 10;
+        for (let i = 0; i < updates.length; i += BATCH) {
+            await Promise.all(updates.slice(i, i + BATCH).map(u =>
+                sb.from('clientes').update({ rota: u.rota }).eq('phone', u.phone)
+            ));
+        }
+
+        fecharModalClientesRota();
+        mostrarToast(`✅ Clientes da Rota ${rota} salvos!`);
+        loadRotas();
+    } catch(e) {
+        mostrarToast('❌ Erro ao salvar: ' + (e.message || 'Tente novamente'));
+    }
+}
+let _lpRotaTimer = null;
+function _lpRotaStart(e, phone, nome, coord) {
+    _lpRotaTimer = setTimeout(() => {
+        _lpRotaTimer = null;
+        navigator.vibrate && navigator.vibrate(40);
+        abrirCoordFromRota(phone, nome, coord);
+    }, 600);
+}
+function _lpRotaEnd() {
+    if (_lpRotaTimer) { clearTimeout(_lpRotaTimer); _lpRotaTimer = null; }
+}
+function abrirCoordFromRota(phone, nome, coord) {
+    _coordFromRotas = true;
+    abrirModalCoordenada(phone, nome, coord);
+}
+
+// ===== FIM ROTAS =====
+
+// ══════════════════════════════════════════════
+//  ORDEM DE ENTREGA NA ROTA  (drag & drop touch)
+// ══════════════════════════════════════════════
+let _ordemRotaId   = null;
+let _ordemRotaNome = '';
+let _ordemCor      = '#8b5cf6';
+let _dragEl = null, _dragClone = null, _dragOffY = 0, _dragList = null;
+
+async function abrirModalOrdemRota(rotaId, rotaNome, cor) {
+    _ordemRotaId   = rotaId;
+    _ordemRotaNome = rotaNome;
+    _ordemCor      = cor;
+
+    document.getElementById('ordemRotaTitulo').innerHTML =
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:${cor};font-weight:900;font-size:14px;color:white;margin-right:8px;">${rotaNome.charAt(0).toUpperCase()}</span>Ordem · Rota ${rotaNome}`;
+
+    document.getElementById('ordemClientesList').innerHTML =
+        '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">Carregando...</div>';
+
+    document.getElementById('modalOrdemRota').style.display = 'flex';
+    history.pushState({ page: 'section', section: 'rotas' }, '');
+
+    const { data: todosClientes } = await sb.from('clientes').select('phone,name,rota').order('name');
+
+    // Filtra e ordena pela posição salva no campo rota (formato "nome-pos")
+    const lista = (todosClientes || [])
+        .filter(c => _clienteTemRota(c.rota, rotaNome))
+        .sort((a, b) => {
+            const pa = _posNaRota(a.rota, rotaNome) ?? 9999;
+            const pb = _posNaRota(b.rota, rotaNome) ?? 9999;
+            if (pa !== pb) return pa - pb;
+            return a.name.localeCompare(b.name);
+        });
+
+    _renderOrdemLista(lista);
+}
+
+function _renderOrdemLista(lista) {
+    const list = document.getElementById('ordemClientesList');
+    if (!lista.length) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:#9080b8;font-size:13px;">Nenhum cliente nesta rota</div>';
+        return;
+    }
+    list.innerHTML = lista.map((c, i) => {
+        const partes = c.name.trim().split(' ').filter(Boolean);
+        const ini = partes.length >= 2 ? (partes[0][0]+partes[partes.length-1][0]).toUpperCase() : c.name.slice(0,2).toUpperCase();
+        return `<div class="ordem-item" data-phone="${c.phone}" data-name="${c.name.replace(/"/g,'&quot;')}">
+            <div class="ordem-handle">☰</div>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                <div style="width:36px;height:36px;border-radius:50%;background:#2e1f4a;border:2px solid ${_ordemCor};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:${_ordemCor};flex-shrink:0;">${ini}</div>
+                <div style="font-size:14px;font-weight:700;color:#e8d8f8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div>
+            </div>
+            <div class="ordem-num">${i+1}º</div>
+        </div>`;
+    }).join('');
+
+    _initOrdemDrag();
+}
+
+function _initOrdemDrag() {
+    _dragList = document.getElementById('ordemClientesList');
+    _dragList.addEventListener('touchstart',  _onDragStart, { passive: false });
+    _dragList.addEventListener('touchmove',   _onDragMove,  { passive: false });
+    _dragList.addEventListener('touchend',    _onDragEnd,   { passive: false });
+}
+
+function _onDragStart(e) {
+    const handle = e.target.closest('.ordem-handle');
+    if (!handle) return;
+    _dragEl = handle.closest('.ordem-item');
+    if (!_dragEl) return;
+    e.preventDefault();
+    navigator.vibrate && navigator.vibrate(30);
+    const touch = e.touches[0];
+    const rect  = _dragEl.getBoundingClientRect();
+    _dragOffY   = touch.clientY - rect.top;
+    _dragClone  = _dragEl.cloneNode(true);
+    Object.assign(_dragClone.style, {
+        position:'fixed', left:rect.left+'px', top:rect.top+'px',
+        width:rect.width+'px', zIndex:9999, pointerEvents:'none',
+        opacity:'0.92', background:'#2e1f4a',
+        borderRadius:'14px', boxShadow:'0 10px 30px rgba(0,0,0,0.6)',
+        transition:'none'
+    });
+    document.body.appendChild(_dragClone);
+    _dragEl.style.opacity = '0.25';
+}
+
+function _onDragMove(e) {
+    if (!_dragEl) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    _dragClone.style.top = (touch.clientY - _dragOffY) + 'px';
+    _dragClone.style.display = 'none';
+    const below = document.elementFromPoint(touch.clientX, touch.clientY);
+    _dragClone.style.display = '';
+    const target = below && below.closest('.ordem-item');
+    if (target && target !== _dragEl) {
+        const mid = target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+        _dragList.insertBefore(_dragEl, touch.clientY < mid ? target : target.nextSibling);
+        _atualizarNumeros();
+    }
+}
+
+function _onDragEnd() {
+    if (!_dragEl) return;
+    _dragEl.style.opacity = '1';
+    if (_dragClone) { _dragClone.remove(); _dragClone = null; }
+    _dragEl = null;
+}
+
+function _atualizarNumeros() {
+    document.querySelectorAll('#ordemClientesList .ordem-num').forEach((el, i) => {
+        el.textContent = (i+1) + 'º';
+    });
+}
+
+async function salvarOrdemRota() {
+    const items = document.querySelectorAll('#ordemClientesList .ordem-item');
+    const ordem = [...items].map(el => el.dataset.phone);
+    try {
+        // Salva posição no campo rota de cada cliente: "barra-1,candeias-3" etc.
+        const { data: cliAll } = await sb.from('clientes').select('phone,rota').in('phone', ordem);
+        const BATCH = 10;
+        for (let i = 0; i < ordem.length; i += BATCH) {
+            await Promise.all(ordem.slice(i, i+BATCH).map((phone, idx) => {
+                const pos = i + idx + 1;
+                const c = (cliAll || []).find(x => x.phone === phone);
+                const novaRota = _adicionarRota(c?.rota || null, _ordemRotaNome, pos);
+                return sb.from('clientes').update({ rota: novaRota }).eq('phone', phone);
+            }));
+        }
+        fecharModalOrdemRota();
+        mostrarToast('✅ Ordem salva!');
+    } catch(err) {
+        mostrarToast('❌ Erro: ' + (err.message || 'Tente novamente'));
+    }
+}
+
+function fecharModalOrdemRota() {
+    document.getElementById('modalOrdemRota').style.display = 'none';
+    if (_dragClone) { _dragClone.remove(); _dragClone = null; }
+    _dragEl = null;
+}
 
 
 </script>
@@ -5139,6 +5804,88 @@ async function executarCompra(total, pedidoTexto) {
     </div>
 </div>
 
+
+<!-- ═══════════════════════════════ SEÇÃO ROTAS ═══════════════════════════════ -->
+<div id="tab-rotas" class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;">Rotas cadastradas</div>
+        <button onclick="abrirModalNovaRota()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:12px;padding:8px 16px;color:white;font-weight:800;font-size:13px;cursor:pointer;">+ Nova Rota</button>
+    </div>
+    <div id="rotasLista"></div>
+</div>
+
+<!-- Modal Criar/Editar Rota -->
+<div id="modalRota" class="u-modal-overlay" style="display:none;" onclick="if(event.target===this)fecharModalRota()">
+    <div class="u-modal-panel" style="max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+            <div id="modalRotaTitulo" style="font-size:17px;font-weight:900;color:#e8d8f8;">🗺️ Nova Rota</div>
+            <button onclick="fecharModalRota()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+        </div>
+        <input type="hidden" id="rotaEditId">
+
+        <div style="font-size:10px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nome da rota</div>
+        <input type="text" id="rotaNome" class="input-text" placeholder="Ex: A, B, Manhã, Tarde..." maxlength="20" style="margin-bottom:14px;">
+
+        <div style="font-size:10px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Horário de saída</div>
+        <input type="time" id="rotaHorario" class="input-text" style="margin-bottom:14px;">
+
+        <div style="font-size:10px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Dias da semana</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px;" id="rotaDiasGrid">
+            <div class="rota-modal-dia" onclick="toggleRotaDia(0)" data-dia="0">Dom</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(1)" data-dia="1">Seg</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(2)" data-dia="2">Ter</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(3)" data-dia="3">Qua</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(4)" data-dia="4">Qui</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(5)" data-dia="5">Sex</div>
+            <div class="rota-modal-dia" onclick="toggleRotaDia(6)" data-dia="6">Sáb</div>
+        </div>
+
+        <div style="font-size:10px;font-weight:700;color:#9080b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Cor</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;" id="rotaCoresGrid">
+            <div onclick="selecionarCorRota('#8b5cf6')" data-cor="#8b5cf6" style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#f59e0b')" data-cor="#f59e0b" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#10b981')" data-cor="#10b981" style="width:32px;height:32px;border-radius:50%;background:#10b981;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#3b82f6')" data-cor="#3b82f6" style="width:32px;height:32px;border-radius:50%;background:#3b82f6;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#ef4444')" data-cor="#ef4444" style="width:32px;height:32px;border-radius:50%;background:#ef4444;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#ec4899')" data-cor="#ec4899" style="width:32px;height:32px;border-radius:50%;background:#ec4899;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+            <div onclick="selecionarCorRota('#f97316')" data-cor="#f97316" style="width:32px;height:32px;border-radius:50%;background:#f97316;cursor:pointer;border:3px solid transparent;transition:0.15s;"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+            <button onclick="fecharModalRota()" style="flex:1;padding:13px;background:#2e1f4a;border:none;border-radius:14px;color:#e8d8f8;font-weight:700;font-size:14px;cursor:pointer;">Cancelar</button>
+            <button onclick="salvarRota()" style="flex:2;padding:13px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:14px;color:white;font-weight:800;font-size:14px;cursor:pointer;">💾 Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Clientes da Rota -->
+<div id="modalClientesRota" class="u-modal-overlay" style="display:none;" onclick="if(event.target===this)fecharModalClientesRota()">
+    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-shrink:0;">
+            <div id="modalClientesRotaTitulo" style="font-size:17px;font-weight:900;color:#e8d8f8;"></div>
+            <button onclick="fecharModalClientesRota()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+        </div>
+        <div style="font-size:12px;color:#9080b8;margin-bottom:14px;flex-shrink:0;">Toque para adicionar ou remover clientes desta rota</div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
+            <input type="text" id="buscaClienteRota" class="input-text" placeholder="🔍 Buscar cliente..." style="margin:0;flex:1;" oninput="filtrarClientesRota()">
+        </div>
+        <div id="clientesRotaGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow-y:auto;flex:1;padding-bottom:4px;"></div>
+        <button onclick="salvarClientesRota()" style="margin-top:16px;width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:14px;color:white;font-weight:800;font-size:15px;cursor:pointer;flex-shrink:0;">✅ Salvar Clientes</button>
+    </div>
+</div>
+
+<!-- Modal Ordem de Entrega da Rota -->
+<div id="modalOrdemRota" class="u-modal-overlay" style="display:none;" onclick="if(event.target===this)fecharModalOrdemRota()">
+    <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:22px 18px 36px;max-height:90vh;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-shrink:0;">
+            <div id="ordemRotaTitulo" style="font-size:16px;font-weight:900;color:#e8d8f8;display:flex;align-items:center;"></div>
+            <button onclick="fecharModalOrdemRota()" style="background:#110820;border:none;border-radius:10px;padding:6px 12px;font-weight:bold;cursor:pointer;color:#e8d8f8;font-size:16px;">✕</button>
+        </div>
+        <div style="font-size:12px;color:#6b5c8a;margin-bottom:14px;flex-shrink:0;">Segure o <strong style="color:#8b5cf6;">☰</strong> e arraste para reordenar</div>
+        <div id="ordemClientesList" style="overflow-y:auto;flex:1;padding-bottom:4px;"></div>
+        <button onclick="salvarOrdemRota()" style="margin-top:16px;width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:14px;color:white;font-weight:800;font-size:15px;cursor:pointer;flex-shrink:0;">💾 Salvar Ordem</button>
+    </div>
+</div>
 
 </div><!-- /adminApp -->
 
