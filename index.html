@@ -407,8 +407,8 @@ if ('serviceWorker' in navigator) {
                 <div style="font-size:11px;font-weight:700;color:#9080b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">📌 Coordenadas (lat, long)</div>
                 <input type="text" id="coordenadaInput" class="input-text" placeholder="Ex: -8.123456, -35.654321" style="margin-bottom:6px;">
                 <div style="font-size:11px;color:#9080b8;margin-bottom:16px;">Cole as coordenadas do Google Maps ou digite manualmente.</div>
-                <div style="display:flex;gap:8px;">
-                    <button onclick="fecharModalCoordenada()" class="btn" style="flex:1;background:#2e1f4a;color:#e8d8f8;">Cancelar</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button onclick="usarMinhaLocalizacao()" class="btn" style="flex:1;min-width:120px;background:linear-gradient(135deg,#1e40af,#1d4ed8);color:white;font-weight:800;">📍 Minha Loc.</button>
                     <button onclick="limparCoordenada()" class="btn" style="flex:1;background:#3d1f1f;color:#e74c3c;">🗑️ Limpar</button>
                     <button onclick="salvarCoordenada()" class="btn" style="flex:2;background:linear-gradient(135deg,#10b981,#059669);color:white;font-weight:800;">💾 Salvar</button>
                 </div>
@@ -5156,6 +5156,30 @@ async function salvarCoordenada() {
     } catch(e) {
         showToast({ type:'confirm', title:'❌ Erro', body:'Não foi possível salvar. Tente novamente.', duration:4000 });
     }
+}
+
+function usarMinhaLocalizacao() {
+    if (!navigator.geolocation) {
+        showToast({ type:'confirm', title:'❌ Indisponível', body:'Seu navegador não suporta geolocalização.', duration:4000 });
+        return;
+    }
+    showToast({ type:'success', title:'📍 Obtendo localização...', body:'Aguarde um momento.', duration:3000 });
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude.toFixed(6);
+            const lng = pos.coords.longitude.toFixed(6);
+            document.getElementById('coordenadaInput').value = `${lat}, ${lng}`;
+            showToast({ type:'success', title:'✅ Localização obtida!', body:`Coordenadas: ${lat}, ${lng}`, duration:4000 });
+        },
+        function(err) {
+            let msg = 'Não foi possível obter a localização.';
+            if (err.code === 1) msg = 'Permissão negada. Permita o acesso à localização no navegador.';
+            else if (err.code === 2) msg = 'Localização indisponível. Verifique o GPS.';
+            else if (err.code === 3) msg = 'Tempo esgotado ao obter localização.';
+            showToast({ type:'confirm', title:'❌ Erro de localização', body: msg, duration:5000 });
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
 }
 
 async function limparCoordenada() {
