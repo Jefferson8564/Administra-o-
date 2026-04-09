@@ -319,6 +319,17 @@ if ('serviceWorker' in navigator) {
                         <option value="crus">🧊 Crus</option>
                     </select>
                 </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px; border:1.5px solid #7c3aed33;">
+                    <div>
+                        <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Tipo <span style="color:#e74c3c;font-size:12px;">*obrigatório</span></div>
+                        <div style="font-size:12px; color:#9080b8; margin-top:2px;">Massa Quente ou Fria</div>
+                    </div>
+                    <select id="newPTipo" style="background:#1a0f2e; color:white; border:1.5px solid #7c3aed; border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700; outline:none; cursor:pointer;">
+                        <option value="">— Selecione —</option>
+                        <option value="quente">🔴 Massa Quente</option>
+                        <option value="fria">🔵 Massa Fria</option>
+                    </select>
+                </div>
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
                     <div>
                         <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Disponível no catálogo</div>
@@ -1117,6 +1128,7 @@ async function loadAdminProducts() {
                     <strong>${p.name}</strong>
                     <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:5px;${p.available === false ? 'background:#ffcccc;color:#c0392b;' : 'background:#d5f5e3;color:#1e8449;'}">${p.available === false ? 'Indisponível' : 'Disponível'}</span>
                     <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:4px;${p.categoria === 'crus' ? 'background:#e0f2fe;color:#0369a1;' : 'background:#fff7ed;color:#c2410c;'}">${p.categoria === 'crus' ? '🧊 Crus' : '🔥 Fritos'}</span>
+                    <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:4px;${p.tipo === 'fria' ? 'background:#e0e7ff;color:#3730a3;' : p.tipo === 'quente' ? 'background:#fef9c3;color:#92400e;' : 'background:#2e1f4a;color:#9080b8;'}">${p.tipo === 'fria' ? '🔵 Fria' : p.tipo === 'quente' ? '🔴 Quente' : '⚠️ Sem tipo'}</span>
                     <br>
                     <span style="color:var(--primary);">R$ ${Number(p.price).toFixed(2)}</span>
                     ${p.price_promo != null
@@ -1144,6 +1156,7 @@ async function editProduct(id) {
     document.getElementById('newPPromo').value = p.price_promo != null ? p.price_promo : '';
     document.getElementById('newPAvailable').checked = p.available !== false;
     document.getElementById('newPCategoria').value = p.categoria || 'fritos';
+    document.getElementById('newPTipo').value = p.tipo || '';
     document.getElementById('prodFormTitle').textContent = "✏️ Editar Salgado";
     document.getElementById('btnCancelEdit').style.display = "block";
     document.getElementById('btnSaveProd').textContent = "Atualizar";
@@ -1158,6 +1171,7 @@ function resetProdForm() {
     document.getElementById('newPImg').value = "";
     document.getElementById('newPAvailable').checked = true;
     document.getElementById('newPCategoria').value = 'fritos';
+    document.getElementById('newPTipo').value = '';
     document.getElementById('prodFormTitle').textContent = "➕ Cadastrar Salgado";
     document.getElementById('btnCancelEdit').style.display = "none";
     document.getElementById('btnSaveProd').textContent = "Salvar Produto";
@@ -1171,8 +1185,10 @@ async function saveProduct() {
     const price_promo = promoRaw !== '' ? parseFloat(promoRaw) : null;
     const available = document.getElementById('newPAvailable').checked;
     const categoria = document.getElementById('newPCategoria').value;
+    const tipo = document.getElementById('newPTipo').value;
     const file = document.getElementById('newPImg').files[0];
     if (!name || !price) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha nome e preço do produto!' }); return; }
+    if (!tipo) { showToast({ type:'confirm', title:'⚠️ Tipo obrigatório', body:'Selecione o tipo: Massa Quente ou Massa Fria!' }); return; }
     const btn = document.getElementById('btnSaveProd');
     btn.disabled = true; btn.textContent = "Salvando...";
     let imageUrl = null;
@@ -1183,11 +1199,11 @@ async function saveProduct() {
         imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
     }
     if (id) {
-        const updates = { name, price, price_promo, available, categoria };
+        const updates = { name, price, price_promo, available, categoria, tipo };
         if (imageUrl) updates.image_url = imageUrl;
         await sb.from("cardapio").update(updates).eq("id", id);
     } else {
-        await sb.from("cardapio").insert({ name, price, price_promo, available, categoria, image_url: imageUrl });
+        await sb.from("cardapio").insert({ name, price, price_promo, available, categoria, tipo, image_url: imageUrl });
     }
     resetProdForm(); loadAdminProducts();
     btn.disabled = false; btn.textContent = "Salvar Produto";
@@ -1774,32 +1790,42 @@ function cobrarCliente(phone, name, debt) {
 // PEDIDOS
 const ordersMap = {};
 
+// Detecta se produto é massa fria (pastel)
+function _ehMassaFria(nome) {
+    const n = nome.toLowerCase().replace(/\./g, '').trim();
+    return n.startsWith('p ') || n.startsWith('p.') || n.includes('pastel');
+}
+
 // Classificação por tipo de salgado — detecta qualquer variação de nome
+// Retorna "q_cox", "q_cat", "q_cha", "q_sal", "q_que" para quente
+//      ou "f_cox", "f_cat", "f_cha", "f_sal", "f_que" para fria
 function abreviarNome(nome) {
     const n = nome.toLowerCase().trim()
         .replace(/\.+/g, '')   // remove pontos: "cox. frango" -> "cox frango"
         .replace(/\s+/g, ' '); // normaliza espaços
 
+    const pref = _ehMassaFria(nome) ? 'f_' : 'q_';
+
     // Cox Frango: contém "frango" ou ("cox" sem catupiry/charque/cat/cha)
-    if (n.includes('frango') || n.includes('frang')) return 'cox';
+    if (n.includes('frango') || n.includes('frang')) return pref + 'cox';
 
     // Cox Catupiry: contém "catupiry" ou "cat" (abreviação)
-    if (n.includes('catupiry') || n.includes('catu')) return 'cat';
+    if (n.includes('catupiry') || n.includes('catu')) return pref + 'cat';
 
     // Cox Charque: contém "charque" ou "cha" (abreviação)
-    if (n.includes('charque') || n.includes('charg')) return 'cha';
+    if (n.includes('charque') || n.includes('charg')) return pref + 'cha';
 
-    // Enroladinho: contém "enrolad" ou "sal" (abreviação usada no sistema)
-    if (n.includes('enrolad') || n.startsWith('sal')) return 'sal';
+    // Enroladinho/salsicha: contém "enrolad" ou "sal" (abreviação usada no sistema)
+    if (n.includes('enrolad') || n.includes('sal') || n.includes('sals')) return pref + 'sal';
 
     // Queijo / R. Queijo: contém "queijo" ou "quei"
-    if (n.includes('queijo') || n.includes('quei') || n.startsWith('r.') || n.startsWith('r ')) return 'que';
+    if (n.includes('queijo') || n.includes('quei') || n.startsWith('r ') || n.startsWith('r.')) return pref + 'que';
 
     // Cox genérica (sem tipo especificado) — conta como cox
-    if (n.includes('cox') || n.includes('coxinha')) return 'cox';
+    if (n.includes('cox') || n.includes('coxinha')) return pref + 'cox';
 
     // Não identificado — retorna as 3 primeiras letras para debug
-    return n.substring(0, 3);
+    return pref + n.substring(0, 3);
 }
 
 // Cache por tipo: { cox: [{nome, qtd}, ...], cat: [...], ... }
@@ -1825,7 +1851,7 @@ async function loadOrderSummary(pedidosExternos) {
 
         const cliente = o.customer_name || '?';
         const porTipo = {};
-        const todasLinhas = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean);
+        const todasLinhas = (o.items || '').replace(/✅ /g, '').replace(/🔴\s*/g, '').replace(/🔵\s*/g, '').replace(/❌\s*/g, '').split('\n').filter(Boolean);
 
         // Ignora itens da seção Crus — só conta Fritos
         let emCrus = false;
@@ -1868,26 +1894,56 @@ async function loadOrderSummary(pedidosExternos) {
 function renderSummaryGrid(contagem) {
     const grid = document.getElementById('orderSummaryGrid');
     if (!grid) return;
-    const ordem = ['cox', 'cat', 'cha', 'sal', 'que'];
-    const cores = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
-    grid.innerHTML = ordem.map(tipo => {
-        const qtd = contagem[tipo] || 0;
-        const cor = cores[tipo];
-        const op = qtd === 0 ? '0.35' : '1';
-        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${tipo}')` : ''}"
-            style="background:rgba(255,255,255,0.08);border-radius:10px;padding:7px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid ${cor};opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
-            <span style="font-size:20px;font-weight:900;color:${cor};line-height:1;">${qtd}</span>
-            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.75;">${tipo}</span>
+    const tipos = ['cox', 'cat', 'cha', 'sal', 'que'];
+    const labels = { cox:'cox', cat:'cat', cha:'cha', sal:'sal', que:'que' };
+
+    // Linha quente (vermelho) + linha fria (azul)
+    const rowQuente = tipos.map(tipo => {
+        const key = 'q_' + tipo;
+        const qtd = contagem[key] || 0;
+        const op = qtd === 0 ? '0.3' : '1';
+        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${key}')` : ''}"
+            style="background:rgba(239,68,68,0.12);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid #ef4444;opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
+            <span style="font-size:19px;font-weight:900;color:#ef4444;line-height:1;">${qtd}</span>
+            <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#fca5a5;opacity:0.85;">${labels[tipo]}</span>
         </div>`;
     }).join('');
+
+    const rowFria = tipos.map(tipo => {
+        const key = 'f_' + tipo;
+        const qtd = contagem[key] || 0;
+        const op = qtd === 0 ? '0.3' : '1';
+        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${key}')` : ''}"
+            style="background:rgba(59,130,246,0.12);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid #3b82f6;opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
+            <span style="font-size:19px;font-weight:900;color:#3b82f6;line-height:1;">${qtd}</span>
+            <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#93c5fd;opacity:0.85;">${labels[tipo]}</span>
+        </div>`;
+    }).join('');
+
+    grid.style.flexDirection = 'column';
+    grid.style.gap = '6px';
+    grid.innerHTML =
+        `<div style="display:flex;gap:4px;align-items:stretch;">
+            <div style="font-size:9px;font-weight:800;color:#ef4444;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg);letter-spacing:1px;opacity:0.7;padding-right:2px;">QUENTE</div>
+            <div style="display:flex;gap:4px;flex:1;">${rowQuente}</div>
+        </div>
+        <div style="display:flex;gap:4px;align-items:stretch;">
+            <div style="font-size:9px;font-weight:800;color:#3b82f6;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg);letter-spacing:1px;opacity:0.7;padding-right:2px;">FRIA</div>
+            <div style="display:flex;gap:4px;flex:1;">${rowFria}</div>
+        </div>`;
 }
 
 function abrirSummaryDetalhe(tipo) {
     const lista = _summaryDetalhes[tipo] || [];
     if (!lista.length) return;
-    const cores = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
-    const nomes = { cox:'Coxinha de Frango', cat:'Coxinha Catupiry', cha:'Coxinha Charque', sal:'Enroladinho', que:'Risole de Queijo' };
-    const cor = cores[tipo] || '#888';
+    const isQuente = tipo.startsWith('q_');
+    const base = tipo.replace(/^[qf]_/, '');
+    const corMap = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
+    const nomesQuente = { cox:'Coxinha de Frango', cat:'Coxinha Catupiry', cha:'Coxinha Charque', sal:'Salsicha', que:'Risole de Queijo' };
+    const nomesFria = { cox:'P. Frango', cat:'P. Catupiry', cha:'P. Charque', sal:'P. Salsicha', que:'P. Queijo' };
+    const cor = isQuente ? '#ef4444' : '#3b82f6';
+    const nomeLabel = (isQuente ? nomesQuente[base] : nomesFria[base]) || tipo;
+    const tipoLabel = isQuente ? '🔴 Massa Quente' : '🔵 Massa Fria';
     const total = lista.reduce((s, c) => s + c.qtd, 0);
 
     let modal = document.getElementById('modalSummaryDetalhe');
@@ -1903,7 +1959,8 @@ function abrirSummaryDetalhe(tipo) {
         <div style="background:#150b25;border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:20px 18px 36px;max-height:75vh;display:flex;flex-direction:column;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0;">
                 <div>
-                    <div style="font-size:18px;font-weight:900;color:${cor};">${nomes[tipo] || tipo}</div>
+                    <div style="font-size:18px;font-weight:900;color:${cor};">${nomeLabel}</div>
+                    <div style="font-size:11px;color:${cor};opacity:0.7;margin-top:2px;">${tipoLabel}</div>
                     <div style="font-size:12px;color:#9080b8;margin-top:3px;">${lista.length} cliente${lista.length > 1 ? 's' : ''} · <strong style="color:${cor}">${total}</strong> unidade${total > 1 ? 's' : ''}</div>
                 </div>
                 <button onclick="document.getElementById('modalSummaryDetalhe').style.display='none'" class="u-close-btn">✕</button>
@@ -1976,72 +2033,88 @@ function buildOrderCard(o) {
         : dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + ' às ' + dt.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
     // Items: clean and list — SEPARAR POR CATEGORIA
-    const itemLines = (o.items || '').replace(/✅ /g, '').split('\n').filter(Boolean)
+    const itemLines = (o.items || '')
+        .replace(/✅ /g, '').replace(/🔴\s*/g, '').replace(/🔵\s*/g, '').replace(/❌\s*/g, '')
+        .split('\n').filter(Boolean)
         .map(l => l.replace(/^[\u2022\-\*]\s*/, '').trim()).filter(Boolean);
-    
-    // Separar itens em Fritos e Crus
-    const fritos = [];
+
+    // Detecta se nome do item é massa fria (pastéis) com base no nome
+    function isMassaFria(nome) {
+        const n = nome.toLowerCase().replace(/\./g, '').trim();
+        // Pastéis frios: começam com "p " ou "p." ou contém "pastel"
+        if (n.startsWith('p ') || n.startsWith('p.') || n.includes('pastel')) return true;
+        return false;
+    }
+
+    // Separar itens em Fritos (quente/fria) e Crus
+    const fritosQuente = [];
+    const fritosFria = [];
     const crus = [];
-    const outros = [];
-    
+
     let categoriaAtual = null;
-    
+
     itemLines.forEach(linha => {
-        // Detectar separadores de categoria (com emojis) - aceita com ou sem espaços
-        if (linha.includes('🔥') && linha.includes('fritos')) {
-            categoriaAtual = 'fritos';
-            return;
-        } else if (linha.includes('❄️') && linha.includes('crus')) {
-            categoriaAtual = 'crus';
-            return;
-        }
-        
-        // Ignorar linhas que são só separadores
-        if (linha.match(/^—+$/) || linha.match(/^-+$/)) {
-            return;
-        }
-        
-        // Adicionar itens à categoria correta
+        if (linha.includes('🔥') && linha.includes('fritos')) { categoriaAtual = 'fritos'; return; }
+        if (linha.includes('❄️') && linha.includes('crus')) { categoriaAtual = 'crus'; return; }
+        if (linha.match(/^—+$/) || linha.match(/^-+$/)) return;
+
         if (categoriaAtual === 'crus') {
             crus.push(linha);
         } else if (categoriaAtual === 'fritos' || !categoriaAtual) {
-            fritos.push(linha);
+            // Detecta nome do produto para separar quente/fria
+            const matchQtd = linha.match(/^\d+[xX]\s*(.+)$/);
+            const nomeProd = matchQtd ? matchQtd[1] : linha;
+            if (isMassaFria(nomeProd)) {
+                fritosFria.push(linha);
+            } else {
+                fritosQuente.push(linha);
+            }
         }
     });
-    
-    // Construir HTML com categorias lado a lado
+
+    // Construir HTML com separação quente / fria / crus
     let itemsHTML = '';
-    
-    if (fritos.length > 0 || crus.length > 0) {
-        itemsHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
-        
-        // Coluna esquerda - Fritos
-        if (fritos.length > 0) {
-            itemsHTML += '<div><div style="font-weight:700;color:#ff8c00;font-size:12px;margin-bottom:8px;">🔥 Fritos</div>';
-            itemsHTML += fritos.map(it => `<div style="font-size:13px;color:#e8d8f8;">• ${it}</div>`).join('');
+
+    const temFritos = fritosQuente.length > 0 || fritosFria.length > 0;
+    const temCrus = crus.length > 0;
+
+    if (temFritos || temCrus) {
+        // Linha 1: Massa Quente e Massa Fria lado a lado (dentro dos fritos)
+        if (temFritos) {
+            itemsHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:' + (temCrus ? '10px' : '0') + ';">';
+
+            // Massa Quente
+            if (fritosQuente.length > 0) {
+                itemsHTML += '<div>';
+                itemsHTML += '<div style="font-weight:700;color:#ef4444;font-size:11px;margin-bottom:6px;letter-spacing:0.5px;">MASSA QUENTE</div>';
+                itemsHTML += fritosQuente.map(it => `<div style="font-size:13px;color:#fca5a5;">• ${it}</div>`).join('');
+                itemsHTML += '</div>';
+            } else {
+                itemsHTML += '<div></div>';
+            }
+
+            // Massa Fria
+            if (fritosFria.length > 0) {
+                itemsHTML += '<div>';
+                itemsHTML += '<div style="font-weight:700;color:#3b82f6;font-size:11px;margin-bottom:6px;letter-spacing:0.5px;">MASSA FRIA</div>';
+                itemsHTML += fritosFria.map(it => `<div style="font-size:13px;color:#93c5fd;">• ${it}</div>`).join('');
+                itemsHTML += '</div>';
+            } else {
+                itemsHTML += '<div></div>';
+            }
+
             itemsHTML += '</div>';
-        } else {
-            itemsHTML += '<div></div>';
         }
-        
-        // Coluna direita - Crus
-        if (crus.length > 0) {
-            itemsHTML += '<div><div style="font-weight:700;color:#00bfff;font-size:12px;margin-bottom:8px;">❄️ Crus</div>';
+
+        // Crus abaixo
+        if (temCrus) {
+            itemsHTML += '<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">';
+            itemsHTML += '<div style="font-weight:700;color:#00bfff;font-size:11px;margin-bottom:6px;letter-spacing:0.5px;">❄️ CRUS</div>';
             itemsHTML += crus.map(it => `<div style="font-size:13px;color:#e8d8f8;">• ${it}</div>`).join('');
             itemsHTML += '</div>';
-        } else {
-            itemsHTML += '<div></div>';
         }
-        
-        itemsHTML += '</div>';
     }
-    
-    if (outros.length > 0) {
-        itemsHTML += '<div style="margin-top:8px;"><div style="font-weight:700;color:#9080b8;font-size:12px;margin-bottom:4px;">📌 Outros</div>';
-        itemsHTML += outros.map(it => `<div style="margin-left:8px;">• ${it}</div>`).join('');
-        itemsHTML += '</div>';
-    }
-    
+
     // Se nenhuma categoria detectada, mostrar sem separação
     if (itemsHTML === '') {
         itemsHTML = itemLines.map(it => `<div>• ${it}</div>`).join('');
