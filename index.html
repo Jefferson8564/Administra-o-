@@ -1851,7 +1851,7 @@ async function loadOrderSummary(pedidosExternos) {
 
         const cliente = o.customer_name || '?';
         const porTipo = {};
-        const todasLinhas = (o.items || '').replace(/✅ /g, '').replace(/🔴\s*/g, '').replace(/🔵\s*/g, '').replace(/❌\s*/g, '').split('\n').filter(Boolean);
+        const todasLinhas = (o.items || '').replace(/✅ /g, '').replace(/🔴\s*/g, '').replace(/🔵\s*/g, '').replace(/❌\s*/g, '').replace(/🍗\s*/g, '').replace(/🥐\s*/g, '').split('\n').filter(Boolean);
 
         // Ignora itens da seção Crus — só conta Fritos
         let emCrus = false;
@@ -2020,7 +2020,7 @@ function buildOrderCard(o) {
     const isFiado = o.payment_method === 'FIADO';
     const valorColor = isFiado ? '#e74c3c' : '#27ae60';
     const badgeClass = isFiado ? 'badge-fiado' : 'badge-pago';
-    const badgeLabel = '🤝 PAGAR NA ENTREGA';
+    const badgeLabel = isFiado ? '🤖ABM' : 'Cardápio';
 
     // Format time: sem dupla conversão — usa Date original com Intl direto
     // Garante parse como UTC — Supabase às vezes omite o 'Z' no created_at
@@ -2035,6 +2035,7 @@ function buildOrderCard(o) {
     // Items: clean and list — SEPARAR POR CATEGORIA
     const itemLines = (o.items || '')
         .replace(/✅ /g, '').replace(/🔴\s*/g, '').replace(/🔵\s*/g, '').replace(/❌\s*/g, '')
+        .replace(/🍗\s*/g, '').replace(/🥐\s*/g, '')
         .split('\n').filter(Boolean)
         .map(l => l.replace(/^[\u2022\-\*]\s*/, '').trim()).filter(Boolean);
 
@@ -4992,15 +4993,25 @@ function usarPedidoSalvo() {
 async function salvarPedidoParaCliente() {
     if (!compraClienteAtual) return;
     if (Object.keys(compraCart).length === 0) { mostrarToast('⚠️ Monte um pedido antes de salvar!'); return; }
-    let pedidoTexto = ''; let total = 0;
+    let linhasFritos = []; let linhasCrus = []; let total = 0;
     for (let id in compraCart) {
         const p = compraProdutos.find(x => x.id == id);
-        if (p) { pedidoTexto += `${compraCart[id]}x ${p.name}\n`; total += p.price * compraCart[id]; }
+        if (p) {
+            const tipoEmoji = (p.tipo === 'quente') ? '🍗' : (p.tipo === 'fria') ? '🥐' : '✅';
+            const linha = `${tipoEmoji} ${compraCart[id]}x ${p.name}`;
+            total += (p.price_promo != null ? Number(p.price_promo) : Number(p.price)) * compraCart[id];
+            if ((p.categoria || '').toLowerCase() === 'crus') linhasCrus.push(linha);
+            else linhasFritos.push(linha);
+        }
     }
-    await sb.from("clientes").update({ saved_order: pedidoTexto.trim(), saved_order_total: total }).eq("phone", compraClienteAtual.phone);
-    compraClienteAtual.saved_order = pedidoTexto.trim();
+    let pedidoTexto = '';
+    if (linhasFritos.length > 0) pedidoTexto += `———————🔥fritos🔥———————\n` + linhasFritos.join('\n') + '\n';
+    if (linhasCrus.length > 0)   pedidoTexto += `———————❄️ crus ❄️———————\n` + linhasCrus.join('\n') + '\n';
+    pedidoTexto = pedidoTexto.trim();
+    await sb.from("clientes").update({ saved_order: pedidoTexto, saved_order_total: total }).eq("phone", compraClienteAtual.phone);
+    compraClienteAtual.saved_order = pedidoTexto;
     compraClienteAtual.saved_order_total = total;
-    document.getElementById('compraPedidoSalvoTexto').textContent = pedidoTexto.trim();
+    document.getElementById('compraPedidoSalvoTexto').textContent = pedidoTexto;
     document.getElementById('compraPedidoSalvoTotal').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
     document.getElementById('modalPedidoSalvoNome').textContent = '👤 ' + compraClienteAtual.name;
     mostrarToast(`⭐ Pedido de ${compraClienteAtual.name} salvo!`);
@@ -5036,16 +5047,16 @@ function filtrarCategoriaCompra(cat) {
     renderCompraProdList();
 }
 
-function renderCompraProdList() {
-    const list = document.getElementById('compraProdList');
-    list.style.display = 'grid';
-    list.style.gridTemplateColumns = '1fr 1fr';
-    list.style.gap = '10px';
-    list.style.padding = '4px 0 8px';
-
-    const filtrados = compraProdutos.filter(p => (p.categoria || '').toLowerCase() === compraCategoriaAtiva);
-
-    list.innerHTML = filtrados.map(p => `
+// Helper: card individual de produto na tela de compra
+function _cardCompraProd(p) {
+    const isQuente = (p.tipo || '') === 'quente';
+    const isFria   = (p.tipo || '') === 'fria';
+    const grad = isQuente
+        ? 'linear-gradient(160deg,#c0392b,#962d22)'
+        : isFria
+            ? 'linear-gradient(160deg,#2563eb,#1d4ed8)'
+            : 'linear-gradient(160deg,#374151,#1f2937)';
+    return `
         <div style="border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.4);display:flex;flex-direction:column;">
             <div style="height:130px;overflow:hidden;background:#0d0720;flex-shrink:0;">
                 ${p.image_url
@@ -5053,7 +5064,7 @@ function renderCompraProdList() {
                     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;">🥟</div>`
                 }
             </div>
-            <div style="background:linear-gradient(160deg,#3b82f6,#2563eb);padding:10px 10px 12px;flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div style="background:${grad};padding:10px 10px 12px;flex:1;display:flex;flex-direction:column;gap:10px;">
                 <div>
                     <div style="font-weight:800;font-size:14px;color:#fff;line-height:1.3;">${p.name}</div>
                     ${p.price_promo != null
@@ -5067,11 +5078,52 @@ function renderCompraProdList() {
                     <button onclick="qtyCompra('${p.id}',1)" style="width:34px;height:34px;border-radius:50%;border:none;background:#22c55e;color:white;font-size:24px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">+</button>
                 </div>
             </div>
-        </div>`).join('');
+        </div>`;
+}
+
+// Helper: separador de grupo igual ao cardápio
+function _sepGrupo(label, cor) {
+    return `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 2px 2px;">
+        <div style="flex:1;height:2px;background:rgba(255,255,255,0.12);border-radius:2px;"></div>
+        <div style="font-size:13px;font-weight:900;color:${cor};letter-spacing:0.5px;white-space:nowrap;">${label}</div>
+        <div style="flex:1;height:2px;background:rgba(255,255,255,0.12);border-radius:2px;"></div>
+    </div>`;
+}
+
+function renderCompraProdList() {
+    const list = document.getElementById('compraProdList');
+    list.style.display = 'grid';
+    list.style.gridTemplateColumns = '1fr 1fr';
+    list.style.gap = '10px';
+    list.style.padding = '4px 0 8px';
+
+    const filtrados = compraProdutos.filter(p => (p.categoria || '').toLowerCase() === compraCategoriaAtiva);
 
     if (filtrados.length === 0) {
         list.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#9080b8;padding:30px;font-size:14px;">Nenhum produto nesta categoria.</div>';
+        atualizarTotalCompra();
+        return;
     }
+
+    if (compraCategoriaAtiva === 'fritos') {
+        // Agrupa por tipo igual ao cardápio: Massa Quente → Massa Fria → Outros
+        const grupos = [
+            { tipo: 'quente', label: '🍗 Massa Quente', cor: '#ef4444' },
+            { tipo: 'fria',   label: '🥐 Massa Fria',   cor: '#60a5fa' },
+            { tipo: '',       label: '📦 Outros',        cor: '#9ca3af' },
+        ];
+        let html = '';
+        for (const g of grupos) {
+            const itens = filtrados.filter(p => (p.tipo || '') === g.tipo);
+            if (itens.length === 0) continue;
+            html += _sepGrupo(g.label, g.cor);
+            html += itens.map(p => _cardCompraProd(p)).join('');
+        }
+        list.innerHTML = html;
+    } else {
+        list.innerHTML = filtrados.map(p => _cardCompraProd(p)).join('');
+    }
+
     atualizarTotalCompra();
 }
 function qtyCompra(id, d) {
@@ -5105,7 +5157,9 @@ async function confirmarCompra() {
         if (p) {
             const precoUsar = p.price_promo != null ? p.price_promo : p.price;
             total += precoUsar * compraCart[id];
-            const linha = `✅ ${compraCart[id]}x ${p.name}`;
+            // Mesmo emoji do cardápio: 🍗 quente, 🥐 fria, ✅ sem tipo
+            const tipoEmoji = (p.tipo === 'quente') ? '🍗' : (p.tipo === 'fria') ? '🥐' : '✅';
+            const linha = `${tipoEmoji} ${compraCart[id]}x ${p.name}`;
             if ((p.categoria || '').toLowerCase() === 'crus') linhasCrus.push(linha);
             else linhasFritos.push(linha);
         }
