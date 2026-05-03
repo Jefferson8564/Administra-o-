@@ -136,6 +136,7 @@
         .order-card-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
         .badge-fiado { background: #3d1f1f; color: #e74c3c; }
         .badge-pago  { background: #1a3025; color: #27ae60; }
+        .badge-lara  { background: #2d1a2e; color: #e91e8c; }
         .order-fiado-btn { margin-top: 10px; width: 100%; padding: 9px; background: #2d1f0e; border: 1.5px solid #e67e22; color: #e67e22; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
         
@@ -290,7 +291,7 @@ if ('serviceWorker' in navigator) {
         <div class="back-area" style="justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <button class="back-btn" onclick="goHome()">← Voltar</button>
-                <span class="back-section-title" id="sectionTitle" onclick="toggleAutoZerarBox()" style="cursor:pointer;user-select:none;-webkit-user-select:none;"></span>
+                <span class="back-section-title" id="sectionTitle" style="cursor:default;"></span>
             </div>
 
         </div>
@@ -314,6 +315,7 @@ if ('serviceWorker' in navigator) {
                     <input type="number" id="newPPromo" class="input-text" placeholder="Deixe vazio = sem oferta (ex: 5.00)" step="0.50" style="margin-bottom:0;">
                 </div>
                 <input type="file" id="newPImg" class="input-text" accept="image/*">
+
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
                     <div>
                         <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Categoria</div>
@@ -324,17 +326,7 @@ if ('serviceWorker' in navigator) {
                         <option value="crus">🧊 Crus</option>
                     </select>
                 </div>
-                <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px; border:1.5px solid #7c3aed33;">
-                    <div>
-                        <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Tipo <span style="color:#e74c3c;font-size:12px;">*obrigatório</span></div>
-                        <div style="font-size:12px; color:#9080b8; margin-top:2px;">Massa Quente ou Fria</div>
-                    </div>
-                    <select id="newPTipo" style="background:#1a0f2e; color:white; border:1.5px solid #7c3aed; border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700; outline:none; cursor:pointer;">
-                        <option value="">— Selecione —</option>
-                        <option value="quente">🔴 Massa Quente</option>
-                        <option value="fria">🔵 Massa Fria</option>
-                    </select>
-                </div>
+
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#150b25; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
                     <div>
                         <div style="font-weight:700; font-size:14px; color:#e8d8f8;">Disponível no catálogo</div>
@@ -434,54 +426,8 @@ if ('serviceWorker' in navigator) {
         <div id="tab-orders" class="section">
 
             <div id="orderList"></div>
-
-            <!-- AUTO-ZERAR PEDIDOS -->
-            <div id="autoZerarBox" style="display:none;background:linear-gradient(135deg,#1a1a2e,#2d1f0e);border-radius:18px;padding:16px;margin-top:20px;color:white;">
-                <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🗑️ Limpeza Automática de Pedidos</div>
-                <div style="font-size:12px;opacity:0.6;margin-bottom:14px;">Sempre ativa — apaga pedidos antes do horário limite</div>
-
-                <!-- SEG - SÁB -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:10px;">
-                    <div style="font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:10px;">📅 Segunda a Sábado</div>
-                    <div style="margin-bottom:8px;">
-                        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário de fechamento</div>
-                        <input type="time" id="zerarAte1" value="15:00"
-                            class="u-time-input"
-                            onchange="atualizarPreviewJanela()">
-                    </div>
-                    <div id="zerarPreview1" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;"></div>
-                    <div id="zerarStatus1" style="font-size:11px;color:#4ade80;"></div>
                 </div>
 
-                <!-- DOMINGO -->
-                <div style="background:rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:12px;">
-                    <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:10px;">☀️ Domingo</div>
-                    <div style="margin-bottom:8px;">
-                        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:4px;">🏁 Horário de fechamento</div>
-                        <input type="time" id="zerarAteDom" value="08:00"
-                            class="u-time-input"
-                            onchange="atualizarPreviewJanela()">
-                    </div>
-                    <div id="zerarPreviewDom" style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;"></div>
-                    <div id="zerarStatusDom" style="font-size:11px;color:#4ade80;"></div>
-                </div>
-
-                <button onclick="salvarConfigZerar()" style="width:100%;padding:10px;background:linear-gradient(135deg,#c75b24,#e67e22);color:white;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;">💾 Salvar</button>
-            </div>
-        </div>
-
-
-        <!-- ABA COMPRA NO NOME -->
-
-        <!-- Modal Histórico Execuções -->
-        <div id="modalHistoricoExec" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:3000; align-items:center; justify-content:center; padding:15px;">
-            <div style="background:#1a0f2e; border-radius:20px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="color:#8e44ad; font-size:17px;">📋 Histórico de Execuções</h3>
-                    <button onclick="document.getElementById('modalHistoricoExec').style.display='none'" class="u-close-btn">✕</button>
-                </div>
-                <div id="historicoExecList"></div>
-            </div>
         </div>
 
         <!-- ABA COMPRA NO NOME -->
@@ -882,12 +828,8 @@ function _partesSP(d) {
 function agoraISO() {
   const now = new Date();
   const p = _partesSP(now);
-  const localMs = new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`).getTime();
-  const offsetMin = Math.round((localMs - now.getTime()) / 60000);
-  const sign = offsetMin >= 0 ? '+' : '-';
-  const absH = String(Math.floor(Math.abs(offsetMin) / 60)).padStart(2, '0');
-  const absM = String(Math.abs(offsetMin) % 60).padStart(2, '0');
-  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}${sign}${absH}:${absM}`;
+  // Brasil/SP nao tem horario de verao desde 2019 → sempre UTC-3
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}-03:00`;
 }
 
 function hojeStr() {
@@ -935,7 +877,6 @@ async function initAdmin() {
     await loadTemplates();
     await updateFiadoHeader();
     setTimeout(async () => {
-        carregarConfigZerar();
         await verificarExecucoesPerdidas();
     }, 500);
 }
@@ -967,32 +908,6 @@ async function verificarExecucoesPerdidas() {
         agendarAutoRefazer();
     }
 
-    // Auto-Zerar (sempre ativo)
-    {
-        const cfg  = getConfigZerar();
-        const exec = cfg.exec || '15:00';
-        const diaSemana = horasBRT(new Date()).getDay(); // 0=dom
-        const execAtual = diaSemana === 0 ? (cfg.execDom || '15:00') : exec;
-        const [hh, mm] = execAtual.split(':').map(Number);
-        const agoraSP  = horasBRT(new Date());
-        const hojeAlvo = new Date(agoraSP);
-        hojeAlvo.setHours(hh, mm, 0, 0);
-        const passouHorario = agoraSP >= hojeAlvo;
-        if (passouHorario) {
-            // Verifica no Supabase se já executou hoje (funciona em qualquer dispositivo)
-            const hoje = agoraSP.toLocaleDateString('pt-BR');
-            try {
-                const { data: logSB } = await sb.from('configs')
-                    .select('value').eq('key', 'autoZerar_ultimo').maybeSingle();
-                const jaExecutouHoje = logSB && logSB.value && logSB.value.startsWith(hoje);
-                if (!jaExecutouHoje) {
-                    console.log('[AutoZerar] Execucao perdida detectada, executando agora');
-                    await executarZerarJanela(diaSemana === 0 ? 'domingo' : 'normal');
-                }
-            } catch(e) { console.warn('[AutoZerar] Erro ao verificar log:', e); }
-        }
-        // agendamento já feito por carregarConfigZerar()
-    }
 }
 
 async function updateFiadoHeader() {
@@ -1009,11 +924,12 @@ function openSection(section) {
     document.getElementById('innerApp').style.display = 'block';
     document.getElementById('mainHeader').style.display = 'none';
     document.getElementById('headerSalgados').style.display = section === 'pedidos' ? 'block' : 'none';
+    pararRealtimePedidos();
     document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
     const map = {
         salgados:      { id: 'tab-prods',        title: '🍕 Salgados',           fn: loadAdminProducts },
         clientes:      { id: 'tab-clients',      title: '👥 Clientes',           fn: loadAdminClients },
-        pedidos:       { id: 'tab-orders',       title: '📋 Pedidos',            fn: () => { loadOrders(); carregarConfigZerar(); } },
+        pedidos:       { id: 'tab-orders',       title: '📋 Pedidos',            fn: () => { loadOrders(); } },
         compra:        { id: 'tab-compra',       title: '🛒 Compra no Nome',     fn: loadCompraTab },
         refazer:       { id: 'tab-refazer',      title: '🔁 Refazer Pedidos',    fn: carregarClientesRefazer },
         mensagens:     { id: 'tab-msg',          title: '💬 Mensagens',          fn: () => {} },
@@ -1099,21 +1015,12 @@ window.addEventListener('popstate', function(e) {
     }
 });
 // FIM BOTÃO FÍSICO
-function toggleAutoZerarBox() {
-    // Só abre se estiver na aba de pedidos
-    const box = document.getElementById('autoZerarBox');
-    if (!box) return;
-    const visivel = box.style.display !== 'none';
-    box.style.display = visivel ? 'none' : 'block';
-    // Feedback visual no título
-    const titulo = document.getElementById('sectionTitle');
-    if (titulo) titulo.style.opacity = visivel ? '1' : '0.7';
-}
 
 function goHome(fromPopstate) {
     if (!fromPopstate) history.back();
     document.getElementById('innerApp').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
+    pararRealtimePedidos();
     document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
     document.getElementById('headerSalgados').style.display = 'none';
     document.getElementById('mainHeader').style.display = 'flex';
@@ -1133,7 +1040,6 @@ async function loadAdminProducts() {
                     <strong>${p.name}</strong>
                     <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:5px;${p.available === false ? 'background:#ffcccc;color:#c0392b;' : 'background:#d5f5e3;color:#1e8449;'}">${p.available === false ? 'Indisponível' : 'Disponível'}</span>
                     <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:4px;${p.categoria === 'crus' ? 'background:#e0f2fe;color:#0369a1;' : 'background:#fff7ed;color:#c2410c;'}">${p.categoria === 'crus' ? '🧊 Crus' : '🔥 Fritos'}</span>
-                    <span style="font-size:11px;padding:2px 7px;border-radius:20px;margin-left:4px;${p.tipo === 'fria' ? 'background:#e0e7ff;color:#3730a3;' : p.tipo === 'quente' ? 'background:#fef9c3;color:#92400e;' : 'background:#2e1f4a;color:#9080b8;'}">${p.tipo === 'fria' ? '🔵 Fria' : p.tipo === 'quente' ? '🔴 Quente' : '⚠️ Sem tipo'}</span>
                     <br>
                     <span style="color:var(--primary);">R$ ${Number(p.price).toFixed(2)}</span>
                     ${p.price_promo != null
@@ -1161,7 +1067,6 @@ async function editProduct(id) {
     document.getElementById('newPPromo').value = p.price_promo != null ? p.price_promo : '';
     document.getElementById('newPAvailable').checked = p.available !== false;
     document.getElementById('newPCategoria').value = p.categoria || 'fritos';
-    document.getElementById('newPTipo').value = p.tipo || '';
     document.getElementById('prodFormTitle').textContent = "✏️ Editar Salgado";
     document.getElementById('btnCancelEdit').style.display = "block";
     document.getElementById('btnSaveProd').textContent = "Atualizar";
@@ -1176,7 +1081,6 @@ function resetProdForm() {
     document.getElementById('newPImg').value = "";
     document.getElementById('newPAvailable').checked = true;
     document.getElementById('newPCategoria').value = 'fritos';
-    document.getElementById('newPTipo').value = '';
     document.getElementById('prodFormTitle').textContent = "➕ Cadastrar Salgado";
     document.getElementById('btnCancelEdit').style.display = "none";
     document.getElementById('btnSaveProd').textContent = "Salvar Produto";
@@ -1190,10 +1094,8 @@ async function saveProduct() {
     const price_promo = promoRaw !== '' ? parseFloat(promoRaw) : null;
     const available = document.getElementById('newPAvailable').checked;
     const categoria = document.getElementById('newPCategoria').value;
-    const tipo = document.getElementById('newPTipo').value;
     const file = document.getElementById('newPImg').files[0];
     if (!name || !price) { showToast({ type:'confirm', title:'⚠️ Atenção', body:'Preencha nome e preço do produto!' }); return; }
-    if (!tipo) { showToast({ type:'confirm', title:'⚠️ Tipo obrigatório', body:'Selecione o tipo: Massa Quente ou Massa Fria!' }); return; }
     const btn = document.getElementById('btnSaveProd');
     btn.disabled = true; btn.textContent = "Salvando...";
     let imageUrl = null;
@@ -1204,11 +1106,11 @@ async function saveProduct() {
         imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
     }
     if (id) {
-        const updates = { name, price, price_promo, available, categoria, tipo };
+        const updates = { name, price, price_promo, available, categoria };
         if (imageUrl) updates.image_url = imageUrl;
         await sb.from("cardapio").update(updates).eq("id", id);
     } else {
-        await sb.from("cardapio").insert({ name, price, price_promo, available, categoria, tipo, image_url: imageUrl });
+        await sb.from("cardapio").insert({ name, price, price_promo, available, categoria, image_url: imageUrl });
     }
     resetProdForm(); loadAdminProducts();
     btn.disabled = false; btn.textContent = "Salvar Produto";
@@ -1777,14 +1679,16 @@ async function executarPayDebt(phone, val) {
     });
 
     // Abre o WhatsApp direto com o comprovante
-    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(comprovante)}`, '_blank');
+    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(_cabecalhoWpp + comprovante)}`, '_blank');
 }
 
 function enviarComprovanteWpp() {
     const { phone, texto } = _comprovanteTemp;
     closeToast();
     if (!phone || !texto) return;
-    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
+    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
     _comprovanteTemp = { phone: null, texto: null };
 }
 
@@ -1811,48 +1715,27 @@ async function executarDeleteClient(phone) {
 
 function cobrarCliente(phone, name, debt) {
     const texto = msgCobranca.replace('{nome}', name).replace('{valor}', debt.toFixed(2).replace('.', ','));
-    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(texto)}`, '_blank');
+    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
+    window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
 }
 
 // PEDIDOS
 const ordersMap = {};
 
-// Detecta se produto é massa fria (pastel)
-function _ehMassaFria(nome) {
-    const n = nome.toLowerCase().replace(/\./g, '').trim();
-    return n.startsWith('p ') || n.startsWith('p.') || n.includes('pastel');
-}
-
 // Classificação por tipo de salgado — detecta qualquer variação de nome
-// Retorna "q_cox", "q_cat", "q_cha", "q_sal", "q_que" para quente
-//      ou "f_cox", "f_cat", "f_cha", "f_sal", "f_que" para fria
 function abreviarNome(nome) {
     const n = nome.toLowerCase().trim()
         .replace(/\.+/g, '')   // remove pontos: "cox. frango" -> "cox frango"
         .replace(/\s+/g, ' '); // normaliza espaços
 
-    const pref = _ehMassaFria(nome) ? 'f_' : 'q_';
+    if (n.includes('frango') || n.includes('frang')) return 'cox';
+    if (n.includes('catupiry') || n.includes('catu')) return 'cat';
+    if (n.includes('charque') || n.includes('charg')) return 'cha';
+    if (n.includes('enrolad') || n.includes('sal') || n.includes('sals')) return 'sal';
+    if (n.includes('queijo') || n.includes('quei') || n.startsWith('r ') || n.startsWith('r.') || n.startsWith('p ') || n.startsWith('p.') || n.includes('pastel')) return 'que';
+    if (n.includes('cox') || n.includes('coxinha')) return 'cox';
 
-    // Cox Frango: contém "frango" ou ("cox" sem catupiry/charque/cat/cha)
-    if (n.includes('frango') || n.includes('frang')) return pref + 'cox';
-
-    // Cox Catupiry: contém "catupiry" ou "cat" (abreviação)
-    if (n.includes('catupiry') || n.includes('catu')) return pref + 'cat';
-
-    // Cox Charque: contém "charque" ou "cha" (abreviação)
-    if (n.includes('charque') || n.includes('charg')) return pref + 'cha';
-
-    // Enroladinho/salsicha: contém "enrolad" ou "sal" (abreviação usada no sistema)
-    if (n.includes('enrolad') || n.includes('sal') || n.includes('sals')) return pref + 'sal';
-
-    // Queijo / R. Queijo: contém "queijo" ou "quei"
-    if (n.includes('queijo') || n.includes('quei') || n.startsWith('r ') || n.startsWith('r.')) return pref + 'que';
-
-    // Cox genérica (sem tipo especificado) — conta como cox
-    if (n.includes('cox') || n.includes('coxinha')) return pref + 'cox';
-
-    // Não identificado — retorna as 3 primeiras letras para debug
-    return pref + n.substring(0, 3);
+    return n.substring(0, 3);
 }
 
 // Cache por tipo: { cox: [{nome, qtd}, ...], cat: [...], ... }
@@ -1924,26 +1807,13 @@ function renderSummaryGrid(contagem) {
     const tipos = ['cox', 'cat', 'cha', 'sal', 'que'];
     const labels = { cox:'cox', cat:'cat', cha:'cha', sal:'sal', que:'que' };
 
-    // Linha quente (vermelho) + linha fria (azul)
-    const rowQuente = tipos.map(tipo => {
-        const key = 'q_' + tipo;
-        const qtd = contagem[key] || 0;
+    const rowFritos = tipos.map(tipo => {
+        const qtd = contagem[tipo] || 0;
         const op = qtd === 0 ? '0.3' : '1';
-        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${key}')` : ''}"
-            style="background:rgba(239,68,68,0.12);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid #ef4444;opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
-            <span style="font-size:19px;font-weight:900;color:#ef4444;line-height:1;">${qtd}</span>
-            <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#fca5a5;opacity:0.85;">${labels[tipo]}</span>
-        </div>`;
-    }).join('');
-
-    const rowFria = tipos.map(tipo => {
-        const key = 'f_' + tipo;
-        const qtd = contagem[key] || 0;
-        const op = qtd === 0 ? '0.3' : '1';
-        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${key}')` : ''}"
-            style="background:rgba(59,130,246,0.12);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid #3b82f6;opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
-            <span style="font-size:19px;font-weight:900;color:#3b82f6;line-height:1;">${qtd}</span>
-            <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#93c5fd;opacity:0.85;">${labels[tipo]}</span>
+        return `<div onclick="${qtd > 0 ? `abrirSummaryDetalhe('${tipo}')` : ''}"
+            style="background:rgba(199,91,36,0.12);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:3px solid #c75b24;opacity:${op};flex:1;cursor:${qtd > 0 ? 'pointer' : 'default'};-webkit-tap-highlight-color:transparent;transition:opacity 0.1s;">
+            <span style="font-size:19px;font-weight:900;color:#c75b24;line-height:1;">${qtd}</span>
+            <span style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#f5a37a;opacity:0.85;">${labels[tipo]}</span>
         </div>`;
     }).join('');
 
@@ -1951,26 +1821,16 @@ function renderSummaryGrid(contagem) {
     grid.style.gap = '6px';
     grid.innerHTML =
         `<div style="display:flex;gap:4px;align-items:stretch;">
-            <div style="font-size:9px;font-weight:800;color:#ef4444;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg);letter-spacing:1px;opacity:0.7;padding-right:2px;">QUENTE</div>
-            <div style="display:flex;gap:4px;flex:1;">${rowQuente}</div>
-        </div>
-        <div style="display:flex;gap:4px;align-items:stretch;">
-            <div style="font-size:9px;font-weight:800;color:#3b82f6;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg);letter-spacing:1px;opacity:0.7;padding-right:2px;">FRIA</div>
-            <div style="display:flex;gap:4px;flex:1;">${rowFria}</div>
+            <div style="display:flex;gap:4px;flex:1;">${rowFritos}</div>
         </div>`;
 }
 
 function abrirSummaryDetalhe(tipo) {
     const lista = _summaryDetalhes[tipo] || [];
     if (!lista.length) return;
-    const isQuente = tipo.startsWith('q_');
-    const base = tipo.replace(/^[qf]_/, '');
-    const corMap = { cox:'#f39c12', cat:'#e74c3c', cha:'#8e44ad', sal:'#27ae60', que:'#3498db' };
-    const nomesQuente = { cox:'Coxinha de Frango', cat:'Coxinha Catupiry', cha:'Coxinha Charque', sal:'Salsicha', que:'Risole de Queijo' };
-    const nomesFria = { cox:'P. Frango', cat:'P. Catupiry', cha:'P. Charque', sal:'P. Salsicha', que:'P. Queijo' };
-    const cor = isQuente ? '#ef4444' : '#3b82f6';
-    const nomeLabel = (isQuente ? nomesQuente[base] : nomesFria[base]) || tipo;
-    const tipoLabel = isQuente ? '🔴 Massa Quente' : '🔵 Massa Fria';
+    const nomes = { cox:'Coxinha de Frango', cat:'Coxinha Catupiry', cha:'Coxinha Charque', sal:'Salsicha', que:'Queijo/Pastel' };
+    const cor = '#c75b24';
+    const nomeLabel = nomes[tipo] || tipo;
     const total = lista.reduce((s, c) => s + c.qtd, 0);
 
     let modal = document.getElementById('modalSummaryDetalhe');
@@ -1987,7 +1847,7 @@ function abrirSummaryDetalhe(tipo) {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0;">
                 <div>
                     <div style="font-size:18px;font-weight:900;color:${cor};">${nomeLabel}</div>
-                    <div style="font-size:11px;color:${cor};opacity:0.7;margin-top:2px;">${tipoLabel}</div>
+                    <div style="font-size:11px;color:${cor};opacity:0.7;margin-top:2px;">🔥 Fritos</div>
                     <div style="font-size:12px;color:#9080b8;margin-top:3px;">${lista.length} cliente${lista.length > 1 ? 's' : ''} · <strong style="color:${cor}">${total}</strong> unidade${total > 1 ? 's' : ''}</div>
                 </div>
                 <button onclick="document.getElementById('modalSummaryDetalhe').style.display='none'" class="u-close-btn">✕</button>
@@ -2006,6 +1866,8 @@ function abrirSummaryDetalhe(tipo) {
 
 // Controle de pedidos
 
+let _ordersRealtimeChannel = null;
+
 async function loadOrders() {
 
     const list = document.getElementById('orderList');
@@ -2014,6 +1876,7 @@ async function loadOrders() {
     try {
         const { data, error } = await sb.from("pedidos")
             .select("*")
+            .eq("status", "Em produção")
             .order("created_at", { ascending: true })
             .limit(200);
 
@@ -2023,17 +1886,16 @@ async function loadOrders() {
 
         if (!data || data.length === 0) {
             list.innerHTML = '<div style="padding:40px 0;text-align:center;color:#9080b8;">Sem pedidos hoje</div>';
-            return;
+        } else {
+            data.forEach(o => { ordersMap[o.id] = o; });
+            const ordenados = [...data].sort((a, b) =>
+                (a.customer_name || '').localeCompare(b.customer_name || '', 'pt-BR', { sensitivity: 'base' })
+            );
+            list.innerHTML = ordenados.map(o => buildOrderCard(o)).join('');
         }
 
-        data.forEach(o => { ordersMap[o.id] = o; });
-
-        // Ordena por nome do cliente
-        const ordenados = [...data].sort((a, b) =>
-            (a.customer_name || '').localeCompare(b.customer_name || '', 'pt-BR', { sensitivity: 'base' })
-        );
-
-        list.innerHTML = ordenados.map(o => buildOrderCard(o)).join('');
+        // Inicia realtime (só 1 canal por vez)
+        iniciarRealtimePedidos();
 
     } catch(e) {
         console.error('loadOrders erro:', e);
@@ -2041,13 +1903,70 @@ async function loadOrders() {
     }
 }
 
+function iniciarRealtimePedidos() {
+    // Remove canal anterior se existir
+    if (_ordersRealtimeChannel) {
+        sb.removeChannel(_ordersRealtimeChannel);
+        _ordersRealtimeChannel = null;
+    }
+
+    _ordersRealtimeChannel = sb.channel('pedidos-realtime')
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'pedidos'
+        }, payload => {
+            const { eventType, new: novo, old: antigo } = payload;
+
+            if (eventType === 'INSERT') {
+                if ((novo.status || '') === 'Em produção') {
+                    ordersMap[novo.id] = novo;
+                    _renderOrderList();
+                    showToast({ type: 'success', title: '🔔 Novo pedido!', body: `${novo.customer_name} · R$ ${Number(novo.total||0).toFixed(2).replace('.',',')}`, duration: 5000 });
+                }
+            } else if (eventType === 'UPDATE') {
+                if ((novo.status || '') === 'Em produção') {
+                    ordersMap[novo.id] = novo;
+                } else {
+                    delete ordersMap[novo.id];
+                }
+                _renderOrderList();
+            } else if (eventType === 'DELETE') {
+                delete ordersMap[antigo.id];
+                _renderOrderList();
+            }
+        })
+        .subscribe();
+}
+
+function pararRealtimePedidos() {
+    if (_ordersRealtimeChannel) {
+        sb.removeChannel(_ordersRealtimeChannel);
+        _ordersRealtimeChannel = null;
+    }
+}
+
+function _renderOrderList() {
+    const list = document.getElementById('orderList');
+    if (!list) return;
+    const todos = Object.values(ordersMap);
+    loadOrderSummary(todos);
+    if (todos.length === 0) {
+        list.innerHTML = '<div style="padding:40px 0;text-align:center;color:#9080b8;">Sem pedidos hoje</div>';
+        return;
+    }
+    const ordenados = [...todos].sort((a, b) =>
+        (a.customer_name || '').localeCompare(b.customer_name || '', 'pt-BR', { sensitivity: 'base' })
+    );
+    list.innerHTML = ordenados.map(o => buildOrderCard(o)).join('');
+}
+
 
 
 function buildOrderCard(o) {
-    const isFiado = o.payment_method === 'FIADO';
-    const valorColor = isFiado ? '#e74c3c' : '#27ae60';
-    const badgeClass = isFiado ? 'badge-fiado' : 'badge-pago';
-    const badgeLabel = isFiado ? '🤖ABM' : 'Cardápio';
+    const valorColor = '#27ae60';
+    const badgeClass = 'badge-pago';
+    const badgeLabel = o.emissor || '—';
 
     // Format time: sem dupla conversão — usa Date original com Intl direto
     // Garante parse como UTC — Supabase às vezes omite o 'Z' no created_at
@@ -2066,17 +1985,8 @@ function buildOrderCard(o) {
         .split('\n').filter(Boolean)
         .map(l => l.replace(/^[\u2022\-\*]\s*/, '').trim()).filter(Boolean);
 
-    // Detecta se nome do item é massa fria (pastéis) com base no nome
-    function isMassaFria(nome) {
-        const n = nome.toLowerCase().replace(/\./g, '').trim();
-        // Pastéis frios: começam com "p " ou "p." ou contém "pastel"
-        if (n.startsWith('p ') || n.startsWith('p.') || n.includes('pastel')) return true;
-        return false;
-    }
-
-    // Separar itens em Fritos (quente/fria) e Crus
-    const fritosQuente = [];
-    const fritosFria = [];
+    // Separar itens em Fritos e Crus
+    const fritos = [];
     const crus = [];
 
     let categoriaAtual = null;
@@ -2088,49 +1998,21 @@ function buildOrderCard(o) {
 
         if (categoriaAtual === 'crus') {
             crus.push(linha);
-        } else if (categoriaAtual === 'fritos' || !categoriaAtual) {
-            // Detecta nome do produto para separar quente/fria
-            const matchQtd = linha.match(/^\d+[xX]\s*(.+)$/);
-            const nomeProd = matchQtd ? matchQtd[1] : linha;
-            if (isMassaFria(nomeProd)) {
-                fritosFria.push(linha);
-            } else {
-                fritosQuente.push(linha);
-            }
+        } else {
+            fritos.push(linha);
         }
     });
 
-    // Construir HTML com separação quente / fria / crus
+    // Construir HTML com separação fritos / crus
     let itemsHTML = '';
 
-    const temFritos = fritosQuente.length > 0 || fritosFria.length > 0;
+    const temFritos = fritos.length > 0;
     const temCrus = crus.length > 0;
 
     if (temFritos || temCrus) {
-        // Linha 1: Massa Quente e Massa Fria lado a lado (dentro dos fritos)
         if (temFritos) {
-            itemsHTML += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:' + (temCrus ? '10px' : '0') + ';">';
-
-            // Massa Quente
-            if (fritosQuente.length > 0) {
-                itemsHTML += '<div>';
-                itemsHTML += '<div style="font-weight:700;color:#ef4444;font-size:11px;margin-bottom:6px;letter-spacing:0.5px;">MASSA QUENTE</div>';
-                itemsHTML += fritosQuente.map(it => `<div style="font-size:13px;color:#fca5a5;">• ${it}</div>`).join('');
-                itemsHTML += '</div>';
-            } else {
-                itemsHTML += '<div></div>';
-            }
-
-            // Massa Fria
-            if (fritosFria.length > 0) {
-                itemsHTML += '<div>';
-                itemsHTML += '<div style="font-weight:700;color:#3b82f6;font-size:11px;margin-bottom:6px;letter-spacing:0.5px;">MASSA FRIA</div>';
-                itemsHTML += fritosFria.map(it => `<div style="font-size:13px;color:#93c5fd;">• ${it}</div>`).join('');
-                itemsHTML += '</div>';
-            } else {
-                itemsHTML += '<div></div>';
-            }
-
+            itemsHTML += '<div style="margin-bottom:' + (temCrus ? '10px' : '0') + ';">';
+            itemsHTML += fritos.map(it => `<div style="font-size:13px;color:#b0a0c8;">• ${it}</div>`).join('');
             itemsHTML += '</div>';
         }
 
@@ -2200,10 +2082,11 @@ async function ocultarPedido(orderId) {
     });
     _pedidosOcultos.add(orderId);
     delete ordersMap[orderId];
-    // Apaga do Supabase em segundo plano
-    sb.from('pedidos').delete().eq('id', orderId).then(({ error }) => {
-        if (error) console.warn('[OK] Erro ao apagar pedido do banco:', error);
+    // Atualiza status para Aguardando Entregador
+    sb.from('pedidos').update({ status: 'Aguardando Entregador' }).eq('id', orderId).then(({ error }) => {
+        if (error) console.warn('[OK] Erro ao atualizar status do pedido:', error);
     });
+    showToast({ type: 'success', title: 'Aguardando Entregador 📦', duration: 3000 });
 }
 
 function confirmarCancelamentoPedido(orderId) {
@@ -2283,7 +2166,7 @@ async function executarCancelamentoPedido(orderId) {
             : 'Pedido cancelado pelo ADM';
         await inserirNotificacao(o.customer_phone, 'reembolso', valorReembolso, descReembolso);
     }
-    const isFiadoLocal = (o.payment_method || '').toUpperCase() === 'FIADO';
+    const isFiadoLocal = (o.emissor || '').toUpperCase() === 'ADM' || o.emissor === '🤖𝕕𝕚𝕟𝕠';
     const msg = isFiadoLocal
         ? `Pedido de ${o.customer_name} cancelado e débito revertido.`
         : `Pedido de ${o.customer_name} cancelado. Nenhum valor foi cobrado.`;
@@ -2296,7 +2179,7 @@ function mudarParaFiado(orderId) {
     showToast({
         type: 'confirm',
         title: `🤝 Pagar na Entrega?`,
-        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\nPagamento atual: ${o.payment_method}\n\nO valor será lançado no pagar depois do cliente.`,
+        body: `Cliente: ${o.customer_name}\nValor: R$ ${Number(o.total).toFixed(2).replace('.', ',')}\nEmissor: ${o.emissor}\n\nO valor será lançado no pagar depois do cliente.`,
         actions: [
             { label: 'Cancelar', bg: '#f0f0f0', color: '#555', fn: 'closeToast()' },
             { label: '📝 Confirmar', bg: '#e67e22', color: 'white', fn: `executarMudarParaFiado('${orderId}')` }
@@ -2311,7 +2194,7 @@ async function executarMudarParaFiado(orderId) {
     if (!o) return;
 
     // Atualiza o pedido para FIADO
-    await sb.from("pedidos").update({ payment_method: 'FIADO' }).eq("id", orderId);
+    await sb.from("pedidos").update({ emissor: 'ADM' }).eq("id", orderId);
 
     // Lança o valor no fiado do cliente
     const { data: c } = await sb.from("clientes").select("debt").eq("phone", o.customer_phone).single();
@@ -2321,7 +2204,7 @@ async function executarMudarParaFiado(orderId) {
     }
 
     // Atualiza o mapa local
-    ordersMap[orderId] = { ...o, payment_method: 'FIADO' };
+    ordersMap[orderId] = { ...o, emissor: 'ADM' };
 
     // Atualiza o card visualmente sem recarregar tudo
     const card = document.getElementById('order_' + orderId);
@@ -2339,261 +2222,6 @@ async function executarMudarParaFiado(orderId) {
 }
 
 // AUTO-ZERAR PEDIDOS
-let zerarTimer = null;
-let zerarTimerDom = null;
-
-async function carregarConfigZerar() {
-    try {
-        // Tenta carregar do Supabase primeiro (fonte permanente), fallback localStorage
-        let cfg = {};
-        try {
-            const { data } = await sb.from('configs').select('value').eq('key', 'autoZerar_config').maybeSingle();
-            if (data?.value) {
-                cfg = JSON.parse(data.value);
-                localStorage.setItem('autoZerar_config', data.value);
-            } else {
-                cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
-            }
-        } catch(e) {
-            cfg = JSON.parse(localStorage.getItem('autoZerar_config') || '{}');
-        }
-        const el = (id) => document.getElementById(id);
-        if (el('zerarAte1'))    el('zerarAte1').value    = cfg.ate     || '15:00';
-        if (el('zerarAteDom'))  el('zerarAteDom').value  = cfg.ateDom  || '08:00';
-        atualizarPreviewJanela();
-        atualizarStatusZerar();
-        agendarZerar();
-        agendarZerarDom();
-    } catch(e) { console.warn('carregarConfigZerar', e); }
-}
-
-async function salvarConfigZerar() {
-    const cfg = getConfigZerar();
-    cfg.ate     = document.getElementById('zerarAte1')?.value    || '15:00';
-    cfg.ateDom  = document.getElementById('zerarAteDom')?.value  || '15:00';
-    cfg.exec    = cfg.ate;    // executa sempre no mesmo horário do limite
-    cfg.execDom = cfg.ateDom;
-    cfg.ativo   = true;
-    // Salva no localStorage E no Supabase para persistir permanentemente
-    localStorage.setItem('autoZerar_config', JSON.stringify(cfg));
-    try {
-        await sb.from('configs').upsert({ key: 'autoZerar_config', value: JSON.stringify(cfg) }, { onConflict: 'key' });
-    } catch(e) { console.warn('Erro ao salvar config no Supabase:', e); }
-    atualizarPreviewJanela();
-    atualizarStatusZerar();
-    agendarZerar();
-    agendarZerarDom();
-    showToast({ type:'success', title:'✅ Configuração salva!', body:'Horário de fechamento atualizado.', duration: 3000 });
-}
-
-function getConfigZerar() {
-    try { return JSON.parse(localStorage.getItem('autoZerar_config') || '{}'); } catch(e) { return {}; }
-}
-
-function _getViradaAdm(diaSemana) {
-    // diaSemana: 0=domingo, 1=segunda, ..., 6=sábado
-    const cfg = getConfigZerar();
-    
-    if (diaSemana === 0) {
-        // Domingo: 08:00
-        const [h, m] = (cfg.ateDom || '08:00').split(':').map(Number);
-        return [h, m];
-    } else {
-        // Segunda a sábado: 15:00
-        const [h, m] = (cfg.ate || '15:00').split(':').map(Number);
-        return [h, m];
-    }
-}
-
-function atualizarPreviewJanela() {
-    const cfg = getConfigZerar();
-    const ate    = document.getElementById('zerarAte1')?.value    || cfg.ate    || '--:--';
-    const ateDom = document.getElementById('zerarAteDom')?.value  || cfg.ateDom || '--:--';
-    const el1 = document.getElementById('zerarPreview1');
-    const el2 = document.getElementById('zerarPreviewDom');
-    if (el1) el1.textContent = '🗑️ Apaga pedidos anteriores a ' + ate + ' todos os dias (seg-sáb)';
-    if (el2) el2.textContent = '🗑️ Apaga pedidos anteriores a ' + ateDom + ' todos os domingos';
-}
-
-function atualizarStatusZerar() {
-    const cfg     = getConfigZerar();
-    const exec    = cfg.ate    || document.getElementById('zerarAte1')?.value    || '15:00';
-    const execDom = cfg.ateDom || document.getElementById('zerarAteDom')?.value  || '15:00';
-    const agoraSP = horasBRT(new Date());
-    const diasNomes = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-
-    const _proxExec = (hora, soDomingo) => {
-        const [hh, mm] = hora.split(':').map(Number);
-        const alvo = new Date(agoraSP);
-        alvo.setHours(hh, mm, 0, 0);
-        let t = 0;
-        while (t++ < 8) {
-            const dia = alvo.getDay();
-            const valido = soDomingo ? dia === 0 : dia !== 0;
-            if (valido && alvo > agoraSP) break;
-            alvo.setDate(alvo.getDate() + 1);
-            alvo.setHours(hh, mm, 0, 0);
-        }
-        const diff = alvo - agoraSP;
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const dia = diasNomes[alvo.getDay()];
-        return `✅ Próxima: ${dia} às ${hora} · faltam ${h}h ${m}min`;
-    };
-
-    const el1 = document.getElementById('zerarStatus1');
-    const el2 = document.getElementById('zerarStatusDom');
-    if (el1) el1.textContent = _proxExec(exec,    false);
-    if (el2) el2.textContent = _proxExec(execDom, true);
-}
-
-function agendarZerar() {
-    if (zerarTimer) { clearTimeout(zerarTimer); zerarTimer = null; }
-    const cfg  = getConfigZerar();
-    const exec = cfg.ate || document.getElementById('zerarAte1')?.value || '15:00';
-    const [hh, mm] = exec.split(':').map(Number);
-    const agoraSP  = horasBRT(new Date());
-
-    // Encontra o próximo seg-sab no horário configurado
-    const alvo = new Date(agoraSP);
-    alvo.setHours(hh, mm, 0, 0);
-    // Avança até que o alvo seja seg-sab E ainda não passou
-    let tentativas = 0;
-    while (tentativas++ < 8) {
-        const dia = alvo.getDay(); // 0=dom, 6=sab
-        if (dia !== 0 && alvo > agoraSP) break; // seg-sab e no futuro
-        alvo.setDate(alvo.getDate() + 1);
-        alvo.setHours(hh, mm, 0, 0);
-        if (alvo.getDay() === 0) { alvo.setDate(alvo.getDate() + 1); alvo.setHours(hh, mm, 0, 0); } // pula domingo
-    }
-
-    const ms = alvo - agoraSP;
-    const diasNomes = ['dom','seg','ter','qua','qui','sex','sáb'];
-    console.log(`[AutoZerar] Próxima limpeza seg-sáb: ${diasNomes[alvo.getDay()]} ${alvo.toLocaleTimeString('pt-BR')} (${Math.round(ms/60000)}min)`);
-
-    zerarTimer = setTimeout(async () => {
-        await executarZerarJanela('normal');
-        agendarZerar();
-    }, ms);
-
-    atualizarStatusZerar();
-}
-
-function agendarZerarDom() {
-    if (zerarTimerDom) { clearTimeout(zerarTimerDom); zerarTimerDom = null; }
-    const cfg  = getConfigZerar();
-    const exec = cfg.ateDom || document.getElementById('zerarAteDom')?.value || '08:00';
-    const [hh, mm] = exec.split(':').map(Number);
-    const agoraSP  = horasBRT(new Date());
-
-    // Encontra o próximo domingo no horário configurado
-    const alvo = new Date(agoraSP);
-    alvo.setHours(hh, mm, 0, 0);
-    // Avança até domingo no futuro
-    let tentativas = 0;
-    while (tentativas++ < 8) {
-        if (alvo.getDay() === 0 && alvo > agoraSP) break; // domingo e no futuro
-        alvo.setDate(alvo.getDate() + 1);
-        alvo.setHours(hh, mm, 0, 0);
-    }
-
-    const ms = alvo - agoraSP;
-    const dataStr = alvo.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'2-digit' });
-    console.log(`[AutoZerar] Próxima limpeza domingo: ${dataStr} às ${exec} (${Math.round(ms/60000)}min)`);
-
-    zerarTimerDom = setTimeout(async () => {
-        await executarZerarJanela('domingo');
-        agendarZerarDom();
-    }, ms);
-
-    atualizarStatusZerar();
-}
-
-async function executarZerarJanela(tipo) {
-    const agora = new Date();
-    const agoraSP = horasBRT(agora);
-    const diaSemana = agoraSP.getDay();
-    const [virH, virM] = _getViradaAdm(diaSemana);
-
-    // Calcula a janela atual (igual ao entregador e ao cliente)
-    const passou = agoraSP.getHours() > virH || (agoraSP.getHours() === virH && agoraSP.getMinutes() >= virM);
-    let janelaAtual;
-    if (passou) {
-        // Já virou: janela é hoje
-        janelaAtual = `${String(agoraSP.getFullYear())}-${String(agoraSP.getMonth()+1).padStart(2,'0')}-${String(agoraSP.getDate()).padStart(2,'0')}`;
-    } else {
-        // Ainda não virou: janela ainda é de ontem
-        const ontem = new Date(agoraSP);
-        ontem.setDate(ontem.getDate() - 1);
-        janelaAtual = `${String(ontem.getFullYear())}-${String(ontem.getMonth()+1).padStart(2,'0')}-${String(ontem.getDate()).padStart(2,'0')}`;
-    }
-
-    // Cutoff ISO: data da janela atual no horário da virada em SP (offset dinâmico, respeita horário de verão)
-    // Pedidos criados ANTES desse momento pertencem à janela anterior → deletar
-    const _cutoffLocal = new Date(`${janelaAtual}T${String(virH).padStart(2,'0')}:${String(virM).padStart(2,'0')}:00`);
-    const _offsetMin = Math.round((_cutoffLocal.getTime() - new Date(`${janelaAtual}T${String(virH).padStart(2,'0')}:${String(virM).padStart(2,'0')}:00Z`).getTime()) / 60000);
-    // Calcula offset real de SP no momento da virada usando Intl
-    const _fmtOffset = new Intl.DateTimeFormat('en-CA', { timeZone: TZ_SP, timeZoneName: 'shortOffset' });
-    const _offsetStr = (() => {
-        // Usa agoraISO() como referência para extrair o offset atual de SP
-        const iso = agoraISO();
-        const match = iso.match(/([+-]\d{2}:\d{2})$/);
-        return match ? match[1] : '-03:00';
-    })();
-    const cutoffISO = `${janelaAtual}T${String(virH).padStart(2,'0')}:${String(virM).padStart(2,'0')}:00${_offsetStr}`;
-
-    // Apaga TODOS os pedidos criados antes do horário de virada de hoje
-    // Isso cobre tanto pedidos com janela_entrega quanto sem (NULL)
-    const { data: todosPedidos } = await sb.from('pedidos')
-        .select('id')
-        .lt('created_at', cutoffISO);
-
-    // Também apaga pedidos com janela_entrega explícita anterior a hoje (legado)
-    const { data: pedidosJanelaAntiga } = await sb.from('pedidos')
-        .select('id')
-        .not('janela_entrega', 'is', null)
-        .lt('janela_entrega', janelaAtual);
-
-    const idsTodos  = (todosPedidos        || []).map(p => p.id);
-    const idsJanela = (pedidosJanelaAntiga || []).map(p => p.id);
-    const idsUniq = [...new Set([...idsTodos, ...idsJanela])];
-    const pedidos = idsUniq.map(id => ({ id }));
-
-    if (!pedidos || pedidos.length === 0) {
-        showToast({ type:'success', title:'📅 Limpeza executada', body:'Nenhum pedido encontrado para apagar.', duration:4000 });
-        _registrarLogZerar(agora, 0);
-        return;
-    }
-
-    const ids = idsUniq;
-    const { error: delError } = await sb.from('pedidos').delete().in('id', ids);
-    if (delError) {
-        showToast({ type:'confirm', title:'❌ Erro na limpeza', body:'Não foi possível apagar os pedidos.', duration:4000 });
-        return;
-    }
-
-    _registrarLogZerar(agora, pedidos.length);
-    // Limpa cache em memória para não reexibir pedidos apagados
-    Object.keys(ordersMap).forEach(k => delete ordersMap[k]);
-    showToast({
-        type: 'success',
-        title: '🗑️ Limpeza executada!',
-        body: pedidos.length + ' pedido(s) apagados.',
-        duration: 5000
-    });
-    await loadOrders();
-}
-
-function _registrarLogZerar(agora, qtd) {
-    const ts = agora.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' });
-    // Salva local
-    const log = JSON.parse(localStorage.getItem('autoZerar_log') || '[]');
-    log.unshift({ ts, apagados: qtd });
-    if (log.length > 20) log.pop();
-    localStorage.setItem('autoZerar_log', JSON.stringify(log));
-    // Salva no Supabase para sincronizar entre dispositivos
-    sb.from('configs').upsert({ key: 'autoZerar_ultimo', value: ts }, { onConflict: 'key' }).catch(() => {});
-}
 
 // MENSAGENS
 async function loadTemplates() {
@@ -2806,8 +2434,8 @@ async function executarAutoRefazer() {
             customer_name:  c.name,
             customer_phone: c.phone,
             total:          totalParaUsar,
-            payment_method: 'FIADO',
-            items:          c.saved_order,
+            emissor: '🤖𝕕𝕚𝕟𝕠',
+            status:         'Em produção',
             created_at:     agoraISO()
         }).select().single();
 
@@ -3007,7 +2635,7 @@ async function executarCancelamentoAutoRefazer(execIndex, orderId, phone, total,
     closeToast();
 
     // Marca como cancelado (mantém histórico)
-    await sb.from("pedidos").update({ status: 'cancelado', entregue: false }).eq("id", orderId);
+    await sb.from("pedidos").update({ status: 'cancelado' }).eq("id", orderId);
 
     // Estorna do fiado
     const { data: c } = await sb.from("clientes").select("debt").eq("phone", phone).single();
@@ -3085,8 +2713,9 @@ async function executarTodosRefazer() {
             customer_name: s.name,
             customer_phone: s.phone,
             total: totalFinal,
-            payment_method: 'FIADO',
+            emissor: '🤖𝕕𝕚𝕟𝕠',
             items: itemsFinais,
+            status: 'Em produção',
             created_at: agoraISO()
         });
 
@@ -3278,9 +2907,9 @@ async function carregarPedidosCliente(phone) {
             const dt = new Date(p.created_at);
             const dataStr = dt.toLocaleDateString('pt-BR');
             const horaStr = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-            const statusColor = p.entregue ? '#22c55e' : '#f97316';
-            const statusLabel = p.entregue ? '✅ Entregue' : '⏳ Pendente';
-            const metodo = p.payment_method === 'FIADO' ? '⏳ Pagar depois' : p.payment_method === 'PAGA NA ENTREGA' ? '🤝 Na entrega' : p.payment_method || '—';
+            const statusColor = p.status === 'Entregue' ? '#22c55e' : '#f97316';
+            const statusLabel = p.status || '⏳ Pendente';
+            const metodo = p.emissor === 'ADM' ? '🤖 ADM' : p.emissor === 'CLIENTE' ? '📱 Cliente' : p.emissor === '👩🏻‍🦰 𝕃𝔸ℝ𝔸' ? '👩🏻‍🦰 Lara' : p.emissor || '—';
             const selecionado = list._selecionados.has(i);
 
             const card = document.createElement('div');
@@ -3328,8 +2957,9 @@ async function carregarPedidosCliente(phone) {
                     const horaStr = dt.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', hour:'2-digit', minute:'2-digit' });
                     const clienteNome = document.getElementById('painelClienteNome').textContent;
                     const itensTexto = (p.items || '').trim();
+                    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
                     const texto = `*histórico*\n${dataStr} / ${horaStr}\nCliente: ${clienteNome.toUpperCase()}\n\n${itensTexto}\n\nTotal: R$ ${Number(p.total||0).toFixed(2).replace('.',',')}`;
-                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
                 }
             });
 
@@ -3353,8 +2983,9 @@ async function carregarPedidosCliente(phone) {
                 return `📅 ${dataStr}\n${itensTexto}\n💰 Total R$ ${Number(p.total||0).toFixed(2).replace('.',',')}`;
             });
         const totalGeral = [...list._selecionados].reduce((acc, i) => acc + Number(data[i].total || 0), 0);
+        const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
         const texto = `🧾 *Histórico geral*\n\n👤 Cliente: ${clienteNome}\n──────────────────\n${itens.join('\n──────────────────\n')}\n──────────────────\n\n🛍️ *Totais em pedidos* 🛍️\n*R$ ${totalGeral.toFixed(2).replace('.', ',')}*`;
-        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
         window.cancelarSelecaoPedidos();
     };
 
@@ -3525,8 +3156,9 @@ async function carregarPagamentosCliente(c) {
                     const cabecalho = partes[0];
                     const rodape = (partes[2] || '').replace(/^\n/, '');
                     const mioloLimpo = miolo.replace(/^──────────────────\n/, '').replace(/\n──────────────────$/, '');
+                    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
                     const texto = `${cabecalho}──────────────────\n${mioloLimpo}\n──────────────────\n${rodape}`;
-                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+                    window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
                 }
             });
 
@@ -3568,8 +3200,9 @@ async function carregarPagamentosCliente(c) {
             return `📅 ${data}\n💰 Valor pago: R$ ${valor.toFixed(2).replace('.', ',')} ✅\n🚨 ${extrairSaldo(p.descricao)}`;
         });
         const totalPago = [...list._selecionados].reduce((acc, i) => acc + Number(pagamentos[i].valor || 0), 0);
+        const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
         const texto = `🧾 *Comprovante geral*\n\n👤 Cliente: ${c.name}\n──────────────────\n${itens.join('\n──────────────────\n')}\n──────────────────\n\n💹 *Totais pagos* 💹\n*R$ ${totalPago.toFixed(2).replace('.', ',')}*`;
-        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(texto)}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=55${list._clientePhone}&text=${encodeURIComponent(_cabecalhoWpp + texto)}`, '_blank');
         window.cancelarSelecaoPagamentos();
     };
 
@@ -3760,7 +3393,7 @@ async function enviarComprovanteDia() {
     // Busca pedidos de hoje
     const inicioDia = new Date(); inicioDia.setHours(0,0,0,0);
     const { data: pedidosHoje } = await sb.from('pedidos')
-        .select('items,total,payment_method')
+        .select('items,total,emissor')
         .eq('customer_phone', c.phone)
         .gte('created_at', inicioDia.toISOString());
 
@@ -3784,7 +3417,8 @@ async function enviarComprovanteDia() {
         .replace('{saldo}', saldoTexto);
 
     const phone = c.phone.replace(/\D/g,'');
-    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(textoComprovante)}`;
+    const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
+    const url = `https://wa.me/55${phone}?text=${encodeURIComponent(_cabecalhoWpp + textoComprovante)}`;
     window.open(url, '_blank');
 }
 
@@ -5024,7 +4658,7 @@ async function salvarPedidoParaCliente() {
     for (let id in compraCart) {
         const p = compraProdutos.find(x => x.id == id);
         if (p) {
-            const tipoEmoji = (p.tipo === 'quente') ? '🍗' : (p.tipo === 'fria') ? '🥐' : '✅';
+            const tipoEmoji = '✅';
             const linha = `${tipoEmoji} ${compraCart[id]}x ${p.name}`;
             total += (p.price_promo != null ? Number(p.price_promo) : Number(p.price)) * compraCart[id];
             if ((p.categoria || '').toLowerCase() === 'crus') linhasCrus.push(linha);
@@ -5133,20 +4767,7 @@ function renderCompraProdList() {
     }
 
     if (compraCategoriaAtiva === 'fritos') {
-        // Agrupa por tipo igual ao cardápio: Massa Quente → Massa Fria → Outros
-        const grupos = [
-            { tipo: 'quente', label: '🍗 Massa Quente', cor: '#ef4444' },
-            { tipo: 'fria',   label: '🥐 Massa Fria',   cor: '#60a5fa' },
-            { tipo: '',       label: '📦 Outros',        cor: '#9ca3af' },
-        ];
-        let html = '';
-        for (const g of grupos) {
-            const itens = filtrados.filter(p => (p.tipo || '') === g.tipo);
-            if (itens.length === 0) continue;
-            html += _sepGrupo(g.label, g.cor);
-            html += itens.map(p => _cardCompraProd(p)).join('');
-        }
-        list.innerHTML = html;
+        list.innerHTML = filtrados.map(p => _cardCompraProd(p)).join('');
     } else {
         list.innerHTML = filtrados.map(p => _cardCompraProd(p)).join('');
     }
@@ -5184,8 +4805,7 @@ async function confirmarCompra() {
         if (p) {
             const precoUsar = p.price_promo != null ? p.price_promo : p.price;
             total += precoUsar * compraCart[id];
-            // Mesmo emoji do cardápio: 🍗 quente, 🥐 fria, ✅ sem tipo
-            const tipoEmoji = (p.tipo === 'quente') ? '🍗' : (p.tipo === 'fria') ? '🥐' : '✅';
+            const tipoEmoji = '✅';
             const linha = `${tipoEmoji} ${compraCart[id]}x ${p.name}`;
             if ((p.categoria || '').toLowerCase() === 'crus') linhasCrus.push(linha);
             else linhasFritos.push(linha);
@@ -5202,8 +4822,9 @@ async function executarCompra(total, pedidoTexto) {
         customer_name: compraClienteAtual.name,
         customer_phone: compraClienteAtual.phone,
         total: total,
-        payment_method: compraPagamento,
+        emissor: 'ADM',
         items: pedidoTexto,
+        status: 'Em produção',
         created_at: agoraISO()
     });
     try {
@@ -5221,7 +4842,8 @@ async function executarCompra(total, pedidoTexto) {
     compraCart = {};
     compraClienteAtual = null;
     setTimeout(() => {
-        window.open(`https://api.whatsapp.com/send?phone=55${_phoneWpp}&text=${encodeURIComponent(msgWpp)}`, '_blank');
+        const _cabecalhoWpp = `👽 *𝕕𝕚𝕟𝕠 𝕚.𝕒* ᵃᵈᵐⁱⁿⁱˢᵗʳᵃᵈᵒʳ\n`;
+        window.open(`https://api.whatsapp.com/send?phone=55${_phoneWpp}&text=${encodeURIComponent(_cabecalhoWpp + msgWpp)}`, '_blank');
     }, 500);
     document.getElementById('compraEtapa1').style.display = 'block';
     document.getElementById('compraEtapa2').style.display = 'none';
