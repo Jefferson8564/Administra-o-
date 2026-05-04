@@ -1,5 +1,6 @@
 // sw.js — Service Worker com suporte a notificações nativas + Web Push
 const CACHE_NAME = 'rei-coxinha-v1';
+const ADM_URL = 'https://jefferson8564.github.io/adm-0/';
 
 self.addEventListener('install', e => {
     self.skipWaiting();
@@ -53,10 +54,12 @@ self.addEventListener('notificationclick', e => {
     e.notification.close();
     e.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+            // Se já tem o adm aberto, foca nele
             for (const c of list) {
-                if (c.url && c.focus) return c.focus();
+                if (c.url.startsWith(ADM_URL) && c.focus) return c.focus();
             }
-            return clients.openWindow('./');
+            // Senão abre o adm
+            return clients.openWindow(ADM_URL);
         })
     );
 });
