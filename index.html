@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>⚙️ Admin - O Rei da Coxinha</title>
-    <link rel="icon" href="icone.png">
-    <link rel="apple-touch-icon" href="icone.png">
+    <link rel="icon" href="icon-192x192.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#c75b24">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -203,94 +203,9 @@
         .ordem-num { font-size:12px;font-weight:800;color:#6b5c8a;min-width:24px;text-align:right;flex-shrink:0; }
     </style>
 <script>
-// ── Config Push / Supabase ─────────────────────────────
-const VAPID_PUBLIC_KEY = 'BHz14H_rt9dRH7qr0KHoyP0xTbOMztpGXeGbcULrLuDiB1QblCqIbZ6So4TG7UgWXAJCoVVoFyj8LJ57fVhjhBM';
-const PUSH_SUPA_URL = 'https://vpeyqgijajywgswmezlh.supabase.co';
-const PUSH_SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ';
-
-function urlBase64ToUint8Array(b64) {
-    const pad = '='.repeat((4 - b64.length % 4) % 4);
-    const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(base64);
-    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
 }
-
-let swRegistration = null;
-
-// ── Registrar SW e ativar Push automaticamente ─────────
-async function iniciarSW() {
-    if (!('serviceWorker' in navigator)) return;
-    try {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        if (regs.length > 0) {
-            swRegistration = regs[0];
-        } else {
-            swRegistration = await navigator.serviceWorker.register('./sw.js');
-        }
-        // Aguarda ativação
-        if (swRegistration.installing || swRegistration.waiting) {
-            await new Promise(resolve => {
-                const sw = swRegistration.installing || swRegistration.waiting;
-                sw.addEventListener('statechange', function h() {
-                    if (sw.state === 'activated') { sw.removeEventListener('statechange', h); resolve(); }
-                });
-            });
-        }
-        // Tenta ativar push automaticamente se já há permissão
-        if (Notification.permission === 'granted') {
-            await ativarPushAutoBackground();
-        }
-    } catch(e) {
-        console.warn('[SW] Erro ao registrar:', e);
-    }
-}
-
-async function ativarPushAutoBackground() {
-    if (!swRegistration || !swRegistration.active) return;
-    if (!('PushManager' in window)) return;
-    try {
-        const subExistente = await swRegistration.pushManager.getSubscription();
-        if (subExistente) return; // já está subscrito
-        const sub = await swRegistration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-        const subJSON = sub.toJSON();
-        await fetch(`${PUSH_SUPA_URL}/rest/v1/push_subscriptions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': PUSH_SUPA_KEY,
-                'Authorization': 'Bearer ' + PUSH_SUPA_KEY,
-                'Prefer': 'resolution=merge-duplicates'
-            },
-            body: JSON.stringify({
-                endpoint: subJSON.endpoint,
-                p256dh:   subJSON.keys.p256dh,
-                auth:     subJSON.keys.auth
-            })
-        });
-    } catch(e) {
-        console.warn('[Push] Erro ao ativar push automático:', e);
-    }
-}
-
-async function pedirPermissaoNotificacao() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') {
-        await ativarPushAutoBackground();
-        return true;
-    }
-    if (Notification.permission === 'denied') return false;
-    const result = await Notification.requestPermission();
-    if (result === 'granted') {
-        await ativarPushAutoBackground();
-        return true;
-    }
-    return false;
-}
-
-window.addEventListener('load', () => { setTimeout(iniciarSW, 500); });
 </script>
 </head>
 <body>
@@ -306,8 +221,7 @@ window.addEventListener('load', () => { setTimeout(iniciarSW, 500); });
                 style="cursor:pointer;user-select:none;-webkit-user-select:none;"
                 onclick="abrirModalEditarSaldoCliente()">R$ 0,00</span>
         </div>
-        <!-- Resumo salgados em tempo real na home -->
-        <div id="homeSummaryGrid" style="display:flex;gap:4px;width:100%;"></div>
+
     </div>
 
     <!-- HOME: cards de navegação -->
@@ -965,8 +879,6 @@ async function initAdmin() {
     await updateFiadoHeader();
     await loadHomeSummary();
     iniciarRealtimeHome();
-    // Solicita permissão de notificação e ativa push em background
-    setTimeout(() => pedirPermissaoNotificacao(), 1500);
     setTimeout(async () => {
         await verificarExecucoesPerdidas();
     }, 500);
@@ -2028,10 +1940,6 @@ function iniciarRealtimePedidos() {
                     _renderOrderList();
                     _tocarSomPedido();
                     showToast({ type: 'success', title: '🔔 Novo pedido!', body: `${novo.customer_name} · R$ ${Number(novo.total||0).toFixed(2).replace('.',',')}`, duration: 5000 });
-                    // Notificação nativa via Service Worker (funciona com tela bloqueada)
-                    if (swRegistration && swRegistration.active && Notification.permission === 'granted') {
-                        swRegistration.active.postMessage({ tipo: 'novo_pedido', nome: novo.customer_name || 'Cliente', total: Number(novo.total||0).toFixed(2).replace('.',',') });
-                    }
                 }
             } else if (eventType === 'UPDATE') {
                 if ((novo.status || '') === 'Em produção') {

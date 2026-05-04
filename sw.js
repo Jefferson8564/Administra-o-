@@ -16,8 +16,8 @@ self.addEventListener('message', e => {
         const { nome, total } = e.data;
         self.registration.showNotification('🔔 Novo Pedido!', {
             body: `${nome} · R$ ${total}`,
-            icon: './icone.png',
-            badge: './icone.png',
+            icon: './icon-192x192.png',
+            badge: './icon-192x192.png',
             tag: 'novo-pedido-' + Date.now(),
             renotify: true,
             vibrate: [200, 100, 200, 100, 200],
@@ -35,8 +35,8 @@ self.addEventListener('push', e => {
     }
     const options = {
         body: `${data.nome} · R$ ${data.total}`,
-        icon: './icone.png',
-        badge: './icone.png',
+        icon: './icon-192x192.png',
+        badge: './icon-192x192.png',
         tag: 'push-pedido',
         renotify: true,
         vibrate: [200, 100, 200, 100, 200],
