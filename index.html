@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>⚙️ Admin - O Rei da Coxinha</title>
-    <link rel="icon" href="icon-192x192.png">
-    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" href="icone.png">
+    <link rel="apple-touch-icon" href="icone.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#c75b24">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -204,19 +204,8 @@
     </style>
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
-        console.log('SW registrado:', reg.scope);
-    });
+    navigator.serviceWorker.register('./sw.js');
 }
-
-// Pede permissão de notificação assim que a página carrega
-window.addEventListener('load', () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-            console.log('Permissão de notificação:', permission);
-        });
-    }
-});
 </script>
 </head>
 <body>
@@ -1951,14 +1940,6 @@ function iniciarRealtimePedidos() {
                     _renderOrderList();
                     _tocarSomPedido();
                     showToast({ type: 'success', title: '🔔 Novo pedido!', body: `${novo.customer_name} · R$ ${Number(novo.total||0).toFixed(2).replace('.',',')}`, duration: 5000 });
-                    // Envia notificação nativa via Service Worker
-                    if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.controller.postMessage({
-                            tipo: 'novo_pedido',
-                            nome: novo.customer_name,
-                            total: Number(novo.total||0).toFixed(2).replace('.',',')
-                        });
-                    }
                 }
             } else if (eventType === 'UPDATE') {
                 if ((novo.status || '') === 'Em produção') {
