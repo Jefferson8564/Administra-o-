@@ -15,6 +15,7 @@
     --red: #ef4444;
     --yellow: #f59e0b;
     --blue: #3b82f6;
+    --purple: #a855f7;
     --text: #e2e8f0;
     --muted: #64748b;
     --mono: 'JetBrains Mono', monospace;
@@ -32,7 +33,6 @@
     overflow-x: hidden;
   }
 
-  /* scanline overlay */
   body::before {
     content:'';
     position:fixed;
@@ -44,16 +44,9 @@
 
   .wrap { max-width: 480px; margin: 0 auto; }
 
-  /* HEADER */
-  .hdr {
-    text-align: center;
-    margin-bottom: 28px;
-    padding-top: 10px;
-  }
+  .hdr { text-align: center; margin-bottom: 28px; padding-top: 10px; }
   .hdr-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 8px;
+    font-size: 48px; display: block; margin-bottom: 8px;
     animation: bellShake 3s ease-in-out infinite;
   }
   @keyframes bellShake {
@@ -63,22 +56,9 @@
     96% { transform: rotate(-10deg); }
     98% { transform: rotate(10deg); }
   }
-  .hdr h1 {
-    font-family: var(--mono);
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--green);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-  .hdr p {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 4px;
-    font-family: var(--mono);
-  }
+  .hdr h1 { font-family: var(--mono); font-size: 18px; font-weight: 800; color: var(--green); letter-spacing: 2px; text-transform: uppercase; }
+  .hdr p  { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
 
-  /* CHECK CARDS */
   .checks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 
   .check-card {
@@ -91,10 +71,11 @@
     gap: 14px;
     transition: border-color 0.3s;
   }
-  .check-card.ok    { border-color: rgba(34,197,94,0.35); }
-  .check-card.fail  { border-color: rgba(239,68,68,0.35); }
-  .check-card.warn  { border-color: rgba(245,158,11,0.35); }
+  .check-card.ok      { border-color: rgba(34,197,94,0.35); }
+  .check-card.fail    { border-color: rgba(239,68,68,0.35); }
+  .check-card.warn    { border-color: rgba(245,158,11,0.35); }
   .check-card.loading { border-color: rgba(59,130,246,0.25); }
+  .check-card.purple  { border-color: rgba(168,85,247,0.35); }
 
   .check-dot {
     width: 36px; height: 36px; border-radius: 10px;
@@ -102,27 +83,20 @@
     font-size: 18px; flex-shrink: 0;
     background: rgba(255,255,255,0.04);
   }
-  .check-card.ok   .check-dot { background: rgba(34,197,94,0.15); }
-  .check-card.fail .check-dot { background: rgba(239,68,68,0.15); }
-  .check-card.warn .check-dot { background: rgba(245,158,11,0.15); }
+  .check-card.ok      .check-dot { background: rgba(34,197,94,0.15); }
+  .check-card.fail    .check-dot { background: rgba(239,68,68,0.15); }
+  .check-card.warn    .check-dot { background: rgba(245,158,11,0.15); }
   .check-card.loading .check-dot { background: rgba(59,130,246,0.12); }
+  .check-card.purple  .check-dot { background: rgba(168,85,247,0.15); }
 
   .check-info { flex: 1; min-width: 0; }
-  .check-label {
-    font-size: 13px; font-weight: 700;
-    color: var(--text);
-    display: block; margin-bottom: 2px;
-  }
-  .check-desc {
-    font-size: 11px; color: var(--muted);
-    font-family: var(--mono);
-    word-break: break-word;
-  }
-  .check-desc.ok-c   { color: var(--green); }
-  .check-desc.fail-c { color: var(--red); }
-  .check-desc.warn-c { color: var(--yellow); }
+  .check-label { font-size: 13px; font-weight: 700; color: var(--text); display: block; margin-bottom: 2px; }
+  .check-desc  { font-size: 11px; color: var(--muted); font-family: var(--mono); word-break: break-word; }
+  .check-desc.ok-c     { color: var(--green); }
+  .check-desc.fail-c   { color: var(--red); }
+  .check-desc.warn-c   { color: var(--yellow); }
+  .check-desc.purple-c { color: var(--purple); }
 
-  /* SPINNER */
   .spin {
     width: 16px; height: 16px;
     border: 2px solid rgba(59,130,246,0.3);
@@ -133,80 +107,50 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* DIVIDER */
   .section-title {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 2px;
     margin: 20px 0 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
   }
-  .section-title::after {
-    content:'';
-    flex:1;
-    height:1px;
-    background: var(--border);
-  }
+  .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
 
-  /* BUTTONS */
   .btn {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 14px;
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
+    width: 100%; padding: 15px; border: none; border-radius: 14px;
+    font-family: var(--mono); font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+    margin-bottom: 10px; letter-spacing: 0.5px;
   }
-  .btn:active { transform: scale(0.97); opacity: 0.85; }
+  .btn:active   { transform: scale(0.97); opacity: 0.85; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .btn-green  { background: linear-gradient(135deg,#16a34a,#22c55e); color: #fff; }
-  .btn-blue   { background: linear-gradient(135deg,#1d4ed8,#3b82f6); color: #fff; }
-  .btn-orange { background: linear-gradient(135deg,#c2410c,#f97316); color: #fff; }
+  .btn-green  { background: linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+  .btn-blue   { background: linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
+  .btn-orange { background: linear-gradient(135deg,#c2410c,#f97316); color:#fff; }
+  .btn-purple { background: linear-gradient(135deg,#7e22ce,#a855f7); color:#fff; }
   .btn-ghost  { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
 
-  /* LOG */
   .log-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    max-height: 220px;
-    overflow-y: auto;
-    font-family: var(--mono);
-    font-size: 11px;
-    line-height: 1.8;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px;
+    max-height: 220px; overflow-y: auto;
+    font-family: var(--mono); font-size: 11px; line-height: 1.8;
   }
   .log-entry { display: flex; gap: 8px; }
   .log-time  { color: var(--muted); flex-shrink: 0; }
-  .log-msg.ok   { color: var(--green); }
-  .log-msg.err  { color: var(--red); }
-  .log-msg.warn { color: var(--yellow); }
-  .log-msg.info { color: var(--blue); }
-  .log-msg.plain{ color: var(--text); }
+  .log-msg.ok     { color: var(--green); }
+  .log-msg.err    { color: var(--red); }
+  .log-msg.warn   { color: var(--yellow); }
+  .log-msg.info   { color: var(--blue); }
+  .log-msg.purple { color: var(--purple); }
+  .log-msg.plain  { color: var(--text); }
 
-  /* RESULT BANNER */
   .result-banner {
-    display: none;
-    border-radius: 14px;
-    padding: 16px;
-    text-align: center;
-    margin-bottom: 16px;
-    font-weight: 700;
-    font-size: 14px;
-    font-family: var(--mono);
+    display: none; border-radius: 14px; padding: 16px;
+    text-align: center; margin-bottom: 16px;
+    font-weight: 700; font-size: 14px; font-family: var(--mono);
   }
-  .result-banner.show { display: block; }
+  .result-banner.show    { display: block; }
   .result-banner.all-ok  { background: rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.35); color: var(--green); }
   .result-banner.has-err { background: rgba(239,68,68,0.10); border:1px solid rgba(239,68,68,0.30); color: var(--red); }
 </style>
@@ -217,12 +161,11 @@
   <div class="hdr">
     <span class="hdr-icon">🔔</span>
     <h1>Diagnóstico</h1>
-    <p>// notificações PWA · service worker</p>
+    <p>// notificações PWA · service worker · web push</p>
   </div>
 
   <div id="resultBanner" class="result-banner"></div>
 
-  <!-- CHECKS -->
   <div class="section-title">Verificações automáticas</div>
   <div class="checks" id="checkList">
 
@@ -282,29 +225,45 @@
       </div>
     </div>
 
+    <div class="check-card loading" id="chk-push-sub">
+      <div class="check-dot"><span class="spin"></span></div>
+      <div class="check-info">
+        <span class="check-label">Web Push Subscription</span>
+        <span class="check-desc">Verificando subscription...</span>
+      </div>
+    </div>
+
   </div>
 
-  <!-- AÇÕES -->
   <div class="section-title">Ações de teste</div>
 
-  <button class="btn btn-blue" onclick="pedirPermissao()">🙏 Pedir Permissão de Notificação</button>
-  <button class="btn btn-green" id="btnTestar" onclick="testarNotificacao()" disabled>🔔 Disparar Notificação de Teste</button>
+  <button class="btn btn-blue"   onclick="pedirPermissao()">🙏 Pedir Permissão de Notificação</button>
+  <button class="btn btn-purple" id="btnAssinar" onclick="assinarPush()">📲 Ativar Push em Background</button>
+  <button class="btn btn-green"  id="btnTestar"  onclick="testarNotificacao()" disabled>🔔 Disparar Notificação de Teste</button>
   <button class="btn btn-orange" onclick="testarSemSW()">⚡ Notificação Direta (sem SW)</button>
-  <button class="btn btn-ghost" onclick="reexecutar()">🔄 Re-executar diagnóstico</button>
+  <button class="btn btn-ghost"  onclick="reexecutar()">🔄 Re-executar diagnóstico</button>
 
-  <!-- LOG -->
   <div class="section-title">Log em tempo real</div>
   <div class="log-box" id="logBox">
     <div class="log-entry"><span class="log-time">--:--:--</span><span class="log-msg info">// aguardando diagnóstico...</span></div>
   </div>
 
 </div>
-
 <script>
-// ── Utils ──────────────────────────────────────────────
-function ts() {
-  return new Date().toLocaleTimeString('pt-BR');
+// ── Config ─────────────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BHz14H_rt9dRH7qr0KHoyP0xTbOMztpGXeGbcULrLuDiB1QblCqIbZ6So4TG7UgWXAJCoVVoFyj8LJ57fVhjhBM';
+const SUPA_URL = 'https://vpeyqgijajywgswmezlh.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwZXlxZ2lqYWp5d2dzd21lemxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTM1MDIsImV4cCI6MjA4NjgyOTUwMn0.LA5Cbof7IKWAA7l8YbCuPzANpCy0rX_Dro4l9fcDgoQ';
+
+function urlBase64ToUint8Array(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
+
+// ── Utils ──────────────────────────────────────────────
+function ts() { return new Date().toLocaleTimeString('pt-BR'); }
 
 function log(msg, tipo = 'plain') {
   const box = document.getElementById('logBox');
@@ -323,10 +282,8 @@ function setCheck(id, estado, icon, desc, descClass = '') {
   card.querySelector('.check-desc').className = 'check-desc ' + descClass;
 }
 
-// ── Estado global ──────────────────────────────────────
 let swRegistration = null;
-let erros = 0;
-let avisos = 0;
+let erros = 0, avisos = 0;
 
 // ── Diagnóstico ────────────────────────────────────────
 async function executarDiagnostico() {
@@ -334,7 +291,6 @@ async function executarDiagnostico() {
   const btn = document.getElementById('btnTestar');
   btn.disabled = true;
   document.getElementById('resultBanner').className = 'result-banner';
-
   log('Iniciando diagnóstico completo...', 'info');
 
   // 1. HTTPS
@@ -368,7 +324,7 @@ async function executarDiagnostico() {
     erros++;
   }
 
-  // 4. Permissão atual
+  // 4. Permissão
   const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
   if (perm === 'granted') {
     setCheck('chk-perm', 'ok', '✅', 'Concedida — notificações permitidas', 'ok-c');
@@ -395,7 +351,6 @@ async function executarDiagnostico() {
         setCheck('chk-sw-reg', 'ok', '✅', 'sw.js registrado: ' + (regs[0].scope || '—'), 'ok-c');
         log('✅ SW registrado — scope: ' + regs[0].scope, 'ok');
       } else {
-        // Tentar registrar o sw.js local
         try {
           log('⏳ Tentando registrar sw.js...', 'info');
           swRegistration = await navigator.serviceWorker.register('./sw.js');
@@ -451,7 +406,10 @@ async function executarDiagnostico() {
     avisos++;
   }
 
-  // ── Resultado final ─────────────────────────────────
+  // 8. Push subscription
+  await verificarPushSubscription();
+
+  // Resultado final
   const banner = document.getElementById('resultBanner');
   if (erros === 0 && avisos === 0) {
     banner.className = 'result-banner show all-ok';
@@ -468,6 +426,101 @@ async function executarDiagnostico() {
   }
 }
 
+// ── Verificar push subscription existente ─────────────
+async function verificarPushSubscription() {
+  if (!swRegistration) {
+    setCheck('chk-push-sub', 'fail', '❌', 'SW não registrado — impossível verificar', 'fail-c');
+    return;
+  }
+  if (!('PushManager' in window)) {
+    setCheck('chk-push-sub', 'fail', '❌', 'PushManager não suportado neste navegador', 'fail-c');
+    log('❌ PushManager não disponível — push em background não vai funcionar aqui', 'err');
+    erros++;
+    return;
+  }
+  try {
+    const sub = await swRegistration.pushManager.getSubscription();
+    if (sub) {
+      const short = sub.endpoint.split('/').pop().substring(0, 12) + '...';
+      setCheck('chk-push-sub', 'ok', '📲', 'Ativo — endpoint: ' + short, 'ok-c');
+      log('✅ Push subscription ativa neste dispositivo', 'ok');
+      document.getElementById('btnAssinar').textContent = '♻️ Re-assinar Push';
+    } else {
+      setCheck('chk-push-sub', 'warn', '⚠️', 'Sem subscription — clique em "Ativar Push em Background"', 'warn-c');
+      log('⚠️ Push subscription não encontrada — clique em "Ativar Push em Background"', 'warn');
+      avisos++;
+    }
+  } catch(e) {
+    setCheck('chk-push-sub', 'fail', '❌', 'Erro: ' + e.message, 'fail-c');
+    log('❌ Erro ao checar subscription: ' + e.message, 'err');
+  }
+}
+
+// ── Assinar Push ───────────────────────────────────────
+async function assinarPush() {
+  if (!swRegistration || !swRegistration.active) {
+    log('❌ SW não está ativo — não é possível assinar push', 'err');
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    log('❌ Permissão necessária — clique em "Pedir Permissão" primeiro', 'err');
+    return;
+  }
+  if (!('PushManager' in window)) {
+    log('❌ PushManager não suportado neste navegador', 'err');
+    return;
+  }
+
+  log('⏳ Criando push subscription...', 'info');
+  document.getElementById('btnAssinar').disabled = true;
+
+  try {
+    const subExistente = await swRegistration.pushManager.getSubscription();
+    if (subExistente) {
+      await subExistente.unsubscribe();
+      log('♻️ Subscription antiga cancelada', 'warn');
+    }
+
+    const sub = await swRegistration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+
+    log('✅ Subscription criada! Salvando no Supabase...', 'ok');
+
+    const subJSON = sub.toJSON();
+    const res = await fetch(`${SUPA_URL}/rest/v1/push_subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        endpoint: subJSON.endpoint,
+        p256dh:   subJSON.keys.p256dh,
+        auth:     subJSON.keys.auth
+      })
+    });
+
+    if (res.ok || res.status === 201 || res.status === 200) {
+      log('✅ Subscription salva no Supabase!', 'ok');
+      log('📲 Push em background ativado para este dispositivo!', 'purple');
+      setCheck('chk-push-sub', 'ok', '📲', 'Ativo e salvo no servidor', 'ok-c');
+      document.getElementById('btnAssinar').textContent = '♻️ Re-assinar Push';
+    } else {
+      const errText = await res.text();
+      log('❌ Erro ao salvar no Supabase (status ' + res.status + '): ' + errText, 'err');
+      log('   Crie a tabela push_subscriptions — veja instruções no README', 'warn');
+    }
+  } catch(e) {
+    log('❌ Erro ao criar subscription: ' + e.message, 'err');
+  } finally {
+    document.getElementById('btnAssinar').disabled = false;
+  }
+}
+
 // ── Pedir permissão ────────────────────────────────────
 async function pedirPermissao() {
   if (!('Notification' in window)) {
@@ -478,10 +531,10 @@ async function pedirPermissao() {
   const result = await Notification.requestPermission();
   log('Resultado: ' + result, result === 'granted' ? 'ok' : result === 'denied' ? 'err' : 'warn');
   if (result === 'granted') {
-    log('✅ Permissão concedida! Reexecutando diagnóstico...', 'ok');
+    log('✅ Permissão concedida!', 'ok');
     document.getElementById('btnTestar').disabled = false;
   } else if (result === 'denied') {
-    log('❌ Permissão NEGADA. Vá em: Configurações do celular > Apps > Navegador > Notificações > Permitir este site', 'err');
+    log('❌ Permissão NEGADA. Vá em: Configurações > Apps > Navegador > Notificações > Permitir este site', 'err');
   }
   await executarDiagnostico();
 }
@@ -489,22 +542,15 @@ async function pedirPermissao() {
 // ── Testar via SW ──────────────────────────────────────
 async function testarNotificacao() {
   if (!swRegistration || !swRegistration.active) {
-    log('❌ SW não está ativo — não é possível disparar', 'err');
-    return;
+    log('❌ SW não está ativo', 'err'); return;
   }
   if (Notification.permission !== 'granted') {
-    log('❌ Permissão não concedida', 'err');
-    return;
+    log('❌ Permissão não concedida', 'err'); return;
   }
   log('⏳ Enviando mensagem ao SW...', 'info');
   try {
-    swRegistration.active.postMessage({
-      tipo: 'novo_pedido',
-      nome: 'Cliente Teste',
-      total: '25,00'
-    });
+    swRegistration.active.postMessage({ tipo: 'novo_pedido', nome: 'Cliente Teste', total: '25,00' });
     log('✅ Mensagem enviada ao SW! Notificação deve aparecer em instantes.', 'ok');
-    log('   (Se não apareceu, veja se o SW está interceptando a mensagem)', 'warn');
   } catch(e) {
     log('❌ Erro ao postar mensagem: ' + e.message, 'err');
   }
@@ -513,17 +559,12 @@ async function testarNotificacao() {
 // ── Testar direto (sem SW) ─────────────────────────────
 async function testarSemSW() {
   if (Notification.permission !== 'granted') {
-    log('❌ Permissão necessária — clique em "Pedir Permissão" primeiro', 'err');
-    return;
+    log('❌ Permissão necessária primeiro', 'err'); return;
   }
   log('⏳ Disparando notificação direta (sem SW)...', 'info');
   try {
-    new Notification('🔔 Teste Direto!', {
-      body: 'Cliente Teste · R$ 25,00',
-      icon: './icone.png'
-    });
-    log('✅ Notificação direta disparada! Apareceu?', 'ok');
-    log('   Se sim: Notification API funciona. Se não: problema no SO/navegador.', 'warn');
+    new Notification('🔔 Teste Direto!', { body: 'Cliente Teste · R$ 25,00', icon: './icone.png' });
+    log('✅ Notificação direta disparada!', 'ok');
   } catch(e) {
     log('❌ Erro na notificação direta: ' + e.message, 'err');
   }
@@ -533,17 +574,14 @@ async function testarSemSW() {
 async function reexecutar() {
   document.getElementById('logBox').innerHTML = '';
   log('Reiniciando diagnóstico...', 'info');
-  // resetar checks para loading
-  ['chk-https','chk-sw','chk-notif-api','chk-perm','chk-sw-reg','chk-sw-active','chk-pwa'].forEach(id => {
+  ['chk-https','chk-sw','chk-notif-api','chk-perm','chk-sw-reg','chk-sw-active','chk-pwa','chk-push-sub'].forEach(id => {
     setCheck(id, 'loading', '<span class="spin"></span>', 'Verificando...', '');
   });
+  document.getElementById('btnAssinar').textContent = '📲 Ativar Push em Background';
   await executarDiagnostico();
 }
 
-// ── Init ───────────────────────────────────────────────
-window.addEventListener('load', () => {
-  setTimeout(executarDiagnostico, 300);
-});
+window.addEventListener('load', () => { setTimeout(executarDiagnostico, 300); });
 </script>
 </body>
 </html>
