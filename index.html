@@ -1951,6 +1951,14 @@ function iniciarRealtimePedidos() {
                     _renderOrderList();
                     _tocarSomPedido();
                     showToast({ type: 'success', title: '🔔 Novo pedido!', body: `${novo.customer_name} · R$ ${Number(novo.total||0).toFixed(2).replace('.',',')}`, duration: 5000 });
+                    // Envia notificação nativa via Service Worker
+                    if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({
+                            tipo: 'novo_pedido',
+                            nome: novo.customer_name,
+                            total: Number(novo.total||0).toFixed(2).replace('.',',')
+                        });
+                    }
                 }
             } else if (eventType === 'UPDATE') {
                 if ((novo.status || '') === 'Em produção') {
